@@ -29,5 +29,4 @@ if(NOT DEFINED CONF_INSTALL_DIR)
   set(CONF_INSTALL_DIR "/etc")
 endif(NOT DEFINED CONF_INSTALL_DIR)
 
-
 add_subdirectory(client)
