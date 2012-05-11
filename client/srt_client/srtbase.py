@@ -2,6 +2,13 @@ from gi.repository import GObject, GLib
 
 from .srtconf import *
 
+(SRTERR_DISCONN,
+ SRTERR_BUSY,
+ SRTERR_MOVE_LIMIT,
+ SRTERR_UNKNOWN_REPLY,
+ SRTERR_UNKNOW_CMD,
+ *_SRTERR_EXTRAS) = range(100)
+
 class SrtBase(GObject.Object):
     __gsignals__ = {
         'error': (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE,
@@ -39,8 +46,8 @@ class SrtBase(GObject.Object):
             raise AttributeError(key)
     def __setattr__(self, key, value):
         if (not key.startswith('_')) and key in self._conf:
-            raise TypeError("Attribute %s is read-only, please use update_conf "
-                            "change it.")
+            raise TypeError("Attribute '%s' is read-only, please use "
+                            "update_conf() to change it." % key)
         GObject.GObject.__setattr__(self, key, value)
     def update_conf(self, conf):
         self.freeze_notify()

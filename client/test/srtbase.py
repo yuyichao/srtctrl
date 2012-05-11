@@ -13,9 +13,9 @@ src_dir = path.abspath("%s/.." % test_dir)
 
 sys.path.insert(0, src_dir)
 
-from srt_client import srtbase
+from srt_client.srtbase import *
 
-class SrtTestBase(srtbase.SrtBase):
+class SrtTestBase(SrtBase):
     _conf = {'a': 3, 'b': 4}
 
 class SrtTest1(SrtTestBase):
@@ -41,6 +41,7 @@ def test():
     print(testmul._conf)
     try:
         testmul.a = 3
+        exit(1)
     except TypeError as err:
         print(err)
     testmul.h = 4
@@ -54,6 +55,11 @@ def test():
     print(testmul.conf)
     testmul.update_conf({'a': 4, 'b': 9, 'g': 100})
     print(testmul.conf)
+    print(SRTERR_DISCONN,
+          SRTERR_BUSY,
+          SRTERR_MOVE_LIMIT,
+          SRTERR_UNKNOWN_REPLY,
+          SRTERR_UNKNOW_CMD)
 
 if __name__ == '__main__':
     test()
