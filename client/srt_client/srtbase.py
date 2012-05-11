@@ -36,7 +36,10 @@ class SrtBase(GObject.Object):
             execfile(conf, g, l)
             conf = l
         else:
-            conf = conf.copy()
+            try:
+                conf = conf.copy()
+            except AttributeError:
+                conf = {}
         conf.update(def_cfg)
         self._conf = update_select(conf, _conf)
     def __getattr__(self, key):
