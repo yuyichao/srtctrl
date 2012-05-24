@@ -1,4 +1,4 @@
-import os, ctypes
+import os, ctypes, fcntl
 from socket import * # for flags only
 import locale
 locale.setlocale(locale.LC_ALL, '')
@@ -110,9 +110,21 @@ class SrtSock(SrtBase):
         except TypeError:
             pass
 
+    def _set_non_block(self):
+        fd = self.get_fd()
+        if fd < 0:
+            return
+        try:
+            flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+        except OSError as err:
+            # k, if EINTR happens I should have reraise the exception~
+            return
+        fcntl.fcntl(fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
     def _send(self, buff, flags=0):
+        self._set_non_block()
         return send(self.get_fd(), buff, flags=flags)
     def _recv(self, count, flags=0):
+        self._set_non_block()
         return recv(self.get_fd(), count, flags=flags)
     def _try_send_buff(self):
         try:

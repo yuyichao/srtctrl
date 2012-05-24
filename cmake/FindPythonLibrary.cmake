@@ -32,23 +32,22 @@
 # PYTHON_MAGIC_TAG
 #     The magic tag used in byte compiling (PEP 3147)
 
-# Copyright 2012 Yu Yichao
-# yyc1992@gmail.com
+#   Copyright (C) 2012~2012 by Yichao Yu
+#   yyc1992@gmail.com
 #
-# This file is part of SrtCtrl.
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, version 2 of the License.
 #
-# SrtCtrl is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
 #
-# SrtCtrl is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with SrtCtrl.  If not, see <http://www.gnu.org/licenses/>.
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the
+#   Free Software Foundation, Inc.,
+#   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 # This file incorporates work covered by the following copyright and
 # permission notice:
@@ -59,12 +58,12 @@
 
 include(CMakeFindFrameworks)
 
-if(PYTHONLIBRARY_FOUND)
+if(EXISTS PYTHON_LIBRARY)
   # Already in cache, be silent
   set(PYTHONLIBRARY_FOUND TRUE)
-else(PYTHONLIBRARY_FOUND)
+else(EXISTS PYTHON_LIBRARY)
   find_package(PythonInterp)
-  find_package(PkgConfig REQUIRED)
+
   if(PYTHONINTERP_FOUND)
     # get the directory of the current file, used later on in the file
     get_filename_component(_py_cmake_module_dir ${CMAKE_CURRENT_LIST_FILE} PATH)
@@ -89,12 +88,19 @@ else(PYTHONLIBRARY_FOUND)
       set(PYTHON_SITE_PACKAGES_INSTALL_DIR ${_TMP_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "The directory where python modules will be installed to.")
 
       string(REGEX REPLACE "([0-9]+).([0-9]+)" "\\1\\2" PYTHON_SHORT_VERSION_NO_DOT ${PYTHON_SHORT_VERSION})
-      pkg_check_modules(PYTHON_PKG REQUIRED python-${PYTHON_SHORT_VERSION})
-      set(PYTHON_LIBRARY_NAMES ${PYTHON_PKG_LIBRARIES})
-      find_library(PYTHON_LIBRARY NAMES ${PYTHON_LIBRARY_NAMES} PATHS ${PYTHON_PREFIX}/lib ${PYTHON_PREFIX}/libs NO_DEFAULT_PATH)
+      find_package(PkgConfig)
+      if(PKG_CONFIG_FOUND)
+        pkg_check_modules(PYTHON_PKG python-${PYTHON_SHORT_VERSION})
+        set(PYTHON_LIBRARY_NAMES ${PYTHON_PKG_LIBRARIES})
+      endif(PKG_CONFIG_FOUND)
+      # add fallback
+      set(PYTHON_LIBRARY_NAMES ${PYTHON_LIBRARY_NAMES}
+        python${PYTHON_SHORT_VERSION}
+        python${PYTHON_SHORT_VERSION_NO_DOT})
       if(WIN32)
         string(REPLACE "\\" "/" PYTHON_SITE_PACKAGES_DIR ${PYTHON_SITE_PACKAGES_DIR})
       endif(WIN32)
+      find_library(PYTHON_LIBRARY NAMES ${PYTHON_LIBRARY_NAMES} PATHS ${PYTHON_PREFIX}/lib ${PYTHON_PREFIX}/libs NO_DEFAULT_PATH)
       set(PYTHONLIBRARY_FOUND TRUE)
     endif(python_config)
 
@@ -129,4 +135,4 @@ else(PYTHONLIBRARY_FOUND)
       message(FATAL_ERROR "Could not find Python")
     endif(PYTHONLIBRARY_FIND_REQUIRED)
   endif(PYTHONLIBRARY_FOUND)
-endif(PYTHONLIBRARY_FOUND)
+endif(EXISTS PYTHON_LIBRARY)
