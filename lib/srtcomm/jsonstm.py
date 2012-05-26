@@ -139,16 +139,16 @@ def _j_to_all_end(jstr, start=0):
         return res
     return
 
-def __test_str():
-    jstrs = ['"',
-             '""',
-             '"abcd\\a\\u"',
-             '"asdf"',
-             'asdf']
-    for jstr in jstrs:
-        print(_j_to_str_end(jstr, start=0))
+def get_json(jstr, start=0):
+    res = _j_to_all_end(jstr, start=start)
+    if res is None:
+        return (None, jstr)
+    if res == _J_RES_BLK:
+        return ('', '')
+    i = res + 1
+    return (jstr[:i], jstr[i:])
 
-def __test_all():
+def __test_get_json():
     jstrs = ['     []',
              '     {}',
              '  {1:2}',
@@ -156,40 +156,16 @@ def __test_all():
              '1.34.4e',
              '   true',
              '  false',
-             '   null']
-    print('should be the same')
+             '   null',
+             '[{"a": "basdf",\n "b": [1, 2]}, '
+             '{1, 2:::,,,333444, "asd}}[[]][f", 123, 134-134e3413E+387}, '
+             '"asdf", 1341234, null]']
     for jstr in jstrs:
         print(jstr)
-        print(_j_to_all_end(jstr, start=0))
-
-def __test_blk():
-    print('\nblk')
-    jstrs = ['',
-             ' ',
-             '  ',
-             '0',
-             ' 0',
-             '  0',
-             '   0',
-             '    0']
-    for jstr in jstrs:
-        res = _j_none_blk(jstr)
-        print("'%s'" % jstr, res, "'%s'" % jstr[res:] if res >= 0 else 'BLK')
-    print('bbbb')
-    for jstr in jstrs:
-        res = _j_none_blk(jstr, char='0')
-        print("'%s'" % jstr, res, ("'%s'" % jstr[res:] if res >= 0 else 'BLK')
-              if not res is None else 'Not Match')
-    print('bbbb')
-    for jstr in jstrs:
-        res = _j_none_blk(jstr, char='1')
-        print("'%s'" % jstr, res, ("'%s'" % jstr[res:] if res >= 0 else 'BLK')
-              if not res is None else 'Not Match')
+        print(get_json(jstr, start=0))
 
 def __test():
-    __test_str()
-    __test_blk()
-    __test_all()
+    __test_get_json()
 
 if __name__ == '__main__':
     __test()
