@@ -30,3 +30,4 @@ if(NOT DEFINED CONF_INSTALL_DIR)
 endif(NOT DEFINED CONF_INSTALL_DIR)
 
 add_subdirectory(client)
+add_subdirectory(lib)
