@@ -40,11 +40,11 @@ extern "C" {
     GWebKitJSContext *gwebkitjs_context_new_from_frame(
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
-    void gwebkitjs_context_set_context(GWebKitJSContext *gctx,
+    void gwebkitjs_context_set_context(GWebKitJSContext *self,
                                        JSGlobalContextRef ctx);
-    void gwebkitjs_context_set_frame(GWebKitJSContext *gctx,
+    void gwebkitjs_context_set_frame(GWebKitJSContext *self,
                                      WebKitWebFrame *webframe);
-    void gwebkitjs_context_set_view(GWebKitJSContext *gctx,
+    void gwebkitjs_context_set_view(GWebKitJSContext *self,
                                     WebKitWebView *webview);
 #ifdef __cplusplus
 }
