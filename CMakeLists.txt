@@ -4,6 +4,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake
   ${CMAKE_MODULE_PATH})
 
 include(PythonMacros)
+include(CheckAll)
+include(GObjectIntrospection)
 
 if(NOT DEFINED BIN_INSTALL_DIR)
   set(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin")

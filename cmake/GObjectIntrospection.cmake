@@ -18,8 +18,19 @@ macro(_gir_list_prefix _newlist _list _prefix)
   set(${_newlist})
   foreach(_item IN LISTS ${_list})
     list(APPEND ${_newlist} ${_prefix}${_item})
-  endforeach(_item)
-endmacro(_gir_list_prefix)
+  endforeach()
+endmacro()
+
+function(__GET_UNIQUE_TARGET_NAME _name _unique_name)
+   set(propertyName "_GOBJECT_INTROSPECTION_UNIQUE_COUNTER_${_name}")
+   get_property(currentCounter GLOBAL PROPERTY "${propertyName}")
+   if(NOT currentCounter)
+      set(currentCounter 1)
+   endif()
+   set(${_unique_name} "${_name}_${currentCounter}" PARENT_SCOPE)
+   math(EXPR currentCounter "${currentCounter} + 1")
+   set_property(GLOBAL PROPERTY ${propertyName} ${currentCounter} )
+endfunction()
 
 function(gobject_introspection _FIRST_ARG)
   set(options QUIET VERBOSE)
@@ -91,7 +102,7 @@ function(gobject_introspection _FIRST_ARG)
     set(GIR_VERBOSE "--verbose")
   else()
     set(GIR_VERBOSE "")
-  endif(GIR_VERBOSE)
+  endif()
 
   if(GIR_QUIET)
     set(GIR_QUIET "--quiet")
@@ -192,9 +203,6 @@ function(gobject_introspection _FIRST_ARG)
     VERBATIM
     )
 
-  add_custom_target(${GIR_FILENAME}.target ALL
-    DEPENDS ${GIR_LIBRARY} ${GIR_FILENAME})
-
   # create the name of the typelib
   string(REPLACE ".gir" ".typelib" GIR_TYPELIB "${GIR_FILENAME}")
 
@@ -207,6 +215,7 @@ function(gobject_introspection _FIRST_ARG)
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
 
-  add_custom_target(${GIR_TYPELIB}.target ALL DEPENDS
-    ${GIR_LIBRARY} ${GIR_FILENAME} ${GIR_TYPELIB})
+  __get_unique_target_name(gobject_introspection_compile_target
+    _gir_compile_target)
+  add_custom_target(${_gir_compile_target} ALL DEPENDS ${GIR_TYPELIB})
 endfunction()

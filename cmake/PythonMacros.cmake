@@ -90,27 +90,23 @@ macro(_PYTHON_COMPILE SOURCE_FILE)
     set(_bin_pyc ${CMAKE_CURRENT_BINARY_DIR}/${_basepath}/${_filenamebase}.pyc)
   endif()
 
-  set(_message "Byte-compiling ${_bin_py}")
-
   get_filename_component(_abs_bin_py ${_bin_py} ABSOLUTE)
   # Don't copy the file onto itself.
   if(NOT _abs_bin_py STREQUAL ${_absfilename})
     add_custom_command(
       OUTPUT ${_bin_py}
-      COMMAND ${CMAKE_COMMAND} -E echo "Copying ${_absfilename} to ${_bin_py}"
       COMMAND ${CMAKE_COMMAND} -E copy ${_absfilename} ${_bin_py}
       DEPENDS ${_absfilename}
     )
   endif()
   add_custom_command(
     OUTPUT ${_bin_pyc}
-    COMMAND ${CMAKE_COMMAND} -E echo "${_message}"
     COMMAND ${PYTHON_EXECUTABLE} ${_python_compile_py} ${_bin_py}
     DEPENDS ${_bin_py}
     )
   set(PYTHON_COMPILED_FILE ${_bin_pyc})
   set(PYTHON_COMPILE_PY_FILE ${_bin_py})
-endmacro(_PYTHON_COMPILE)
+endmacro()
 
 macro(PYTHON_COMPILE)
   unset(PYTHON_COMPILED_FILES)
@@ -121,7 +117,7 @@ macro(PYTHON_COMPILE)
     set(PYTHON_COMPILE_PY_FILES ${PYTHON_COMPILE_PY_FILES}
       ${PYTHON_COMPILE_PY_FILE})
   endforeach()
-endmacro(PYTHON_COMPILE)
+endmacro()
 
 macro(PYTHON_INSTALL_ALL DEST_DIR)
   python_compile(${ARGN})
@@ -140,13 +136,13 @@ macro(PYTHON_INSTALL_ALL DEST_DIR)
     set(PYC_DEST_DIR ${DEST_DIR})
   endif()
   install(FILES ${PYTHON_COMPILED_FILES} DESTINATION ${PYC_DEST_DIR})
-endmacro(PYTHON_INSTALL_ALL DEST_DIR)
+endmacro()
 
 # backward compatibility
 macro(PYTHON_INSTALL SOURCE_FILE DESINATION_DIR)
   python_install_all(${DESINATION_DIR} ${SOURCE_FILE})
-endmacro(PYTHON_INSTALL)
+endmacro()
 
 macro(PYTHON_INSTALL_MODULE MODULE_NAME)
   python_install_all(${PYTHON_SITE_PACKAGES_INSTALL_DIR}/${MODULE_NAME} ${ARGN})
-endmacro(PYTHON_INSTALL_MODULE MODULE_NAME)
+endmacro()

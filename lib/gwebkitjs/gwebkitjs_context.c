@@ -57,7 +57,7 @@ gwebkitjs_context_get_type()
       };
 
       context_type = g_type_register_static(G_TYPE_OBJECT,
-                                            "GwebkitJSContext",
+                                            "GWebKitJSContext",
                                             &context_info, 0);
     }
     return context_type;
@@ -132,7 +132,7 @@ gwebkitjs_context_get_property(GObject *obj, guint prop_id,
 }
 
 /**
- * gwebkitjs_context_new:
+ * gwebkitjs_context_new: (skip)
  * @ctx: The Javascript Context wrapped by GWebKitJSContext.
  *
  * Creates a new wrapper of a javascript context.
@@ -150,7 +150,7 @@ gwebkitjs_context_new(JSGlobalContextRef ctx)
 
 /**
  * gwebkitjs_context_new_from_frame:
- * @frame: The WebKit WebFrame to get the context from.
+ * @webframe: The WebKit WebFrame to get the context from.
  *
  * Creates a new javascript context wrapper from a webkit wevframe.
  *
@@ -166,7 +166,7 @@ gwebkitjs_context_new_from_frame(WebKitWebFrame *webframe)
 
 /**
  * gwebkitjs_context_new_from_view:
- * @view: The WebKit WebView to get the context from.
+ * @webview: The WebKit WebView to get the context from.
  *
  * Creates a new javascript context wrapper from a webkit webview.
  *
@@ -195,7 +195,7 @@ _gwebkitjs_context_set_context(GWebKitJSContext *self, JSGlobalContextRef ctx)
 }
 
 /**
- * gwebkitjs_context_set_context:
+ * gwebkitjs_context_set_context: (skip)
  * @self: A #GWebKitJSContext.
  * @ctx: The Javascript Context wrapped by #GWebKitJSContext.
  *
@@ -221,7 +221,7 @@ gwebkitjs_context_set_context(GWebKitJSContext *self, JSGlobalContextRef ctx)
 /**
  * gwebkitjs_context_set_frame:
  * @self: A #GWebKitJSContext.
- * @frame: The WebKit WebFrame to get the context from.
+ * @webframe: The WebKit WebFrame to get the context from.
  *
  * Set the Javascript Context of a #GWebKitJSContext from a #WebKitWebFrame.
  * This function will automatically disconnect self from #WebKitWebView if any.
