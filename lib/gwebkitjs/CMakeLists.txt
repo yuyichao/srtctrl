@@ -10,12 +10,12 @@ add_definitions(${GWEBKITJS_FLAGS})
 
 set(GWEBKITJS_SOURCE
   gwebkitjs_context.c
-#  gwebkitjs_base.c
+  gwebkitjs_base.c
   )
 
 set(GWEBKITJS_HEADER
   gwebkitjs_context.h
-#  gwebkitjs_base.h
+  gwebkitjs_base.h
   )
 
 add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCE})

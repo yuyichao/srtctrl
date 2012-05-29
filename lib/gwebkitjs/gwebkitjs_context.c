@@ -48,22 +48,22 @@ gwebkitjs_context_get_type()
 {
     static GType context_type = 0;
     if (G_UNLIKELY(context_type == 0)) {
-      const GTypeInfo context_info = {
-          .class_size = sizeof(GWebKitJSContextClass),
-          .base_init = NULL,
-          .base_finalize = NULL,
-          .class_init = (GClassInitFunc)gwebkitjs_context_class_init,
-          .class_finalize = NULL,
-          .class_data = NULL,
-          .instance_size = sizeof(GWebKitJSContext),
-          .n_preallocs = 0,
-          .instance_init = (GInstanceInitFunc)gwebkitjs_context_init,
-          .value_table = NULL,
-      };
+        const GTypeInfo context_info = {
+            .class_size = sizeof(GWebKitJSContextClass),
+            .base_init = NULL,
+            .base_finalize = NULL,
+            .class_init = (GClassInitFunc)gwebkitjs_context_class_init,
+            .class_finalize = NULL,
+            .class_data = NULL,
+            .instance_size = sizeof(GWebKitJSContext),
+            .n_preallocs = 0,
+            .instance_init = (GInstanceInitFunc)gwebkitjs_context_init,
+            .value_table = NULL,
+        };
 
-      context_type = g_type_register_static(G_TYPE_OBJECT,
-                                            "GWebKitJSContext",
-                                            &context_info, 0);
+        context_type = g_type_register_static(G_TYPE_OBJECT,
+                                              "GWebKitJSContext",
+                                              &context_info, 0);
     }
     return context_type;
 }
