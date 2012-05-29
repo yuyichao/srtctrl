@@ -9,10 +9,14 @@ link_directories(${GWEBKITJS_LINK_DIRS})
 add_definitions(${GWEBKITJS_FLAGS})
 
 set(GWEBKITJS_SOURCE
-  gwebkitjs_context.c)
+  gwebkitjs_context.c
+#  gwebkitjs_base.c
+  )
 
 set(GWEBKITJS_HEADER
-  gwebkitjs_context.h)
+  gwebkitjs_context.h
+#  gwebkitjs_base.h
+  )
 
 add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCE})
 target_link_libraries(gwebkitjs ${GWEBKITJS_LINK})

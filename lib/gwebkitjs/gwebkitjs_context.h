@@ -39,13 +39,12 @@
                                GWebKitJSContextClass))
 
 typedef struct _GWebKitJSContext GWebKitJSContext;
+typedef struct _GWebKitJSContextPrivate GWebKitJSContextPrivate;
 typedef struct _GWebKitJSContextClass GWebKitJSContextClass;
 
 struct _GWebKitJSContext {
     GObject parent;
-    JSGlobalContextRef ctx;
-    WebKitWebView *webview;
-    gulong webview_id;
+    GWebKitJSContextPrivate *priv;
 };
 
 struct _GWebKitJSContextClass {

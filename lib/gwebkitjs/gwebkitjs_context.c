@@ -23,6 +23,11 @@ enum {
   PROP_CONTEXT
 };
 
+struct _GWebKitJSContextPrivate {
+    JSGlobalContextRef ctx;
+    WebKitWebView *webview;
+    gulong webview_id;
+};
 
 static void gwebkitjs_context_init(GWebKitJSContext *self,
                                    GWebKitJSContextClass *klass);
@@ -66,15 +71,20 @@ gwebkitjs_context_get_type()
 static void
 gwebkitjs_context_init(GWebKitJSContext *self, GWebKitJSContextClass *klass)
 {
-    self->ctx = NULL;
-    self->webview = NULL;
-    self->webview_id = 0;
+    GWebKitJSContextPrivate *priv;
+    priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
+                                                    GWEBKITJS_TYPE_CONTEXT,
+                                                    GWebKitJSContextPrivate);
+    priv->ctx = NULL;
+    priv->webview = NULL;
+    priv->webview_id = 0;
 }
 
 static void
 gwebkitjs_context_class_init(GWebKitJSContextClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    g_type_class_add_private(klass, sizeof(GWebKitJSContextPrivate));
     gobject_class->set_property = gwebkitjs_context_set_property;
     gobject_class->get_property = gwebkitjs_context_get_property;
     gobject_class->dispose = gwebkitjs_context_dispose;
@@ -120,10 +130,11 @@ gwebkitjs_context_get_property(GObject *obj, guint prop_id,
                                GValue *value, GParamSpec *pspec)
 {
     GWebKitJSContext *self = GWEBKITJS_CONTEXT(obj);
+    GWebKitJSContextPrivate *priv = self->priv;
 
     switch (prop_id) {
     case PROP_CONTEXT:
-        g_value_set_pointer(value, self->ctx);
+        g_value_set_pointer(value, priv->ctx);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
@@ -184,13 +195,15 @@ gwebkitjs_context_new_from_view(WebKitWebView *webview)
 static void
 _gwebkitjs_context_set_context(GWebKitJSContext *self, JSGlobalContextRef ctx)
 {
+    GWebKitJSContextPrivate *priv;
     g_return_if_fail(GWEBKITJS_IS_CONTEXT_CLASS(self));
+    priv = self->priv;
 
-    if (self->ctx)
-        JSGlobalContextRelease(self->ctx);
-    self->ctx = ctx;
-    if (self->ctx)
-        JSGlobalContextRetain(self->ctx);
+    if (priv->ctx)
+        JSGlobalContextRelease(priv->ctx);
+    priv->ctx = ctx;
+    if (priv->ctx)
+        JSGlobalContextRetain(priv->ctx);
     g_object_notify(G_OBJECT(self), "context");
 }
 
@@ -205,15 +218,17 @@ _gwebkitjs_context_set_context(GWebKitJSContext *self, JSGlobalContextRef ctx)
 void
 gwebkitjs_context_set_context(GWebKitJSContext *self, JSGlobalContextRef ctx)
 {
+    GWebKitJSContextPrivate *priv;
     g_return_if_fail(GWEBKITJS_IS_CONTEXT_CLASS(self));
+    priv = self->priv;
 
-    if (self->webview) {
-        if (self->webview_id) {
-            g_signal_handler_disconnect(self->webview, self->webview_id);
-            self->webview_id = 0;
+    if (priv->webview) {
+        if (priv->webview_id) {
+            g_signal_handler_disconnect(priv->webview, priv->webview_id);
+            priv->webview_id = 0;
         }
-        g_object_unref(self->webview);
-        self->webview = NULL;
+        g_object_unref(priv->webview);
+        priv->webview = NULL;
     }
     _gwebkitjs_context_set_context(self, ctx);
 }
@@ -241,8 +256,10 @@ gwebkitjs_context_webview_clear_cb(WebKitWebView *web_view,
                                    JSObjectRef win_obj,
                                    GWebKitJSContext *self)
 {
+    GWebKitJSContextPrivate *priv;
     g_return_if_fail(GWEBKITJS_IS_CONTEXT_CLASS(self));
-    if (web_view != self->webview) {
+    priv = self->priv;
+    if (web_view != priv->webview) {
         g_warn_if_reached();
         return;
     }
@@ -260,6 +277,9 @@ void
 gwebkitjs_context_set_view(GWebKitJSContext *self, WebKitWebView *webview)
 {
     WebKitWebFrame *webframe;
+    GWebKitJSContextPrivate *priv;
+    g_return_if_fail(GWEBKITJS_IS_CONTEXT_CLASS(self));
+    priv = self->priv;
     webframe = webkit_web_view_get_main_frame(webview);
 
     /* Also clear any binded webview. */
@@ -267,8 +287,8 @@ gwebkitjs_context_set_view(GWebKitJSContext *self, WebKitWebView *webview)
     gwebkitjs_context_set_frame(self, webframe);
 
     g_object_ref(G_OBJECT(webview));
-    self->webview = webview;
-    self->webview_id =
+    priv->webview = webview;
+    priv->webview_id =
         g_signal_connect(webview, "window-object-cleared",
                          G_CALLBACK(gwebkitjs_context_webview_clear_cb), self);
     g_object_thaw_notify(G_OBJECT(self));
