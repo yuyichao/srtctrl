@@ -18,10 +18,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-struct _GWebKitJSValueClassPrivate {
-    JSClassRef jsclass;
-};
-
 static void gwebkitjs_value_init(GWebKitJSValue *self,
                                  GWebKitJSValueClass *klass);
 
@@ -57,8 +53,6 @@ gwebkitjs_value_get_type()
         value_type = g_type_register_static(G_TYPE_OBJECT,
                                             "GWebKitJSValue",
                                             &value_info, G_TYPE_FLAG_ABSTRACT);
-        g_type_add_class_private(value_type,
-                                 sizeof(GWebKitJSValueClassPrivate));
     }
     return value_type;
 }
@@ -71,9 +65,6 @@ gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
 static void
 gwebkitjs_value_base_init(GWebKitJSValueClass *klass)
 {
-    klass->priv = G_TYPE_CLASS_GET_PRIVATE(klass, GWEBKITJS_TYPE_VALUE,
-                                           GWebKitJSValueClassPrivate);
-    klass->priv->jsclass = NULL;
 }
 
 static void

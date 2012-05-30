@@ -49,7 +49,6 @@ struct _GWebKitJSValue {
 
 struct _GWebKitJSValueClass {
     GObjectClass parent_class;
-    GWebKitJSValueClassPrivate *priv;
 };
 
 typedef enum {
@@ -83,9 +82,9 @@ extern "C" {
     gboolean gwebkitjs_value_is_instance_of(GWebKitJSValue *self,
                                             GWebKitJSValue *construct,
                                             GError *error);
-    // gboolean gwebkitjs_value_is_of_class(GWebKitJSValue *self,
-    //                                      GWebKitJSValueClass *klass,
-    //                                      GError *error);
+    gboolean gwebkitjs_value_is_of_class(GWebKitJSValue *self,
+                                         GType *klass,
+                                         GError *error);
     gchar *gwebkitjs_value_to_json_str(GWebKitJSValue *self, guint indent,
                                        GError *error);
 #ifdef __cplusplus
