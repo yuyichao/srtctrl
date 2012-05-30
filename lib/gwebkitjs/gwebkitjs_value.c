@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 struct _GWebKitJSValueClassPrivate {
+    JSClassRef jsclass;
 };
 
 static void gwebkitjs_value_init(GWebKitJSValue *self,
@@ -68,7 +69,7 @@ gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
 }
 
 static void
-gwebkitjs_value_value_init(GWebKitJSValueClass *klass)
+gwebkitjs_value_base_init(GWebKitJSValueClass *klass)
 {
     klass->priv = G_TYPE_CLASS_GET_PRIVATE(klass, GWEBKITJS_TYPE_VALUE,
                                            GWebKitJSValueClassPrivate);
