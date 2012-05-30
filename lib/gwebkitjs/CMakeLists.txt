@@ -2,6 +2,7 @@ check_all_modules(GWEBKITJS
   GLIB2 REQUIRED glib-2.0
   GOBJECT2 REQUIRED gobject-2.0
   WEBKIT REQUIRED webkitgtk-3.0
+  LIBFFI REQUIRED libffi
   )
 include_directories(${CURRENT_SOURCE_DIR}
   ${GWEBKITJS_INCLUDE_DIRS})
@@ -10,12 +11,14 @@ add_definitions(${GWEBKITJS_FLAGS})
 
 set(GWEBKITJS_SOURCE
   gwebkitjs_context.c
-  gwebkitjs_base.c
+  gwebkitjs_value.c
+  gwebkitjs_class.c
   )
 
 set(GWEBKITJS_HEADER
   gwebkitjs_context.h
-  gwebkitjs_base.h
+  gwebkitjs_value.h
+  gwebkitjs_class.h
   )
 
 add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCE})

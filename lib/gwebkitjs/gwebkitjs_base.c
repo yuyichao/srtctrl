@@ -55,7 +55,7 @@ gwebkitjs_base_get_type()
             .value_table = NULL,
         };
 
-        base_type = g_type_register_static(G_TYPE_OBJECT,
+        base_type = g_type_register_static(GWEBKITJS_TYPE_VALUE,
                                            "GWebKitJSBase",
                                            &base_info, G_TYPE_FLAG_ABSTRACT);
         g_type_add_class_private(base_type, sizeof(GWebKitJSBaseClassPrivate));
@@ -102,7 +102,7 @@ gwebkitjs_base_finalize(GObject *obj)
 
 static void
 gwebkitjs_base_set_property(GObject *obj, guint prop_id,
-                               const GValue *value, GParamSpec *pspec)
+                            const GValue *value, GParamSpec *pspec)
 {
     /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
 
@@ -115,7 +115,7 @@ gwebkitjs_base_set_property(GObject *obj, guint prop_id,
 
 static void
 gwebkitjs_base_get_property(GObject *obj, guint prop_id,
-                               GValue *value, GParamSpec *pspec)
+                            GValue *value, GParamSpec *pspec)
 {
     /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
 

@@ -19,8 +19,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include <glib-object.h>
-#include <JavaScriptCore/JSObjectRef.h>
+#include "gwebkitjs_value.h"
 
 #define GWEBKITJS_TYPE_BASE (gwebkitjs_base_get_type())
 #define GWEBKITJS_BASE(obj)                                  \
@@ -42,11 +41,11 @@ typedef struct _GWebKitJSBaseClass GWebKitJSBaseClass;
 typedef struct _GWebKitJSBaseClassPrivate GWebKitJSBaseClassPrivate;
 
 struct _GWebKitJSBase {
-    GObject parent;
+    GWebKitJSValue parent;
 };
 
 struct _GWebKitJSBaseClass {
-    GObjectClass parent_class;
+    GWebKitJSValueClass parent_class;
     GWebKitJSBaseClassPrivate *priv;
 };
 
