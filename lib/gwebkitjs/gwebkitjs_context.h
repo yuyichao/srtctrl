@@ -60,7 +60,9 @@ extern "C" {
     GWebKitJSContext *gwebkitjs_context_new_from_frame(
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
+
     JSGlobalContextRef gwebkitjs_context_get_context(GWebKitJSContext *self);
+
     GWebKitJSValue *gwebkitjs_context_make_bool(GWebKitJSContext *self,
                                                 gboolean b);
     GWebKitJSValue *gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,

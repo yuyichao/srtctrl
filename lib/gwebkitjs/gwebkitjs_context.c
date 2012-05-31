@@ -2,6 +2,7 @@
 #include <gwebkitjs_value.h>
 #include <JavaScriptCore/JSValueRef.h>
 #include <JavaScriptCore/JSStringRef.h>
+
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
  *   yyc1992@gmail.com                                                     *
@@ -158,6 +159,7 @@ gwebkitjs_context_new_from_view(WebKitWebView *webview)
 JSGlobalContextRef
 gwebkitjs_context_get_context(GWebKitJSContext *self)
 {
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
     return self->priv->ctx;
 }
 

@@ -128,7 +128,7 @@ gwebkitjs_value_finalize(GObject *obj)
  * @jsvalue: The JSValueRef to be wrapped by #GWebKitJSValue.
  *
  * Creates a new wrapper of a javascript value. NOTE: this function does NOT
- * retain the jsvalue, call JSValueRetain manually if necessary.
+ * protect the jsvalue, call JSValueProtect manually if necessary.
  *
  * Return value: the new #GWebKitJSValue.
  **/
@@ -147,4 +147,35 @@ gwebkitjs_value_new(GWebKitJSContext *ctx, JSValueRef jsvalue)
     /* TODO: add weak ref */
     priv->jsvalue = jsvalue;
     return self;
+}
+
+GWebKitJSValueType
+gwebkitjs_value_get_value_type(GWebKitJSValue *self)
+{
+    JSContextRef jsctx;
+    JSType jstype;
+    g_return_val_if_fail(GWEBKITJS_IS_VALUE(self),
+                         GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    g_return_val_if_fail(self->priv->jsvalue,
+                         GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    jsctx = gwebkitjs_context_get_context(self->priv->ctx);
+    g_return_val_if_fail(jsctx,
+                         GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    jstype = JSValueGetType(jsctx, self->priv->jsvalue);
+    switch (jstype) {
+    case kJSTypeUndefined:
+        return GWEBKITJS_VALUE_TYPE_UNDEFINED;
+    case kJSTypeNull:
+        return GWEBKITJS_VALUE_TYPE_NULL;
+    case kJSTypeBoolean:
+        return GWEBKITJS_VALUE_TYPE_BOOLEAN;
+    case kJSTypeNumber:
+        return GWEBKITJS_VALUE_TYPE_NUMBER;
+    case kJSTypeString:
+        return GWEBKITJS_VALUE_TYPE_STRING;
+    case kJSTypeObject:
+        return GWEBKITJS_VALUE_TYPE_OBJECT;
+    default:
+        return GWEBKITJS_VALUE_TYPE_UNKNOWN;
+    }
 }
