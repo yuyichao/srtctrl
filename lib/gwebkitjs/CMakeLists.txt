@@ -4,7 +4,7 @@ check_all_modules(GWEBKITJS
   WEBKIT REQUIRED webkitgtk-3.0
   LIBFFI REQUIRED libffi
   )
-include_directories(${CURRENT_SOURCE_DIR}
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}
   ${GWEBKITJS_INCLUDE_DIRS})
 link_directories(${GWEBKITJS_LINK_DIRS})
 add_definitions(${GWEBKITJS_FLAGS})

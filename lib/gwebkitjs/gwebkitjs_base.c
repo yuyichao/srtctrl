@@ -1,4 +1,4 @@
-#include "gwebkitjs_base.h"
+#include <gwebkitjs_base.h>
 
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *

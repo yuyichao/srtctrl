@@ -22,6 +22,7 @@
 #include <glib-object.h>
 #include <JavaScriptCore/JSContextRef.h>
 #include <webkit/webkitwebview.h>
+#include <gwebkitjs_value.h>
 
 #define GWEBKITJS_TYPE_CONTEXT (gwebkitjs_context_get_type())
 #define GWEBKITJS_CONTEXT(obj)                                  \

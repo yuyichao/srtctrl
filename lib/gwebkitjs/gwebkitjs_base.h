@@ -19,7 +19,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "gwebkitjs_value.h"
+#include <gwebkitjs_value.h>
 
 #define GWEBKITJS_TYPE_BASE (gwebkitjs_base_get_type())
 #define GWEBKITJS_BASE(obj)                                  \
