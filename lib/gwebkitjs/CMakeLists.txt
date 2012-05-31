@@ -4,24 +4,27 @@ check_all_modules(GWEBKITJS
   WEBKIT REQUIRED webkitgtk-3.0
   LIBFFI REQUIRED libffi
   )
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}
-  ${GWEBKITJS_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${GWEBKITJS_INCLUDE_DIRS})
 link_directories(${GWEBKITJS_LINK_DIRS})
 add_definitions(${GWEBKITJS_FLAGS})
 
-set(GWEBKITJS_SOURCE
+if(NOT DEFINED GWEBKITJS_HEADER_INSTALL_DIR)
+  set(GWEBKITJS_HEADER_INSTALL_DIR "${HEADER_INSTALL_DIR}/gwebkitjs")
+endif(NOT DEFINED GWEBKITJS_HEADER_INSTALL_DIR)
+
+set(GWEBKITJS_SOURCES
   gwebkitjs_context.c
   gwebkitjs_value.c
   gwebkitjs_base.c
   )
 
-set(GWEBKITJS_HEADER
+set(GWEBKITJS_HEADERS
   gwebkitjs_context.h
   gwebkitjs_value.h
   gwebkitjs_base.h
   )
 
-add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCE})
+add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCES})
 target_link_libraries(gwebkitjs ${GWEBKITJS_LINK})
 install(TARGETS gwebkitjs LIBRARY DESTINATION ${LIB_INSTALL_DIR})
 
@@ -34,7 +37,7 @@ gobject_introspection(
     SCANNER_ARGS --warn-all --add-include-path=${CMAKE_CURRENT_SOURCE_DIR}
     COMPILER_ARGS "--includedir=${CMAKE_CURRENT_SOURCE_DIR}"
     SYMBOL_PREFIXES gwebkitjs
-    SOURCES ${GWEBKITJS_SOURCE} ${GWEBKITJS_HEADER}
+    SOURCES ${GWEBKITJS_SOURCES} ${GWEBKITJS_HEADERS}
     QUIET
 )
 
@@ -42,3 +45,5 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GWebKitJS-0.1.gir
   DESTINATION ${GOBJECT_INTROSPECTION_GIRDIR})
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GWebKitJS-0.1.typelib
   DESTINATION ${GOBJECT_INTROSPECTION_TYPELIBDIR})
+install(FILES ${GWEBKITJS_HEADERS}
+  DESTINATION ${GWEBKITJS_HEADER_INSTALL_DIR})
