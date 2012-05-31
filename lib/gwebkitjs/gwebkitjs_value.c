@@ -75,11 +75,6 @@ gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
 }
 
 static void
-gwebkitjs_value_base_init(GWebKitJSValueClass *klass)
-{
-}
-
-static void
 gwebkitjs_value_class_init(GWebKitJSValueClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
