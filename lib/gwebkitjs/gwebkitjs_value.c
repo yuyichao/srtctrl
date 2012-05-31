@@ -127,7 +127,8 @@ gwebkitjs_value_finalize(GObject *obj)
  * @ctx: The #GWebKitJSContext which wraps the Javascript Context of the value.
  * @jsvalue: The JSValueRef to be wrapped by #GWebKitJSValue.
  *
- * Creates a new wrapper of a javascript value.
+ * Creates a new wrapper of a javascript value. NOTE: this function does NOT
+ * retain the jsvalue, call JSValueRetain manually if necessary.
  *
  * Return value: the new #GWebKitJSValue.
  **/

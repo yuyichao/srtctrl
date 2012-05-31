@@ -1,6 +1,7 @@
 #include <gwebkitjs_context.h>
 #include <gwebkitjs_value.h>
 #include <JavaScriptCore/JSValueRef.h>
+#include <JavaScriptCore/JSStringRef.h>
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
  *   yyc1992@gmail.com                                                     *
@@ -192,7 +193,14 @@ GWebKitJSValue*
 gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
                                      const gchar *json)
 {
-    return NULL;
+    JSValueRef jsvalue;
+    JSStringRef jsstr;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    g_return_val_if_fail(self->priv->ctx, NULL);
+    jsstr = JSStringCreateWithUTF8CString(json);
+    jsvalue = JSValueMakeFromJSONString(self->priv->ctx, jsstr);
+    JSStringRelease(jsstr);
+    return gwebkitjs_value_new(self, jsvalue);
 }
 
 /**
@@ -244,7 +252,14 @@ gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
 GWebKitJSValue*
 gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
 {
-    return NULL;
+    JSValueRef jsvalue;
+    JSStringRef jsstr;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    g_return_val_if_fail(self->priv->ctx, NULL);
+    jsstr = JSStringCreateWithUTF8CString(str);
+    jsvalue = JSValueMakeString(self->priv->ctx, jsstr);
+    JSStringRelease(jsstr);
+    return gwebkitjs_value_new(self, jsvalue);
 }
 
 /**
