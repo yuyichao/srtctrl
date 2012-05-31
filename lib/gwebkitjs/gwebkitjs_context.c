@@ -158,3 +158,92 @@ gwebkitjs_context_get_context(GWebKitJSContext *self)
 {
     return self->priv->ctx;
 }
+
+/**
+ * gwebkitjs_context_make_bool:
+ * @self: A #GWebKitJSContext.
+ * @b: the boolean value of the created jsvalue.
+ *
+ * Create a #GWebKitJSValue from a boolean value.
+ *
+ * Return value: (transfer full): the created #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_bool(GWebKitJSContext *self, gboolean b)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_make_from_json_str:
+ * @self: A #GWebKitJSContext.
+ * @json: the JSON string to create the object from.
+ *
+ * Create a #GWebKitJSValue from a JSON string.
+ *
+ * Return value: (transfer full): the created #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
+                                     const gchar *json)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_make_null:
+ * @self: A #GWebKitJSContext.
+ *
+ * Create a null #GWebKitJSValue.
+ *
+ * Return value: (transfer full): the created #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_null(GWebKitJSContext *self)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_make_number:
+ * @self: A #GWebKitJSContext.
+ * @num: the value(number) of the created jsvalue.
+ *
+ * Create a #GWebKitJSValue from a number.
+ *
+ * Return value: (transfer full): the created #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_make_string:
+ * @self: A #GWebKitJSContext.
+ * @str: the string to create the object from.
+ *
+ * Create a #GWebKitJSValue from a string.
+ *
+ * Return value: (transfer full): the created #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_make_undefined:
+ * @self: A #GWebKitJSContext.
+ *
+ * Create a undefined #GWebKitJSValue.
+ *
+ * Return value: (transfer full): the created #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_undefined(GWebKitJSContext *self)
+{
+    return NULL;
+}
