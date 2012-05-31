@@ -121,3 +121,27 @@ gwebkitjs_value_finalize(GObject *obj)
 /*         break; */
 /*     } */
 /* } */
+
+/**
+ * gwebkitjs_value_new: (skip)
+ * @ctx: The #GWebKitJSContext which wraps the Javascript Context of the value.
+ * @jsvalue: The JSValueRef to be wrapped by #GWebKitJSValue.
+ *
+ * Creates a new wrapper of a javascript value.
+ *
+ * Return value: the new #GWebKitJSValue.
+ **/
+GWebKitJSValue*
+gwebkitjs_value_new(GWebKitJSContext *ctx, JSValueRef jsvalue)
+{
+    GWebKitJSValue *self;
+    GWebKitJSValuePrivate *priv;
+    self = g_object_new(GWEBKITJS_TYPE_VALUE, NULL);
+    if (!self)
+        return NULL;
+    priv = self->priv;
+    priv->ctx = ctx;
+    /* TODO: add weak ref */
+    priv->jsvalue = jsvalue;
+    return self;
+}
