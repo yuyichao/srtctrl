@@ -206,7 +206,11 @@ gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
 GWebKitJSValue*
 gwebkitjs_context_make_null(GWebKitJSContext *self)
 {
-    return NULL;
+    JSValueRef jsvalue;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    g_return_val_if_fail(self->priv->ctx, NULL);
+    jsvalue = JSValueMakeNull(self->priv->ctx);
+    return gwebkitjs_value_new(self, jsvalue);
 }
 
 /**
@@ -221,7 +225,11 @@ gwebkitjs_context_make_null(GWebKitJSContext *self)
 GWebKitJSValue*
 gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
 {
-    return NULL;
+    JSValueRef jsvalue;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    g_return_val_if_fail(self->priv->ctx, NULL);
+    jsvalue = JSValueMakeNumber(self->priv->ctx, num);
+    return gwebkitjs_value_new(self, jsvalue);
 }
 
 /**
@@ -250,5 +258,9 @@ gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
 GWebKitJSValue*
 gwebkitjs_context_make_undefined(GWebKitJSContext *self)
 {
-    return NULL;
+    JSValueRef jsvalue;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    g_return_val_if_fail(self->priv->ctx, NULL);
+    jsvalue = JSValueMakeUndefined(self->priv->ctx);
+    return gwebkitjs_value_new(self, jsvalue);
 }
