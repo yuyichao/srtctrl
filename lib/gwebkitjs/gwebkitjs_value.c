@@ -20,7 +20,7 @@
  ***************************************************************************/
 
 struct _GWebKitJSValuePrivate {
-    JSValueRef *jsvalue;
+    JSValueRef jsvalue;
     GWebKitJSContext *ctx;
 };
 
@@ -66,6 +66,12 @@ gwebkitjs_value_get_type()
 static void
 gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
 {
+    GWebKitJSValuePrivate *priv;
+    priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
+                                                    GWEBKITJS_TYPE_VALUE,
+                                                    GWebKitJSValuePrivate);
+    priv->jsvalue = NULL;
+    priv->ctx = NULL;
 }
 
 static void
@@ -77,6 +83,7 @@ static void
 gwebkitjs_value_class_init(GWebKitJSValueClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    g_type_class_add_private(klass, sizeof(GWebKitJSValuePrivate));
     /* gobject_class->set_property = gwebkitjs_value_set_property; */
     /* gobject_class->get_property = gwebkitjs_value_get_property; */
     gobject_class->dispose = gwebkitjs_value_dispose;
