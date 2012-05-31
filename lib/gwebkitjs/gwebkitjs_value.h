@@ -1,6 +1,9 @@
 #ifndef __GWEBKITJS_VALUE_H__
 #define __GWEBKITJS_VALUE_H__
 
+#include <glib-object.h>
+#include <JavaScriptCore/JSObjectRef.h>
+
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
  *   yyc1992@gmail.com                                                     *
@@ -18,9 +21,6 @@
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
-
-#include <glib-object.h>
-#include <JavaScriptCore/JSObjectRef.h>
 
 #define GWEBKITJS_TYPE_VALUE (gwebkitjs_value_get_type())
 #define GWEBKITJS_VALUE(obj)                                  \
@@ -78,18 +78,18 @@ extern "C" {
 
     gboolean gwebkitjs_value_is_equal(GWebKitJSValue *self,
                                       GWebKitJSValue *right,
-                                      GError *error);
+                                      GError **error);
     gboolean gwebkitjs_value_is_strict_equal(GWebKitJSValue *self,
                                              GWebKitJSValue *right,
-                                             GError *error);
+                                             GError **error);
 
     gboolean gwebkitjs_value_is_instance_of(GWebKitJSValue *self,
                                             GWebKitJSValue *construct,
-                                            GError *error);
+                                            GError **error);
     gboolean gwebkitjs_value_is_of_class(GWebKitJSValue *self,
-                                         GType *klass, GError *error);
+                                         GType *klass, GError **error);
     gchar *gwebkitjs_value_to_json_str(GWebKitJSValue *self, guint indent,
-                                       GError *error);
+                                       GError **error);
 #ifdef __cplusplus
 }
 #endif

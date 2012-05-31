@@ -47,6 +47,10 @@ struct _GWebKitJSBase {
 struct _GWebKitJSBaseClass {
     GWebKitJSValueClass parent_class;
     GWebKitJSBaseClassPrivate *priv;
+    const gchar *(*get_name)(GWebKitJSBase *base);
+    void (*initialize)(GWebKitJSBase *base);
+    void (*finalize)(GWebKitJSBase *base);
+    gboolean (*has_property)(GWebKitJSBase *base, const char *name);
 };
 
 #ifdef __cplusplus
