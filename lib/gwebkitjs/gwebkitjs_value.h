@@ -40,7 +40,6 @@
 typedef struct _GWebKitJSValue GWebKitJSValue;
 typedef struct _GWebKitJSValuePrivate GWebKitJSValuePrivate;
 typedef struct _GWebKitJSValueClass GWebKitJSValueClass;
-typedef struct _GWebKitJSValueClassPrivate GWebKitJSValueClassPrivate;
 
 struct _GWebKitJSValue {
     GObject parent;
@@ -83,8 +82,7 @@ extern "C" {
                                             GWebKitJSValue *construct,
                                             GError *error);
     gboolean gwebkitjs_value_is_of_class(GWebKitJSValue *self,
-                                         GType *klass,
-                                         GError *error);
+                                         GType *klass, GError *error);
     gchar *gwebkitjs_value_to_json_str(GWebKitJSValue *self, guint indent,
                                        GError *error);
 #ifdef __cplusplus

@@ -18,11 +18,6 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-enum {
-  PROP_0,
-  PROP_CONTEXT
-};
-
 struct _GWebKitJSContextPrivate {
     JSGlobalContextRef ctx;
 };
@@ -34,12 +29,6 @@ static void gwebkitjs_context_class_init(GWebKitJSContextClass *klass,
                                          gpointer data);
 static void gwebkitjs_context_dispose(GObject *obj);
 static void gwebkitjs_context_finalize(GObject *obj);
-/* static void gwebkitjs_context_set_property(GObject *obj, guint prop_id, */
-/*                                            const GValue *value, */
-/*                                            GParamSpec *pspec); */
-/* static void gwebkitjs_context_get_property(GObject *obj, guint prop_id, */
-/*                                            GValue *value, */
-/*                                            GParamSpec *pspec); */
 
 GType
 gwebkitjs_context_get_type()
@@ -101,39 +90,6 @@ gwebkitjs_context_finalize(GObject *obj)
 {
 }
 
-/* static void */
-/* gwebkitjs_context_set_property(GObject *obj, guint prop_id, */
-/*                                const GValue *value, GParamSpec *pspec) */
-/* { */
-/*     GWebKitJSContext *self = GWEBKITJS_CONTEXT(obj); */
-
-/*     switch (prop_id) { */
-/*     case PROP_CONTEXT: */
-/*         gwebkitjs_context_set_context(self, g_value_get_pointer(value)); */
-/*         break; */
-/*     default: */
-/*         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec); */
-/*         break; */
-/*     } */
-/* } */
-
-/* static void */
-/* gwebkitjs_context_get_property(GObject *obj, guint prop_id, */
-/*                                GValue *value, GParamSpec *pspec) */
-/* { */
-/*     GWebKitJSContext *self = GWEBKITJS_CONTEXT(obj); */
-/*     GWebKitJSContextPrivate *priv = self->priv; */
-
-/*     switch (prop_id) { */
-/*     case PROP_CONTEXT: */
-/*         g_value_set_pointer(value, priv->ctx); */
-/*         break; */
-/*     default: */
-/*         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec); */
-/*         break; */
-/*     } */
-/* } */
-
 /**
  * gwebkitjs_context_new: (skip)
  * @ctx: The Javascript Context wrapped by GWebKitJSContext.
@@ -187,4 +143,18 @@ gwebkitjs_context_new_from_view(WebKitWebView *webview)
     WebKitWebFrame *webframe;
     webframe = webkit_web_view_get_main_frame(webview);
     return gwebkitjs_context_new_from_frame(webframe);
+}
+
+/**
+ * gwebkitjs_context_get_context: (skip)
+ * @self: A #GWebKitJSContext.
+ *
+ * Get the JSGlobalContextRef wrapped by #GWebKitJSContext.
+ *
+ * Return value: the JSGlobalContextRef wrapped by #GWebKitJSContext.
+ **/
+JSGlobalContextRef
+gwebkitjs_context_get_context(GWebKitJSContext *self)
+{
+    return self->priv->ctx;
 }

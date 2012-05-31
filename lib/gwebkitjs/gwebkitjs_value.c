@@ -1,4 +1,5 @@
 #include <gwebkitjs_value.h>
+#include <gwebkitjs_context.h>
 
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
@@ -17,6 +18,11 @@
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
+
+struct _GWebKitJSValuePrivate {
+    JSValueRef *jsvalue;
+    GWebKitJSContext *ctx;
+};
 
 static void gwebkitjs_value_init(GWebKitJSValue *self,
                                  GWebKitJSValueClass *klass);

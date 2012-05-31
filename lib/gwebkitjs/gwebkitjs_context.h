@@ -60,6 +60,7 @@ extern "C" {
     GWebKitJSContext *gwebkitjs_context_new_from_frame(
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
+    JSGlobalContextRef gwebkitjs_context_get_context(GWebKitJSContext *self);
 #ifdef __cplusplus
 }
 #endif
