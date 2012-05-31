@@ -136,6 +136,8 @@ gwebkitjs_value_new(GWebKitJSContext *ctx, JSValueRef jsvalue)
 {
     GWebKitJSValue *self;
     GWebKitJSValuePrivate *priv;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(ctx), NULL);
+
     self = g_object_new(GWEBKITJS_TYPE_VALUE, NULL);
     if (!self)
         return NULL;

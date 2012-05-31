@@ -1,5 +1,6 @@
 #include <gwebkitjs_context.h>
-
+#include <gwebkitjs_value.h>
+#include <JavaScriptCore/JSValueRef.h>
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
  *   yyc1992@gmail.com                                                     *
@@ -171,7 +172,11 @@ gwebkitjs_context_get_context(GWebKitJSContext *self)
 GWebKitJSValue*
 gwebkitjs_context_make_bool(GWebKitJSContext *self, gboolean b)
 {
-    return NULL;
+    JSValueRef jsvalue;
+    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    g_return_val_if_fail(self->priv->ctx, NULL);
+    jsvalue = JSValueMakeBoolean(self->priv->ctx, b);
+    return gwebkitjs_value_new(self, jsvalue);
 }
 
 /**
