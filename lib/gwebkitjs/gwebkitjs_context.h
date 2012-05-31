@@ -61,6 +61,16 @@ extern "C" {
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
     JSGlobalContextRef gwebkitjs_context_get_context(GWebKitJSContext *self);
+    GWebKitJSValue *gwebkitjs_context_make_bool(GWebKitJSContext *self,
+                                                gboolean b);
+    GWebKitJSValue *gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
+                                                         const gchar *json);
+    GWebKitJSValue *gwebkitjs_context_make_null(GWebKitJSContext *self);
+    GWebKitJSValue *gwebkitjs_context_make_number(GWebKitJSContext *self,
+                                                  gdouble num);
+    GWebKitJSValue *gwebkitjs_context_make_string(GWebKitJSContext *self,
+                                                  const gchar *str);
+    GWebKitJSValue *gwebkitjs_context_make_undefined(GWebKitJSContext *self);
 #ifdef __cplusplus
 }
 #endif
