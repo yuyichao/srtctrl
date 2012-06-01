@@ -21,7 +21,8 @@
 
 struct _GWebKitJSValuePrivate {
     JSValueRef jsvalue;
-    GWebKitJSContext *ctx;
+    GMutex ctx_lock;
+    GHashTable *ctx_table;
 };
 
 static void gwebkitjs_value_init(GWebKitJSValue *self,
@@ -31,12 +32,6 @@ static void gwebkitjs_value_class_init(GWebKitJSValueClass *klass,
                                        gpointer data);
 static void gwebkitjs_value_dispose(GObject *obj);
 static void gwebkitjs_value_finalize(GObject *obj);
-/* static void gwebkitjs_value_set_property(GObject *obj, guint prop_id, */
-/*                                          const GValue *value, */
-/*                                          GParamSpec *pspec); */
-/* static void gwebkitjs_value_get_property(GObject *obj, guint prop_id, */
-/*                                          GValue *value, */
-/*                                          GParamSpec *pspec); */
 
 GType
 gwebkitjs_value_get_type()
@@ -67,11 +62,13 @@ static void
 gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
 {
     GWebKitJSValuePrivate *priv;
+    self->hold_value = FALSE;
     priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
                                                     GWEBKITJS_TYPE_VALUE,
                                                     GWebKitJSValuePrivate);
     priv->jsvalue = NULL;
-    priv->ctx = NULL;
+    g_mutex_init(&priv->ctx_lock);
+    priv->ctx_table = g_hash_table_new(g_direct_hash, g_direct_equal);
 }
 
 static void
@@ -79,8 +76,6 @@ gwebkitjs_value_class_init(GWebKitJSValueClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     g_type_class_add_private(klass, sizeof(GWebKitJSValuePrivate));
-    /* gobject_class->set_property = gwebkitjs_value_set_property; */
-    /* gobject_class->get_property = gwebkitjs_value_get_property; */
     gobject_class->dispose = gwebkitjs_value_dispose;
     gobject_class->finalize = gwebkitjs_value_finalize;
 }
@@ -88,77 +83,69 @@ gwebkitjs_value_class_init(GWebKitJSValueClass *klass, gpointer data)
 static void
 gwebkitjs_value_dispose(GObject *obj)
 {
-    /* GWebKitJSValue *self = GWEBKITJS_VALUE(obj); */
+    GWebKitJSValue *self = GWEBKITJS_VALUE(obj);
+    if (self->hold_value) {
+        //TODO
+        self->hold_value = FALSE;
+    }
+    if (self->priv->ctx_table) {
+        g_hash_table_unref(self->priv->ctx_table);
+        self->priv->ctx_table = NULL;
+    }
 }
 
 static void
 gwebkitjs_value_finalize(GObject *obj)
 {
+    GWebKitJSValue *self = GWEBKITJS_VALUE(obj);
+    g_mutex_clear(&self->priv->ctx_lock);
 }
 
-/* static void */
-/* gwebkitjs_value_set_property(GObject *obj, guint prop_id, */
-/*                                const GValue *value, GParamSpec *pspec) */
-/* { */
-/*     GWebKitJSValue *self = GWEBKITJS_VALUE(obj); */
+static void
+gwebkitjs_value_add_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
+{
 
-/*     switch (prop_id) { */
-/*     default: */
-/*         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec); */
-/*         break; */
-/*     } */
-/* } */
+}
 
-/* static void */
-/* gwebkitjs_value_get_property(GObject *obj, guint prop_id, */
-/*                                GValue *value, GParamSpec *pspec) */
-/* { */
-/*     GWebKitJSValue *self = GWEBKITJS_VALUE(obj); */
+static void
+gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
+{
 
-/*     switch (prop_id) { */
-/*     default: */
-/*         G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec); */
-/*         break; */
-/*     } */
-/* } */
+}
 
 /**
  * gwebkitjs_value_new: (skip)
- * @ctx: The #GWebKitJSContext which wraps the Javascript Context of the value.
  * @jsvalue: The JSValueRef to be wrapped by #GWebKitJSValue.
  *
- * Creates a new wrapper of a javascript value. NOTE: this function does NOT
- * protect the jsvalue, call JSValueProtect manually if necessary.
+ * Creates a new wrapper of a javascript value.
  *
  * Return value: the new #GWebKitJSValue.
  **/
 GWebKitJSValue*
-gwebkitjs_value_new(GWebKitJSContext *ctx, JSValueRef jsvalue)
+gwebkitjs_value_new(GType type, GWebKitJSContext *ctx, JSValueRef jsvalue)
 {
     GWebKitJSValue *self;
-    GWebKitJSValuePrivate *priv;
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(ctx), NULL);
+    g_return_val_if_fail(jsvalue, NULL);
+    g_return_val_if_fail(g_type_is_a(type, GWEBKITJS_TYPE_VALUE), NULL);
 
-    self = g_object_new(GWEBKITJS_TYPE_VALUE, NULL);
-    if (!self)
-        return NULL;
-    priv = self->priv;
-    priv->ctx = ctx;
-    /* TODO: add weak ref */
-    priv->jsvalue = jsvalue;
+    self = g_object_new(type, NULL);
+    g_return_val_if_fail(self, NULL);
+
+    self->priv->jsvalue = jsvalue;
+    gwebkitjs_value_add_context(self, ctx);
     return self;
 }
 
 GWebKitJSValueType
-gwebkitjs_value_get_value_type(GWebKitJSValue *self)
+gwebkitjs_value_get_value_type(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
-    JSContextRef jsctx;
+    JSGlobalContextRef jsctx;
     JSType jstype;
     g_return_val_if_fail(GWEBKITJS_IS_VALUE(self),
                          GWEBKITJS_VALUE_TYPE_UNKNOWN);
     g_return_val_if_fail(self->priv->jsvalue,
                          GWEBKITJS_VALUE_TYPE_UNKNOWN);
-    jsctx = gwebkitjs_context_get_context(self->priv->ctx);
+    jsctx = gwebkitjs_context_get_context(ctx);
     g_return_val_if_fail(jsctx,
                          GWEBKITJS_VALUE_TYPE_UNKNOWN);
     jstype = JSValueGetType(jsctx, self->priv->jsvalue);

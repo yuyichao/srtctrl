@@ -51,6 +51,12 @@ struct _GWebKitJSBaseClass {
     void (*initialize)(GWebKitJSBase *base);
     void (*finalize)(GWebKitJSBase *base);
     gboolean (*has_property)(GWebKitJSBase *base, const char *name);
+    GWebKitJSValue *(*get_property)(GWebKitJSBase *base, const char *name,
+                                    GError **error);
+    gboolean (*set_property)(GWebKitJSBase *base, const char *name,
+                             GWebKitJSValue *value, GError **error);
+    gboolean (*delete_property)(GWebKitJSBase *base, const char *name,
+                                GError **error);
 };
 
 #ifdef __cplusplus

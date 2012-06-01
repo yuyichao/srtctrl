@@ -22,8 +22,92 @@
  ***************************************************************************/
 
 struct _GWebKitJSContextPrivate {
-    JSGlobalContextRef ctx;
+    JSGlobalContextRef jsctx;
 };
+
+
+/**
+ * Context Table Related Stuff.
+ **/
+
+
+/**
+ * A hash table that saves the mapping between JSContextRef
+ * and GWebKitJSContext. Used to find the right GWebKitJSContext
+ * from a JSCore callback.
+ **/
+static GHashTable *context_table = NULL;
+G_LOCK_DEFINE_STATIC(context_table);
+
+/**
+ * _gwebkit_context_init_table:
+ *
+ * Initialize the context table if it has not been initialized already.
+ **/
+static void
+_gwebkit_context_init_table()
+{
+    if (G_UNLIKELY(!context_table)) {
+        context_table = g_hash_table_new(g_direct_hash, g_direct_equal);
+    }
+}
+
+/**
+ * _gwebkitjs_context_remove_from_table:
+ * @key: A JSContextRef (key of context_table).
+ * @value: A #GWebKitJSContext (value of context_table).
+ *
+ * Remove the key-value pair from the context_table, do nothing if the
+ * current value of key is not the same with the given value.
+ **/
+static void
+_gwebkitjs_context_remove_from_table(gpointer key, gpointer value)
+{
+    gpointer orig;
+    G_LOCK(context_table);
+    orig = g_hash_table_lookup(context_table, key);
+    if (G_LIKELY(orig == value))
+        g_hash_table_remove(context_table, key);
+    G_UNLOCK(context_table);
+}
+
+/**
+ * _gwebkitjs_context_update_table:
+ * @gctx: A new created #GWebKitJSContext. (cannot be NULL)
+ *
+ * Look up the corresponding JSContextRef of the #GWebKitJSContext. If found,
+ * add the reference counting of the found #GWebKitJSContext and unref() the
+ * new one. Otherwise, add the new one to context_table.
+ *
+ * Return Value: the correct #GWebKitJSContext correspond to the JSContextRef.
+ **/
+static GWebKitJSContext*
+_gwebkitjs_context_update_table(GWebKitJSContext* gctx)
+{
+    gpointer orig;
+    JSGlobalContextRef jsctx;
+    jsctx = gctx->priv->jsctx;
+update_start:
+    G_LOCK(context_table);
+    orig = g_hash_table_lookup(context_table, jsctx);
+    if (!orig) {
+        g_hash_table_replace(context_table, jsctx, gctx);
+    }
+    G_UNLOCK(context_table);
+    if (orig) {
+        orig = g_object_ref(orig);
+        /* If disposing has already started but the object hasn't been removed
+         * from context_table.
+         */
+        if (G_UNLIKELY(!orig)) {
+            _gwebkitjs_context_remove_from_table(jsctx, orig);
+            goto update_start;
+        }
+        g_object_unref(gctx);
+        return orig;
+    }
+    return gctx;
+}
 
 static void gwebkitjs_context_init(GWebKitJSContext *self,
                                    GWebKitJSContextClass *klass);
@@ -37,7 +121,8 @@ GType
 gwebkitjs_context_get_type()
 {
     static GType context_type = 0;
-    if (G_UNLIKELY(context_type == 0)) {
+    _gwebkit_context_init_table();
+    if (G_UNLIKELY(!context_type)) {
         const GTypeInfo context_info = {
             .class_size = sizeof(GWebKitJSContextClass),
             .base_init = NULL,
@@ -65,7 +150,7 @@ gwebkitjs_context_init(GWebKitJSContext *self, GWebKitJSContextClass *klass)
     priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
                                                     GWEBKITJS_TYPE_CONTEXT,
                                                     GWebKitJSContextPrivate);
-    priv->ctx = NULL;
+    priv->jsctx = NULL;
 }
 
 static void
@@ -73,8 +158,6 @@ gwebkitjs_context_class_init(GWebKitJSContextClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
     g_type_class_add_private(klass, sizeof(GWebKitJSContextPrivate));
-    /* gobject_class->set_property = gwebkitjs_context_set_property; */
-    /* gobject_class->get_property = gwebkitjs_context_get_property; */
     gobject_class->dispose = gwebkitjs_context_dispose;
     gobject_class->finalize = gwebkitjs_context_finalize;
 }
@@ -83,9 +166,11 @@ static void
 gwebkitjs_context_dispose(GObject *obj)
 {
     GWebKitJSContext *self = GWEBKITJS_CONTEXT(obj);
-    if (self->priv->ctx)
-        JSGlobalContextRelease(self->priv->ctx);
-    self->priv->ctx = NULL;
+    if (self->priv->jsctx) {
+        _gwebkitjs_context_remove_from_table(self->priv->jsctx, self);
+        JSGlobalContextRelease(self->priv->jsctx);
+        self->priv->jsctx = NULL;
+    }
 }
 
 static void
@@ -95,25 +180,25 @@ gwebkitjs_context_finalize(GObject *obj)
 
 /**
  * gwebkitjs_context_new: (skip)
- * @ctx: The Javascript Context wrapped by GWebKitJSContext.
+ * @jsctx: The Javascript Context wrapped by GWebKitJSContext.
  *
- * Creates a new wrapper of a javascript context.
+ * Find the corresponding #GWebKitJSContext of a JSGlobalContextRef.
+ * Creates a new one if not exist.
  *
  * Return value: the new #GWebKitJSContext
  **/
 GWebKitJSContext*
-gwebkitjs_context_new(JSGlobalContextRef ctx)
+gwebkitjs_context_new(JSGlobalContextRef jsctx)
 {
     GWebKitJSContext *self;
-    GWebKitJSContextPrivate *priv;
+    g_return_val_if_fail(jsctx, NULL);
+
     self = g_object_new(GWEBKITJS_TYPE_CONTEXT, NULL);
-    if (!self)
-        return NULL;
-    priv = self->priv;
-    priv->ctx = ctx;
-    if (priv->ctx)
-        JSGlobalContextRetain(priv->ctx);
-    return self;
+    g_return_val_if_fail(self, NULL);
+
+    self->priv->jsctx = jsctx;
+    JSGlobalContextRetain(jsctx);
+    return _gwebkitjs_context_update_table(self);
 }
 
 /**
@@ -127,9 +212,9 @@ gwebkitjs_context_new(JSGlobalContextRef ctx)
 GWebKitJSContext*
 gwebkitjs_context_new_from_frame(WebKitWebFrame *webframe)
 {
-    JSGlobalContextRef ctx;
-    ctx = webkit_web_frame_get_global_context(webframe);
-    return gwebkitjs_context_new(ctx);
+    JSGlobalContextRef jsctx;
+    jsctx = webkit_web_frame_get_global_context(webframe);
+    return gwebkitjs_context_new(jsctx);
 }
 
 /**
@@ -160,7 +245,8 @@ JSGlobalContextRef
 gwebkitjs_context_get_context(GWebKitJSContext *self)
 {
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    return self->priv->ctx;
+
+    return self->priv->jsctx;
 }
 
 /**
@@ -177,9 +263,10 @@ gwebkitjs_context_make_bool(GWebKitJSContext *self, gboolean b)
 {
     JSValueRef jsvalue;
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->ctx, NULL);
-    jsvalue = JSValueMakeBoolean(self->priv->ctx, b);
-    return gwebkitjs_value_new(self, jsvalue);
+    g_return_val_if_fail(self->priv->jsctx, NULL);
+
+    jsvalue = JSValueMakeBoolean(self->priv->jsctx, b);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
 
 /**
@@ -197,12 +284,14 @@ gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
 {
     JSValueRef jsvalue;
     JSStringRef jsstr;
+    g_return_val_if_fail(json, NULL);
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->ctx, NULL);
+    g_return_val_if_fail(self->priv->jsctx, NULL);
+
     jsstr = JSStringCreateWithUTF8CString(json);
-    jsvalue = JSValueMakeFromJSONString(self->priv->ctx, jsstr);
+    jsvalue = JSValueMakeFromJSONString(self->priv->jsctx, jsstr);
     JSStringRelease(jsstr);
-    return gwebkitjs_value_new(self, jsvalue);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
 
 /**
@@ -218,9 +307,10 @@ gwebkitjs_context_make_null(GWebKitJSContext *self)
 {
     JSValueRef jsvalue;
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->ctx, NULL);
-    jsvalue = JSValueMakeNull(self->priv->ctx);
-    return gwebkitjs_value_new(self, jsvalue);
+    g_return_val_if_fail(self->priv->jsctx, NULL);
+
+    jsvalue = JSValueMakeNull(self->priv->jsctx);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
 
 /**
@@ -237,9 +327,10 @@ gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
 {
     JSValueRef jsvalue;
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->ctx, NULL);
-    jsvalue = JSValueMakeNumber(self->priv->ctx, num);
-    return gwebkitjs_value_new(self, jsvalue);
+    g_return_val_if_fail(self->priv->jsctx, NULL);
+
+    jsvalue = JSValueMakeNumber(self->priv->jsctx, num);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
 
 /**
@@ -257,11 +348,12 @@ gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
     JSValueRef jsvalue;
     JSStringRef jsstr;
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->ctx, NULL);
+    g_return_val_if_fail(self->priv->jsctx, NULL);
+
     jsstr = JSStringCreateWithUTF8CString(str);
-    jsvalue = JSValueMakeString(self->priv->ctx, jsstr);
+    jsvalue = JSValueMakeString(self->priv->jsctx, jsstr);
     JSStringRelease(jsstr);
-    return gwebkitjs_value_new(self, jsvalue);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
 
 /**
@@ -277,7 +369,7 @@ gwebkitjs_context_make_undefined(GWebKitJSContext *self)
 {
     JSValueRef jsvalue;
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->ctx, NULL);
-    jsvalue = JSValueMakeUndefined(self->priv->ctx);
-    return gwebkitjs_value_new(self, jsvalue);
+    g_return_val_if_fail(self->priv->jsctx, NULL);
+    jsvalue = JSValueMakeUndefined(self->priv->jsctx);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }

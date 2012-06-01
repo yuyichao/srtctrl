@@ -45,6 +45,7 @@ typedef struct _GWebKitJSContext GWebKitJSContext;
 
 struct _GWebKitJSValue {
     GObject parent;
+    gboolean hold_value;
     GWebKitJSValuePrivate *priv;
 };
 
@@ -66,9 +67,10 @@ typedef enum {
 extern "C" {
 #endif
     GType gwebkitjs_value_get_type();
-    GWebKitJSValue *gwebkitjs_value_new(GWebKitJSContext *ctx,
+    GWebKitJSValue *gwebkitjs_value_new(GType type, GWebKitJSContext *ctx,
                                         JSValueRef jsvalue);
-    GWebKitJSValueType gwebkitjs_value_get_value_type(GWebKitJSValue *self);
+    GWebKitJSValueType gwebkitjs_value_get_value_type(GWebKitJSValue *self,
+                                                      GWebKitJSContext *ctx);
     gboolean gwebkitjs_value_is_bool(GWebKitJSValue *self);
     gboolean gwebkitjs_value_is_null(GWebKitJSValue *self);
     gboolean gwebkitjs_value_is_number(GWebKitJSValue *self);

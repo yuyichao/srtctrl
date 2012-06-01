@@ -56,7 +56,7 @@ struct _GWebKitJSContextClass {
 extern "C" {
 #endif
     GType gwebkitjs_context_get_type();
-    GWebKitJSContext *gwebkitjs_context_new(JSGlobalContextRef ctx);
+    GWebKitJSContext *gwebkitjs_context_new(JSGlobalContextRef jsctx);
     GWebKitJSContext *gwebkitjs_context_new_from_frame(
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
