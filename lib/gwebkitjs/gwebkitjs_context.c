@@ -45,7 +45,7 @@ G_LOCK_DEFINE_STATIC(context_table);
  * Initialize the context table if it has not been initialized already.
  **/
 static void
-_gwebkit_context_init_table()
+_gwebkitjs_context_init_table()
 {
     if (G_UNLIKELY(!context_table)) {
         context_table = g_hash_table_new(g_direct_hash, g_direct_equal);
@@ -121,7 +121,7 @@ GType
 gwebkitjs_context_get_type()
 {
     static GType context_type = 0;
-    _gwebkit_context_init_table();
+    _gwebkitjs_context_init_table();
     if (G_UNLIKELY(!context_type)) {
         const GTypeInfo context_info = {
             .class_size = sizeof(GWebKitJSContextClass),

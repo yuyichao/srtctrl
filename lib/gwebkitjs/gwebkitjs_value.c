@@ -20,23 +20,42 @@
  ***************************************************************************/
 
 struct _GWebKitJSValuePrivate {
+    gboolean hold_value;
     JSValueRef jsvalue;
     GMutex ctx_lock;
     GHashTable *ctx_table;
 };
 
+/**
+ * Declarations
+ **/
+
 static void gwebkitjs_value_init(GWebKitJSValue *self,
                                  GWebKitJSValueClass *klass);
-
 static void gwebkitjs_value_class_init(GWebKitJSValueClass *klass,
                                        gpointer data);
 static void gwebkitjs_value_dispose(GObject *obj);
 static void gwebkitjs_value_finalize(GObject *obj);
 
+static void _gwebkitjs_value_init_table();
+static void _gwebkitjs_value_remove_from_table(JSValueRef key,
+                                               GWebKitJSValue *value);
+static GWebKitJSValue* _gwebkitjs_value_update_table(GWebKitJSValue* gvalue);
+
+static void gwebkitjs_value_add_context(GWebKitJSValue *self,
+                                        GWebKitJSContext *ctx);
+static void gwebkitjs_value_remove_context(GWebKitJSValue *self,
+                                           GWebKitJSContext *ctx);
+
+/**
+ * GObject Functions.
+ **/
+
 GType
 gwebkitjs_value_get_type()
 {
     static GType value_type = 0;
+    _gwebkitjs_value_init_table();
     if (G_UNLIKELY(value_type == 0)) {
         const GTypeInfo value_info = {
             .class_size = sizeof(GWebKitJSValueClass),
@@ -62,10 +81,10 @@ static void
 gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
 {
     GWebKitJSValuePrivate *priv;
-    self->hold_value = FALSE;
     priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
                                                     GWEBKITJS_TYPE_VALUE,
                                                     GWebKitJSValuePrivate);
+    priv->hold_value = FALSE;
     priv->jsvalue = NULL;
     g_mutex_init(&priv->ctx_lock);
     priv->ctx_table = g_hash_table_new(g_direct_hash, g_direct_equal);
@@ -84,9 +103,13 @@ static void
 gwebkitjs_value_dispose(GObject *obj)
 {
     GWebKitJSValue *self = GWEBKITJS_VALUE(obj);
-    if (self->hold_value) {
+    if (self->priv->hold_value) {
         //TODO
-        self->hold_value = FALSE;
+        self->priv->hold_value = FALSE;
+    }
+    if (self->priv->jsvalue) {
+        _gwebkitjs_value_remove_from_table(self->priv->jsvalue, self);
+        self->priv->jsvalue = NULL;
     }
     if (self->priv->ctx_table) {
         g_hash_table_unref(self->priv->ctx_table);
@@ -101,6 +124,99 @@ gwebkitjs_value_finalize(GObject *obj)
     g_mutex_clear(&self->priv->ctx_lock);
 }
 
+/**
+ * Value Table Functions.
+ **/
+
+/**
+ * A hash table that saves the mapping between JSValueRef
+ * and GWebKitJSContext. Used to find the right GWebKitJSContext
+ * from a JSCore callback.
+ **/
+static GHashTable *value_table = NULL;
+G_LOCK_DEFINE_STATIC(value_table);
+
+/**
+ * _gwebkitjs_value_init_table:
+ *
+ * Initialize the value table if it has not been initialized already.
+ **/
+static void
+_gwebkitjs_value_init_table()
+{
+    if (G_UNLIKELY(!value_table)) {
+        value_table = g_hash_table_new(g_direct_hash, g_direct_equal);
+    }
+}
+
+/**
+ * _gwebkitjs_value_remove_from_table:
+ * @key: A JSValueRef (key of value_table).
+ * @value: A #GWebKitJSValue (value of value_table).
+ *
+ * Remove the key-value pair from the value_table, do nothing if the
+ * current value of key is not the same with the given value.
+ **/
+static void
+_gwebkitjs_value_remove_from_table(JSValueRef key, GWebKitJSValue *value)
+{
+    gpointer orig;
+    G_LOCK(value_table);
+    orig = g_hash_table_lookup(value_table, key);
+    if (G_LIKELY(orig == value))
+        g_hash_table_remove(value_table, key);
+    G_UNLOCK(value_table);
+}
+
+/**
+ * _gwebkitjs_value_update_table:
+ * @gctx: A new created #GWebKitJSValue. (cannot be NULL)
+ *
+ * Look up the corresponding JSValueRef of the #GWebKitJSValue. If found,
+ * add the reference counting of the found #GWebKitJSValue and unref() the
+ * new one. Otherwise, add the new one to value_table.
+ *
+ * Return Value: the correct #GWebKitJSValue correspond to the JSValueRef.
+ **/
+static GWebKitJSValue*
+_gwebkitjs_value_update_table(GWebKitJSValue* gvalue)
+{
+    gpointer orig;
+    JSValueRef jsvalue;
+    jsvalue = gvalue->priv->jsvalue;
+update_start:
+    G_LOCK(value_table);
+    orig = g_hash_table_lookup(value_table, jsvalue);
+    if (!orig) {
+        g_hash_table_replace(value_table, (gpointer)jsvalue, gvalue);
+    }
+    G_UNLOCK(value_table);
+    if (orig) {
+        orig = g_object_ref(orig);
+        /* If disposing has already started but the object hasn't been removed
+         * from value_table.
+         */
+        if (G_UNLIKELY(!orig)) {
+            _gwebkitjs_value_remove_from_table(jsvalue, orig);
+            goto update_start;
+        }
+        g_object_unref(gvalue);
+        return orig;
+    }
+    return gvalue;
+}
+
+
+/**
+ * Context Table and Reference Counting.
+ **/
+
+static void
+gwebkitjs_value_context_dispose_cb(GWebKitJSValue *self, GWebKitJSContext *ctx)
+{
+    gwebkitjs_value_remove_context(self, ctx);
+}
+
 static void
 gwebkitjs_value_add_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
@@ -112,6 +228,39 @@ gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
 
 }
+
+/**
+ * gwebkitjs_value_protect_value: (skip)
+ * @self: A #GWebKitJSValue.
+ *
+ * Protect the JSValueRef wrapped by the #GWebKitJSValue. This function and
+ * gwebkitjs_value_unprotect_value() is only useful for self-defined object
+ * to avoid reference loop when the only reference left of the object
+ * is hold by JSCore.
+ **/
+void gwebkitjs_value_protect_value(GWebKitJSValue *self)
+{
+
+}
+
+/**
+ * gwebkitjs_value_unprotect_value: (skip)
+ * @self: A #GWebKitJSValue.
+ *
+ * Protect the JSValueRef wrapped by the #GWebKitJSValue. This function and
+ * gwebkitjs_value_protect_value() is only useful for self-defined object
+ * to avoid reference loop when the only reference left of the object
+ * is hold by JSCore.
+ **/
+void gwebkitjs_value_unprotect_value(GWebKitJSValue *self)
+{
+
+}
+
+
+/**
+ * JSCore API.
+ **/
 
 /**
  * gwebkitjs_value_new: (skip)
@@ -132,6 +281,8 @@ gwebkitjs_value_new(GType type, GWebKitJSContext *ctx, JSValueRef jsvalue)
     g_return_val_if_fail(self, NULL);
 
     self->priv->jsvalue = jsvalue;
+    self = _gwebkitjs_value_update_table(self);
+
     gwebkitjs_value_add_context(self, ctx);
     return self;
 }

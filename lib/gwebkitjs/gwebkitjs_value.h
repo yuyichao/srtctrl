@@ -45,7 +45,6 @@ typedef struct _GWebKitJSContext GWebKitJSContext;
 
 struct _GWebKitJSValue {
     GObject parent;
-    gboolean hold_value;
     GWebKitJSValuePrivate *priv;
 };
 
@@ -69,6 +68,8 @@ extern "C" {
     GType gwebkitjs_value_get_type();
     GWebKitJSValue *gwebkitjs_value_new(GType type, GWebKitJSContext *ctx,
                                         JSValueRef jsvalue);
+    void gwebkitjs_value_protect_value(GWebKitJSValue *self);
+    void gwebkitjs_value_unprotect_value(GWebKitJSValue *self);
     GWebKitJSValueType gwebkitjs_value_get_value_type(GWebKitJSValue *self,
                                                       GWebKitJSContext *ctx);
     gboolean gwebkitjs_value_is_bool(GWebKitJSValue *self);
