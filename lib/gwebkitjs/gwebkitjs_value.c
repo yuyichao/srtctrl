@@ -20,9 +20,9 @@
  ***************************************************************************/
 
 struct _GWebKitJSValuePrivate {
-    gboolean hold_value;
+    gint hold_value;
     JSValueRef jsvalue;
-    GMutex ctx_lock;
+    GRecMutex ctx_lock;
     GHashTable *ctx_table;
 };
 
@@ -84,9 +84,9 @@ gwebkitjs_value_init(GWebKitJSValue *self, GWebKitJSValueClass *klass)
     priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
                                                     GWEBKITJS_TYPE_VALUE,
                                                     GWebKitJSValuePrivate);
-    priv->hold_value = FALSE;
+    priv->hold_value = 1;
     priv->jsvalue = NULL;
-    g_mutex_init(&priv->ctx_lock);
+    g_rec_mutex_init(&priv->ctx_lock);
     priv->ctx_table = g_hash_table_new(g_direct_hash, g_direct_equal);
 }
 
@@ -103,10 +103,7 @@ static void
 gwebkitjs_value_dispose(GObject *obj)
 {
     GWebKitJSValue *self = GWEBKITJS_VALUE(obj);
-    if (self->priv->hold_value) {
-        //TODO
-        self->priv->hold_value = FALSE;
-    }
+    gwebkitjs_value_unprotect_value(self);
     if (self->priv->jsvalue) {
         _gwebkitjs_value_remove_from_table(self->priv->jsvalue, self);
         self->priv->jsvalue = NULL;
@@ -121,7 +118,7 @@ static void
 gwebkitjs_value_finalize(GObject *obj)
 {
     GWebKitJSValue *self = GWEBKITJS_VALUE(obj);
-    g_mutex_clear(&self->priv->ctx_lock);
+    g_rec_mutex_clear(&self->priv->ctx_lock);
 }
 
 /**
@@ -218,15 +215,60 @@ gwebkitjs_value_context_dispose_cb(GWebKitJSValue *self, GWebKitJSContext *ctx)
 }
 
 static void
-gwebkitjs_value_add_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
+gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
-
+    gboolean exist;
+    gboolean hold_value = FALSE;
+    g_rec_mutex_lock(&self->priv->ctx_lock);
+    exist = g_hash_table_remove(self->priv->ctx_table, ctx);
+    hold_value = exist && (self->priv->hold_value > 0);
+    g_rec_mutex_unlock(&self->priv->ctx_lock);
+    if (exist) {
+        if (hold_value) {
+            JSValueUnprotect(gwebkitjs_context_get_context(ctx),
+                             self->priv->jsvalue);
+        }
+        g_object_weak_ref(G_OBJECT(ctx),
+                          (GWeakNotify)gwebkitjs_value_context_dispose_cb,
+                          self);
+    }
 }
 
 static void
-gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
+gwebkitjs_value_add_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
+    gpointer orig;
+    gboolean hold_value = FALSE;
+    g_rec_mutex_lock(&self->priv->ctx_lock);
+    orig = g_hash_table_lookup(self->priv->ctx_table, ctx);
+    if (!orig) {
+        g_hash_table_add(self->priv->ctx_table, ctx);
+        hold_value = self->priv->hold_value > 0;
+    }
+    g_rec_mutex_unlock(&self->priv->ctx_lock);
+    if (!orig) {
+        if (hold_value) {
+            JSValueProtect(gwebkitjs_context_get_context(ctx),
+                           self->priv->jsvalue);
+        }
+        g_object_weak_unref(G_OBJECT(ctx),
+                            (GWeakNotify)gwebkitjs_value_context_dispose_cb,
+                            self);
+    }
+}
 
+static void
+gwebkitjs_value_protect_cb(GWebKitJSContext *ctx, GWebKitJSValue *self)
+{
+    JSValueProtect(gwebkitjs_context_get_context(ctx),
+                   self->priv->jsvalue);
+}
+
+static void
+gwebkitjs_value_unprotect_cb(GWebKitJSContext *ctx, GWebKitJSValue *self)
+{
+    JSValueUnprotect(gwebkitjs_context_get_context(ctx),
+                     self->priv->jsvalue);
 }
 
 /**
@@ -238,9 +280,20 @@ gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
  * to avoid reference loop when the only reference left of the object
  * is hold by JSCore.
  **/
-void gwebkitjs_value_protect_value(GWebKitJSValue *self)
+void
+gwebkitjs_value_protect_value(GWebKitJSValue *self)
 {
+    GList *ctxs = NULL;
+    g_return_if_fail(GWEBKITJS_IS_VALUE(self));
 
+    g_rec_mutex_lock(&self->priv->ctx_lock);
+    if (self->priv->hold_value++ == 0) {
+        ctxs = g_hash_table_get_values(self->priv->ctx_table);
+    }
+    g_rec_mutex_unlock(&self->priv->ctx_lock);
+
+    if (ctxs)
+        g_list_foreach(ctxs, (GFunc)gwebkitjs_value_protect_cb, self);
 }
 
 /**
@@ -254,7 +307,17 @@ void gwebkitjs_value_protect_value(GWebKitJSValue *self)
  **/
 void gwebkitjs_value_unprotect_value(GWebKitJSValue *self)
 {
+    GList *ctxs = NULL;
+    g_return_if_fail(GWEBKITJS_IS_VALUE(self));
 
+    g_rec_mutex_lock(&self->priv->ctx_lock);
+    if (--self->priv->hold_value == 0) {
+        ctxs = g_hash_table_get_values(self->priv->ctx_table);
+    }
+    g_rec_mutex_unlock(&self->priv->ctx_lock);
+
+    if (ctxs)
+        g_list_foreach(ctxs,  (GFunc)gwebkitjs_value_unprotect_cb, self);
 }
 
 
