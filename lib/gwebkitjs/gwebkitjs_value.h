@@ -68,16 +68,25 @@ extern "C" {
     GType gwebkitjs_value_get_type();
     GWebKitJSValue *gwebkitjs_value_new(GType type, GWebKitJSContext *ctx,
                                         JSValueRef jsvalue);
+
+    JSValueRef gwebkitjs_value_get_value(GWebKitJSValue *self);
     void gwebkitjs_value_protect_value(GWebKitJSValue *self);
     void gwebkitjs_value_unprotect_value(GWebKitJSValue *self);
+
     GWebKitJSValueType gwebkitjs_value_get_value_type(GWebKitJSValue *self,
                                                       GWebKitJSContext *ctx);
-    gboolean gwebkitjs_value_is_bool(GWebKitJSValue *self);
-    gboolean gwebkitjs_value_is_null(GWebKitJSValue *self);
-    gboolean gwebkitjs_value_is_number(GWebKitJSValue *self);
-    gboolean gwebkitjs_value_is_string(GWebKitJSValue *self);
-    gboolean gwebkitjs_value_is_object(GWebKitJSValue *self);
-    gboolean gwebkitjs_value_is_undefined(GWebKitJSValue *self);
+    gboolean gwebkitjs_value_is_bool(GWebKitJSValue *self,
+                                     GWebKitJSContext *ctx);
+    gboolean gwebkitjs_value_is_null(GWebKitJSValue *self,
+                                     GWebKitJSContext *ctx);
+    gboolean gwebkitjs_value_is_number(GWebKitJSValue *self,
+                                       GWebKitJSContext *ctx);
+    gboolean gwebkitjs_value_is_string(GWebKitJSValue *self,
+                                       GWebKitJSContext *ctx);
+    gboolean gwebkitjs_value_is_object(GWebKitJSValue *self,
+                                       GWebKitJSContext *ctx);
+    gboolean gwebkitjs_value_is_undefined(GWebKitJSValue *self,
+                                          GWebKitJSContext *ctx);
 
     gboolean gwebkitjs_value_is_equal(GWebKitJSValue *self,
                                       GWebKitJSValue *right,
@@ -90,7 +99,7 @@ extern "C" {
                                             GWebKitJSValue *construct,
                                             GError **error);
     gboolean gwebkitjs_value_is_of_class(GWebKitJSValue *self,
-                                         GType *klass, GError **error);
+                                         GType klass, GError **error);
     gchar *gwebkitjs_value_to_json_str(GWebKitJSValue *self, guint indent,
                                        GError **error);
 #ifdef __cplusplus

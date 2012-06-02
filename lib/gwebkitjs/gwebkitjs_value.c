@@ -326,7 +326,25 @@ void gwebkitjs_value_unprotect_value(GWebKitJSValue *self)
  **/
 
 /**
+ * gwebkitjs_value_get_value: (skip)
+ * @self: A #GWebKitJSValue.
+ *
+ * Get the JSValueRef wrapped by #GWebKitJSValue.
+ *
+ * Return value: the JSValueRef wrapped by #GWebKitJSValue.
+ **/
+JSValueRef
+gwebkitjs_value_get_value(GWebKitJSValue *self)
+{
+    g_return_val_if_fail(GWEBKITJS_IS_VALUE(self), NULL);
+
+    return self->priv->jsvalue;
+}
+
+/**
  * gwebkitjs_value_new: (skip)
+ * @type: The GType of the instance, must be derived from #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
  * @jsvalue: The JSValueRef to be wrapped by #GWebKitJSValue.
  *
  * Creates a new wrapper of a javascript value.
@@ -350,6 +368,15 @@ gwebkitjs_value_new(GType type, GWebKitJSContext *ctx, JSValueRef jsvalue)
     return self;
 }
 
+/**
+ * gwebkitjs_value_get_value_type:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check the type of a value.
+ *
+ * Return value: the type of the value.
+ **/
 GWebKitJSValueType
 gwebkitjs_value_get_value_type(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
@@ -379,4 +406,107 @@ gwebkitjs_value_get_value_type(GWebKitJSValue *self, GWebKitJSContext *ctx)
     default:
         return GWEBKITJS_VALUE_TYPE_UNKNOWN;
     }
+}
+
+/**
+ * gwebkitjs_value_is_bool:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check if the type of a value is boolean.
+ *
+ * Return value: whether the type of the value is boolean.
+ **/
+gboolean
+gwebkitjs_value_is_bool(GWebKitJSValue *self,
+                        GWebKitJSContext *ctx)
+{
+    return JSValueIsBoolean(gwebkitjs_context_get_context(ctx),
+                            self->priv->jsvalue);
+}
+
+/**
+ * gwebkitjs_value_is_null:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check if the type of a value is null.
+ *
+ * Return value: whether the type of the value is null.
+ **/
+gboolean
+gwebkitjs_value_is_null(GWebKitJSValue *self,
+                        GWebKitJSContext *ctx)
+{
+    return JSValueIsNull(gwebkitjs_context_get_context(ctx),
+                         self->priv->jsvalue);
+}
+
+/**
+ * gwebkitjs_value_is_number:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check if the type of a value is number.
+ *
+ * Return value: whether the type of the value is number.
+ **/
+gboolean
+gwebkitjs_value_is_number(GWebKitJSValue *self,
+                          GWebKitJSContext *ctx)
+{
+    return JSValueIsNumber(gwebkitjs_context_get_context(ctx),
+                           self->priv->jsvalue);
+}
+
+/**
+ * gwebkitjs_value_is_string:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check if the type of a value is string.
+ *
+ * Return value: whether the type of the value is string.
+ **/
+gboolean
+gwebkitjs_value_is_string(GWebKitJSValue *self,
+                                   GWebKitJSContext *ctx)
+{
+    return JSValueIsString(gwebkitjs_context_get_context(ctx),
+                           self->priv->jsvalue);
+}
+
+
+/**
+ * gwebkitjs_value_is_object:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check if the type of a value is object.
+ *
+ * Return value: whether the type of the value is object.
+ **/
+gboolean
+gwebkitjs_value_is_object(GWebKitJSValue *self,
+                                   GWebKitJSContext *ctx)
+{
+    return JSValueIsObject(gwebkitjs_context_get_context(ctx),
+                           self->priv->jsvalue);
+}
+
+
+/**
+ * gwebkitjs_value_is_undefined:
+ * @self: A #GWebKitJSValue.
+ * @ctx: The #GWebKitJSContext related to the value.
+ *
+ * Check if the type of a value is undefined.
+ *
+ * Return value: whether the type of the value is undefined.
+ **/
+gboolean gwebkitjs_value_is_undefined(GWebKitJSValue *self,
+                                      GWebKitJSContext *ctx)
+{
+    return JSValueIsUndefined(gwebkitjs_context_get_context(ctx),
+                              self->priv->jsvalue);
 }
