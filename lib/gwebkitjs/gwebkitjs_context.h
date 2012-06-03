@@ -73,6 +73,40 @@ extern "C" {
     GWebKitJSValue *gwebkitjs_context_make_string(GWebKitJSContext *self,
                                                   const gchar *str);
     GWebKitJSValue *gwebkitjs_context_make_undefined(GWebKitJSContext *self);
+
+    GWebKitJSValueType gwebkitjs_context_get_value_type(GWebKitJSContext *self,
+                                                        GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_bool(GWebKitJSContext *self,
+                                       GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_null(GWebKitJSContext *self,
+                                       GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_number(GWebKitJSContext *self,
+                                         GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_string(GWebKitJSContext *self,
+                                         GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_object(GWebKitJSContext *self,
+                                         GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
+                                            GWebKitJSValue *value);
+
+    gboolean gwebkitjs_context_is_equal(GWebKitJSContext *self,
+                                        GWebKitJSValue *left,
+                                        GWebKitJSValue *right,
+                                        GError **error);
+    gboolean gwebkitjs_context_is_strict_equal(GWebKitJSContext *self,
+                                               GWebKitJSValue *left,
+                                               GWebKitJSValue *right,
+                                               GError **error);
+
+    gboolean gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
+                                              GWebKitJSValue *instance,
+                                              GWebKitJSValue *construct,
+                                              GError **error);
+    gboolean gwebkitjs_context_is_of_class(GWebKitJSContext *self,
+                                           GWebKitJSValue *instance,
+                                           GType klass, GError **error);
+    gchar *gwebkitjs_context_to_json_str(GWebKitJSValue *self, guint indent,
+                                         GError **error);
 #ifdef __cplusplus
 }
 #endif

@@ -88,17 +88,12 @@ extern "C" {
     gboolean gwebkitjs_value_is_undefined(GWebKitJSValue *self,
                                           GWebKitJSContext *ctx);
 
-    gboolean gwebkitjs_value_is_equal(GWebKitJSValue *self,
-                                      GWebKitJSValue *right,
-                                      GError **error);
-    gboolean gwebkitjs_value_is_strict_equal(GWebKitJSValue *self,
-                                             GWebKitJSValue *right,
-                                             GError **error);
-
     gboolean gwebkitjs_value_is_instance_of(GWebKitJSValue *self,
+                                            GWebKitJSContext *ctx,
                                             GWebKitJSValue *construct,
                                             GError **error);
     gboolean gwebkitjs_value_is_of_class(GWebKitJSValue *self,
+                                         GWebKitJSContext *ctx,
                                          GType klass, GError **error);
     gchar *gwebkitjs_value_to_json_str(GWebKitJSValue *self, guint indent,
                                        GError **error);

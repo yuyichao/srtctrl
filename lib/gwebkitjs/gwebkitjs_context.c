@@ -32,7 +32,7 @@ struct _GWebKitJSContextPrivate {
 
 
 /**
- * A hash table that saves the mapping between JSContextRef
+ * A hash table that saves the mapping between JSGlobalContextRef
  * and GWebKitJSContext. Used to find the right GWebKitJSContext
  * from a JSCore callback.
  **/
@@ -54,7 +54,7 @@ _gwebkitjs_context_init_table()
 
 /**
  * _gwebkitjs_context_remove_from_table:
- * @key: A JSContextRef (key of context_table).
+ * @key: A JSGlobalContextRef (key of context_table).
  * @value: A #GWebKitJSContext (value of context_table).
  *
  * Remove the key-value pair from the context_table, do nothing if the
@@ -75,11 +75,12 @@ _gwebkitjs_context_remove_from_table(gpointer key, gpointer value)
  * _gwebkitjs_context_update_table:
  * @gctx: A new created #GWebKitJSContext. (cannot be NULL)
  *
- * Look up the corresponding JSContextRef of the #GWebKitJSContext. If found,
- * add the reference counting of the found #GWebKitJSContext and unref() the
- * new one. Otherwise, add the new one to context_table.
+ * Look up the corresponding JSGlobalContextRef of the #GWebKitJSContext.
+ * If found, add the reference counting of the found #GWebKitJSContext
+ * and unref() the new one. Otherwise, add the new one to context_table.
  *
- * Return Value: the correct #GWebKitJSContext correspond to the JSContextRef.
+ * Return Value: the correct #GWebKitJSContext correspond to
+ * the JSGlobalContextRef.
  **/
 static GWebKitJSContext*
 _gwebkitjs_context_update_table(GWebKitJSContext* gctx)
@@ -245,7 +246,6 @@ JSGlobalContextRef
 gwebkitjs_context_get_context(GWebKitJSContext *self)
 {
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-
     return self->priv->jsctx;
 }
 
@@ -372,4 +372,140 @@ gwebkitjs_context_make_undefined(GWebKitJSContext *self)
     g_return_val_if_fail(self->priv->jsctx, NULL);
     jsvalue = JSValueMakeUndefined(self->priv->jsctx);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
+}
+
+/**
+ * gwebkitjs_context_get_value_type:
+ * @self: The #GWebKitJSContext related to the value..
+ * @value: A #GWebKitJSValue
+ *
+ * Check the type of a value.
+ *
+ * Return value: the type of the value.
+ **/
+GWebKitJSValueType
+gwebkitjs_context_get_value_type(GWebKitJSContext *self, GWebKitJSValue *value)
+{
+    return gwebkitjs_value_get_value_type(value, self);
+}
+
+/**
+ * gwebkitjs_context_is_bool:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value is boolean.
+ *
+ * Return value: whether the type of the value is boolean.
+ **/
+gboolean
+gwebkitjs_context_is_bool(GWebKitJSContext *self,
+                          GWebKitJSValue *value)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    return JSValueIsBoolean(jsctx, jsvalue);
+}
+
+/**
+ * gwebkitjs_context_is_null:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value is null.
+ *
+ * Return value: whether the type of the value is null.
+ **/
+gboolean
+gwebkitjs_context_is_null(GWebKitJSContext *self,
+                          GWebKitJSValue *value)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    return JSValueIsNull(jsctx, jsvalue);
+}
+
+/**
+ * gwebkitjs_context_is_number:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value is number.
+ *
+ * Return value: whether the type of the value is number.
+ **/
+gboolean
+gwebkitjs_context_is_number(GWebKitJSContext *self,
+                            GWebKitJSValue *value)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    return JSValueIsNumber(jsctx, jsvalue);
+}
+
+/**
+ * gwebkitjs_context_is_string:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value is string.
+ *
+ * Return value: whether the type of the value is string.
+ **/
+gboolean
+gwebkitjs_context_is_string(GWebKitJSContext *self,
+                            GWebKitJSValue *value)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    return JSValueIsString(jsctx, jsvalue);
+}
+
+
+/**
+ * gwebkitjs_context_is_object:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value is object.
+ *
+ * Return value: whether the type of the value is object.
+ **/
+gboolean
+gwebkitjs_context_is_object(GWebKitJSContext *self,
+                            GWebKitJSValue *value)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    return JSValueIsObject(jsctx, jsvalue);
+}
+
+
+/**
+ * gwebkitjs_context_is_undefined:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value is undefined.
+ *
+ * Return value: whether the type of the value is undefined.
+ **/
+gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
+                                        GWebKitJSValue *value)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    return JSValueIsUndefined(jsctx, jsvalue);
 }
