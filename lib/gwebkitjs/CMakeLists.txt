@@ -16,12 +16,14 @@ set(GWEBKITJS_SOURCES
   gwebkitjs_context.c
   gwebkitjs_value.c
   gwebkitjs_base.c
+  gwebkitjs_util.c
   )
 
 set(GWEBKITJS_HEADERS
   gwebkitjs_context.h
   gwebkitjs_value.h
   gwebkitjs_base.h
+  gwebkitjs_util.h
   )
 
 add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCES})

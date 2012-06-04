@@ -1,3 +1,4 @@
+#include <gwebkitjs_util.h>
 #include <gwebkitjs_context.h>
 #include <gwebkitjs_value.h>
 #include <JavaScriptCore/JSValueRef.h>
@@ -346,13 +347,9 @@ GWebKitJSValue*
 gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
 {
     JSValueRef jsvalue;
-    JSStringRef jsstr;
     g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->jsctx, NULL);
 
-    jsstr = JSStringCreateWithUTF8CString(str);
-    jsvalue = JSValueMakeString(self->priv->jsctx, jsstr);
-    JSStringRelease(jsstr);
+    jsvalue = gwebkitjs_util_make_str(self->priv->jsctx, str);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
 
@@ -509,3 +506,52 @@ gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
     g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
     return JSValueIsUndefined(jsctx, jsvalue);
 }
+
+/**
+ * gwebkitjs_context_is_eqaul:
+ * @self: A #GWebKitJSContext.
+ * @left: A #GWebKitJSValue.
+ * @right: Another #GWebKitJSValue.
+ * @error: Return location for error or %NULL.
+ *
+ * Compare whether @left and @right are equal in the context @self.
+ *
+ * Returns: Result of the comparison.
+ */
+gboolean
+gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
+                           GWebKitJSValue *right, GError **error)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsleft;
+    JSValueRef jsright;
+    gboolean res;
+    JSValueRef jserror;
+    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
+    g_return_val_if_fail((jsleft = gwebkitjs_value_get_value(left)), FALSE);
+    g_return_val_if_fail((jsright = gwebkitjs_value_get_value(right)), FALSE);
+
+    res = JSValueIsEqual(jsctx, jsleft, jsright, &jserror);
+    return res;
+}
+
+gboolean
+gwebkitjs_context_is_strict_equal(GWebKitJSContext *self,
+                                  GWebKitJSValue *left,
+                                  GWebKitJSValue *right,
+                                  GError **error);
+
+gboolean
+gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
+                                 GWebKitJSValue *instance,
+                                 GWebKitJSValue *construct,
+                                 GError **error);
+
+gboolean
+gwebkitjs_context_is_of_class(GWebKitJSContext *self,
+                              GWebKitJSValue *instance,
+                              GType klass, GError **error);
+
+gchar*
+gwebkitjs_context_to_json_str(GWebKitJSValue *self, guint indent,
+                              GError **error);
