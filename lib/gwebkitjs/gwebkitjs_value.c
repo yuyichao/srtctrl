@@ -1,3 +1,4 @@
+#include <gwebkitjs_util.h>
 #include <gwebkitjs_value.h>
 #include <gwebkitjs_context.h>
 
@@ -25,6 +26,12 @@ struct _GWebKitJSValuePrivate {
     GRecMutex ctx_lock;
     GHashTable *ctx_table;
 };
+
+#define GWEBKITJS_VALUE_IS_VALID(_jsvalue)                        \
+    ({                                                            \
+        GWebKitJSValue *jsvalue = (jsvalue);                      \
+        jsvalue && GWEBKITJS_IS_VALUE(ctx) && ctx->priv->jsvalue; \
+    })
 
 /**
  * Declarations
@@ -284,7 +291,7 @@ void
 gwebkitjs_value_protect_value(GWebKitJSValue *self)
 {
     GList *ctxs = NULL;
-    g_return_if_fail(GWEBKITJS_IS_VALUE(self));
+    gwj_return_if_false(GWEBKITJS_IS_VALUE(self));
 
     g_rec_mutex_lock(&self->priv->ctx_lock);
     if (self->priv->hold_value++ == 0) {
@@ -308,7 +315,7 @@ gwebkitjs_value_protect_value(GWebKitJSValue *self)
 void gwebkitjs_value_unprotect_value(GWebKitJSValue *self)
 {
     GList *ctxs = NULL;
-    g_return_if_fail(GWEBKITJS_IS_VALUE(self));
+    gwj_return_if_false(GWEBKITJS_IS_VALUE(self));
 
     g_rec_mutex_lock(&self->priv->ctx_lock);
     if (--self->priv->hold_value == 0) {
@@ -336,7 +343,7 @@ void gwebkitjs_value_unprotect_value(GWebKitJSValue *self)
 JSValueRef
 gwebkitjs_value_get_value(GWebKitJSValue *self)
 {
-    g_return_val_if_fail(GWEBKITJS_IS_VALUE(self), NULL);
+    gwj_return_val_if_false(GWEBKITJS_IS_VALUE(self), NULL);
     return self->priv->jsvalue;
 }
 
@@ -354,11 +361,11 @@ GWebKitJSValue*
 gwebkitjs_value_new(GType type, GWebKitJSContext *ctx, JSValueRef jsvalue)
 {
     GWebKitJSValue *self;
-    g_return_val_if_fail(jsvalue, NULL);
-    g_return_val_if_fail(g_type_is_a(type, GWEBKITJS_TYPE_VALUE), NULL);
+    gwj_return_val_if_false(jsvalue, NULL);
+    gwj_return_val_if_false(g_type_is_a(type, GWEBKITJS_TYPE_VALUE), NULL);
 
     self = g_object_new(type, NULL);
-    g_return_val_if_fail(self, NULL);
+    gwj_return_val_if_false(self, NULL);
 
     self->priv->jsvalue = jsvalue;
     self = _gwebkitjs_value_update_table(self);
@@ -382,10 +389,10 @@ gwebkitjs_value_get_value_type(GWebKitJSValue *self, GWebKitJSContext *ctx)
     JSType jstype;
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)),
-                         GWEBKITJS_VALUE_TYPE_UNKNOWN);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)),
-                         GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            GWEBKITJS_VALUE_TYPE_UNKNOWN);
     jstype = JSValueGetType(jsctx, jsvalue);
     switch (jstype) {
     case kJSTypeUndefined:
@@ -420,8 +427,10 @@ gwebkitjs_value_is_bool(GWebKitJSValue *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)), FALSE);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)), FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            FALSE);
     return JSValueIsBoolean(jsctx, jsvalue);
 }
 
@@ -440,8 +449,10 @@ gwebkitjs_value_is_null(GWebKitJSValue *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)), FALSE);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)), FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            FALSE);
     return JSValueIsNull(jsctx, jsvalue);
 }
 
@@ -460,8 +471,10 @@ gwebkitjs_value_is_number(GWebKitJSValue *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)), FALSE);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)), FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            FALSE);
     return JSValueIsNumber(jsctx, jsvalue);
 }
 
@@ -480,8 +493,10 @@ gwebkitjs_value_is_string(GWebKitJSValue *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)), FALSE);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)), FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            FALSE);
     return JSValueIsString(jsctx, jsvalue);
 }
 
@@ -501,8 +516,10 @@ gwebkitjs_value_is_object(GWebKitJSValue *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)), FALSE);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)), FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            FALSE);
     return JSValueIsObject(jsctx, jsvalue);
 }
 
@@ -521,7 +538,9 @@ gboolean gwebkitjs_value_is_undefined(GWebKitJSValue *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(self)), FALSE);
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(ctx)), FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
+                            FALSE);
     return JSValueIsUndefined(jsctx, jsvalue);
 }

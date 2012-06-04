@@ -24,8 +24,16 @@
 
 struct _GWebKitJSContextPrivate {
     JSGlobalContextRef jsctx;
+    GWebKitJSValue *global;
+    GWebKitJSValue *object;
+    GWebKitJSValue *tostring;
 };
 
+#define GWEBKITJS_CONTEXT_IS_VALID(_ctx)                        \
+    ({                                                          \
+        GWebKitJSContext *ctx = (_ctx);                         \
+        ctx && GWEBKITJS_IS_CONTEXT(ctx) && ctx->priv->jsctx;   \
+    })
 
 /**
  * Context Table Related Stuff.
@@ -168,7 +176,20 @@ static void
 gwebkitjs_context_dispose(GObject *obj)
 {
     GWebKitJSContext *self = GWEBKITJS_CONTEXT(obj);
-    if (self->priv->jsctx) {
+    GWebKitJSContextPrivate *priv = self->priv;
+    if (priv->global) {
+        g_object_unref(priv->global);
+        priv->global = NULL;
+    }
+    if (priv->object) {
+        g_object_unref(priv->object);
+        priv->object = NULL;
+    }
+    if (priv->tostring) {
+        g_object_unref(priv->tostring);
+        priv->tostring = NULL;
+    }
+    if (priv->jsctx) {
         _gwebkitjs_context_remove_from_table(self->priv->jsctx, self);
         JSGlobalContextRelease(self->priv->jsctx);
         self->priv->jsctx = NULL;
@@ -178,6 +199,43 @@ gwebkitjs_context_dispose(GObject *obj)
 static void
 gwebkitjs_context_finalize(GObject *obj)
 {
+}
+
+static gboolean
+gwebkitjs_context_init_context(GWebKitJSContext *self,
+                               JSGlobalContextRef jsctx)
+{
+    GWebKitJSContextPrivate *priv;
+    JSValueRef jsvalue;
+    JSObjectRef global;
+    JSObjectRef object;
+    JSObjectRef tostring;
+    gwj_return_val_if_false(jsctx && GWEBKITJS_IS_CONTEXT(self), FALSE);
+
+    priv = self->priv;
+
+    priv->jsctx = jsctx;
+    JSGlobalContextRetain(jsctx);
+
+    global = JSContextGetGlobalObject(jsctx);
+    gwj_return_val_if_false(global, FALSE);
+
+    jsvalue = gwebkitjs_util_get_property(jsctx, global, "Object", NULL);
+    gwj_return_val_if_false(jsvalue, FALSE);
+    object = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_val_if_false(object, FALSE);
+
+    jsvalue = gwebkitjs_util_get_property(jsctx, global, "toString", NULL);
+    gwj_return_val_if_false(jsvalue, FALSE);
+    tostring = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_val_if_false(tostring, FALSE);
+
+    priv->global = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, global);
+    priv->object = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, object);
+    priv->tostring = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, tostring);
+    if (!(priv->global && priv->object && priv->tostring))
+        return FALSE;
+    return TRUE;
 }
 
 /**
@@ -193,13 +251,15 @@ GWebKitJSContext*
 gwebkitjs_context_new(JSGlobalContextRef jsctx)
 {
     GWebKitJSContext *self;
-    g_return_val_if_fail(jsctx, NULL);
+    gwj_return_val_if_false(jsctx, NULL);
 
     self = g_object_new(GWEBKITJS_TYPE_CONTEXT, NULL);
-    g_return_val_if_fail(self, NULL);
+    gwj_return_val_if_false(self, NULL);
 
-    self->priv->jsctx = jsctx;
-    JSGlobalContextRetain(jsctx);
+    if (!gwebkitjs_context_init_context(self, jsctx)) {
+        g_object_unref(self);
+        return NULL;
+    }
     return _gwebkitjs_context_update_table(self);
 }
 
@@ -246,7 +306,7 @@ gwebkitjs_context_new_from_view(WebKitWebView *webview)
 JSGlobalContextRef
 gwebkitjs_context_get_context(GWebKitJSContext *self)
 {
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    gwj_return_val_if_false(GWEBKITJS_IS_CONTEXT(self), NULL);
     return self->priv->jsctx;
 }
 
@@ -263,8 +323,7 @@ GWebKitJSValue*
 gwebkitjs_context_make_bool(GWebKitJSContext *self, gboolean b)
 {
     JSValueRef jsvalue;
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->jsctx, NULL);
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
 
     jsvalue = JSValueMakeBoolean(self->priv->jsctx, b);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
@@ -285,9 +344,7 @@ gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
 {
     JSValueRef jsvalue;
     JSStringRef jsstr;
-    g_return_val_if_fail(json, NULL);
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->jsctx, NULL);
+    gwj_return_val_if_false(json && GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
 
     jsstr = JSStringCreateWithUTF8CString(json);
     jsvalue = JSValueMakeFromJSONString(self->priv->jsctx, jsstr);
@@ -307,8 +364,7 @@ GWebKitJSValue*
 gwebkitjs_context_make_null(GWebKitJSContext *self)
 {
     JSValueRef jsvalue;
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->jsctx, NULL);
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
 
     jsvalue = JSValueMakeNull(self->priv->jsctx);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
@@ -327,8 +383,7 @@ GWebKitJSValue*
 gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
 {
     JSValueRef jsvalue;
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->jsctx, NULL);
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
 
     jsvalue = JSValueMakeNumber(self->priv->jsctx, num);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
@@ -347,7 +402,7 @@ GWebKitJSValue*
 gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
 {
     JSValueRef jsvalue;
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
 
     jsvalue = gwebkitjs_util_make_str(self->priv->jsctx, str);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
@@ -365,8 +420,7 @@ GWebKitJSValue*
 gwebkitjs_context_make_undefined(GWebKitJSContext *self)
 {
     JSValueRef jsvalue;
-    g_return_val_if_fail(GWEBKITJS_IS_CONTEXT(self), NULL);
-    g_return_val_if_fail(self->priv->jsctx, NULL);
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
     jsvalue = JSValueMakeUndefined(self->priv->jsctx);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsvalue);
 }
@@ -401,8 +455,10 @@ gwebkitjs_context_is_bool(GWebKitJSContext *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            FALSE);
     return JSValueIsBoolean(jsctx, jsvalue);
 }
 
@@ -421,8 +477,10 @@ gwebkitjs_context_is_null(GWebKitJSContext *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            FALSE);
     return JSValueIsNull(jsctx, jsvalue);
 }
 
@@ -441,8 +499,10 @@ gwebkitjs_context_is_number(GWebKitJSContext *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            FALSE);
     return JSValueIsNumber(jsctx, jsvalue);
 }
 
@@ -461,8 +521,10 @@ gwebkitjs_context_is_string(GWebKitJSContext *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            FALSE);
     return JSValueIsString(jsctx, jsvalue);
 }
 
@@ -482,8 +544,10 @@ gwebkitjs_context_is_object(GWebKitJSContext *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            FALSE);
     return JSValueIsObject(jsctx, jsvalue);
 }
 
@@ -502,8 +566,10 @@ gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
 {
     JSGlobalContextRef jsctx;
     JSValueRef jsvalue;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsvalue = gwebkitjs_value_get_value(value)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            FALSE);
     return JSValueIsUndefined(jsctx, jsvalue);
 }
 
@@ -527,9 +593,12 @@ gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
     JSValueRef jsright;
     gboolean res;
     JSValueRef jserror;
-    g_return_val_if_fail((jsctx = gwebkitjs_context_get_context(self)), FALSE);
-    g_return_val_if_fail((jsleft = gwebkitjs_value_get_value(left)), FALSE);
-    g_return_val_if_fail((jsright = gwebkitjs_value_get_value(right)), FALSE);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            FALSE);
+    gwj_return_val_if_false((jsleft = gwebkitjs_value_get_value(left)),
+                            FALSE);
+    gwj_return_val_if_false((jsright = gwebkitjs_value_get_value(right)),
+                            FALSE);
 
     res = JSValueIsEqual(jsctx, jsleft, jsright, &jserror);
     return res;

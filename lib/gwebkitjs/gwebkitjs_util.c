@@ -29,10 +29,10 @@ gwebkitjs_util_value_to_str(JSContextRef ctx, JSValueRef jsvalue)
     gchar *str = NULL;
     JSStringRef jsstr;
     gint l;
-    g_return_val_if_fail(ctx && jsvalue, NULL);
+    gwj_return_val_if_false(ctx && jsvalue, NULL);
 
     jsstr = JSValueToStringCopy(ctx, jsvalue, NULL);
-    g_return_val_if_fail(jsstr, NULL);
+    gwj_return_val_if_false(jsstr, NULL);
 
     l = JSStringGetMaximumUTF8CStringSize(jsstr);
     if (l > 0) {
@@ -55,7 +55,7 @@ gwebkitjs_util_make_str(JSContextRef ctx, const char *str)
 {
     JSValueRef jsvalue;
     JSStringRef jsstr;
-    g_return_val_if_fail(ctx && str, NULL);
+    gwj_return_val_if_false(ctx && str, NULL);
 
     jsstr = JSStringCreateWithUTF8CString(str);
     jsvalue = JSValueMakeString(ctx, jsstr);
@@ -96,7 +96,7 @@ gwebkitjs_util_gerror_from_jserror(JSContextRef ctx, JSValueRef jserror,
     gchar *name;
     gchar *msg;
     GQuark domain;
-    g_return_if_fail(error);
+    gwj_return_if_false(error);
 
     name = gwebkitjs_util_jserror_get_name(ctx, jserror);
     msg = gwebkitjs_util_jserror_get_message(ctx, jserror);
@@ -116,7 +116,7 @@ gwebkitjs_util_make_jserror(JSContextRef ctx, JSValueRef *jserror,
     JSValueRef jsname;
     JSValueRef jsmsg;
 
-    g_return_if_fail(ctx && jserror);
+    gwj_return_if_false(ctx && jserror);
 
     if (!(name || msg)) {
         *jserror = NULL;
@@ -130,7 +130,7 @@ gwebkitjs_util_make_jserror(JSContextRef ctx, JSValueRef *jserror,
         *jserror = JSObjectMakeError(ctx, 0, NULL, NULL);
     }
 
-    g_return_if_fail(*jserror);
+    gwj_return_if_false(*jserror);
 
     if (name) {
         jsname = gwebkitjs_util_make_str(ctx, name);
@@ -167,7 +167,7 @@ gwebkitjs_util_get_property(JSContextRef ctx, JSValueRef self,
     JSValueRef jserror = NULL;
     JSValueRef res;
     JSObjectRef jsobject;
-    g_return_val_if_fail(ctx && self &&  name, NULL);
+    gwj_return_val_if_false(ctx && self &&  name, NULL);
     jsobject = JSValueToObject(ctx, self, &jserror);
     if (!jsobject) {
         gwebkitjs_util_gerror_from_jserror(ctx, jserror, error);
@@ -194,7 +194,7 @@ gwebkitjs_util_set_property(JSContextRef ctx, JSValueRef self,
     JSStringRef jsname;
     JSValueRef jserror = NULL;
     JSObjectRef jsobject;
-    g_return_if_fail(ctx && self &&  name && prop);
+    gwj_return_if_false(ctx && self &&  name && prop);
     jsobject = JSValueToObject(ctx, self, &jserror);
     if (!jsobject) {
         gwebkitjs_util_gerror_from_jserror(ctx, jserror, error);

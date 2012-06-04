@@ -29,6 +29,18 @@ typedef enum {
     GWEBKITJS_PROPERTY_ATTRIBUTE_DONTDELETE = (1 << 2),
 } GWebKitJSPropertyAttribute;
 
+#define gwj_return_if_false(exp)                \
+    do {                                        \
+        if (G_UNLIKELY(!(exp)))                 \
+            return;                             \
+    } while(0)
+
+#define gwj_return_val_if_false(exp, val)       \
+    do {                                        \
+        if (G_UNLIKELY(!(exp)))                 \
+            return (val);                       \
+    } while(0)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
