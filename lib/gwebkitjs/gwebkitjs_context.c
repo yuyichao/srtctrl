@@ -1,6 +1,7 @@
 #include <gwebkitjs_util.h>
 #include <gwebkitjs_context.h>
 #include <gwebkitjs_value.h>
+#include <gwebkitjs_base.h>
 #include <JavaScriptCore/JSValueRef.h>
 #include <JavaScriptCore/JSStringRef.h>
 
@@ -86,8 +87,9 @@ _gwebkitjs_context_remove_from_table(gpointer key, gpointer value)
     gpointer orig;
     G_LOCK(context_table);
     orig = g_hash_table_lookup(context_table, key);
-    if (G_LIKELY(orig == value))
+    if (G_LIKELY(orig == value)) {
         g_hash_table_remove(context_table, key);
+    }
     G_UNLOCK(context_table);
 }
 
@@ -195,16 +197,23 @@ gwebkitjs_context_dispose(GObject *obj)
         g_object_unref(priv->tostring);
         priv->tostring = NULL;
     }
-    if (priv->jsctx) {
-        _gwebkitjs_context_remove_from_table(self->priv->jsctx, self);
-        JSGlobalContextRelease(self->priv->jsctx);
-        self->priv->jsctx = NULL;
-    }
 }
 
 static void
 gwebkitjs_context_finalize(GObject *obj)
 {
+    GWebKitJSContext *self = GWEBKITJS_CONTEXT(obj);
+    GWebKitJSContextPrivate *priv = self->priv;
+    /**
+     * Release JSContext here in order to make sure all values of this context
+     * has already been notified by weak reference which is done in dispose of
+     * gobject after dispose function of GWebKitJSContext is called.
+     **/
+    if (priv->jsctx) {
+        _gwebkitjs_context_remove_from_table(priv->jsctx, self);
+        JSGlobalContextRelease(priv->jsctx);
+        priv->jsctx = NULL;
+    }
 }
 
 static gboolean
@@ -307,8 +316,33 @@ free:
 /**
  * JSCore API.
  **/
+
 /**
- * gwebkitjs_context_new: (skip)
+ * gwebkitjs_context_new:
+ * @global: (allow-none): The type of the global object.
+ *
+ * Find the corresponding #GWebKitJSContext of a JSGlobalContextRef.
+ * Creates a new one if not exist.
+ *
+ * Return value: the new #GWebKitJSContext
+ **/
+GWebKitJSContext*
+gwebkitjs_context_new(GType global)
+{
+    JSClassRef globalclass = NULL;
+    JSGlobalContextRef jsctx;
+    GWebKitJSContext *res;
+    if (g_type_is_a(global, GWEBKITJS_TYPE_BASE)) {
+        // TODO
+    }
+    jsctx = JSGlobalContextCreate(globalclass);
+    res = gwebkitjs_context_new_from_context(jsctx);
+    JSGlobalContextRelease(jsctx);
+    return res;
+}
+
+/**
+ * gwebkitjs_context_new_from_context: (skip)
  * @jsctx: The Javascript Context wrapped by GWebKitJSContext.
  *
  * Find the corresponding #GWebKitJSContext of a JSGlobalContextRef.
@@ -317,7 +351,7 @@ free:
  * Return value: the new #GWebKitJSContext
  **/
 GWebKitJSContext*
-gwebkitjs_context_new(JSGlobalContextRef jsctx)
+gwebkitjs_context_new_from_context(JSGlobalContextRef jsctx)
 {
     GWebKitJSContext *self;
     gwj_return_val_if_false(jsctx, NULL);
@@ -341,7 +375,7 @@ gwebkitjs_context_new_from_frame(WebKitWebFrame *webframe)
 {
     JSGlobalContextRef jsctx;
     jsctx = webkit_web_frame_get_global_context(webframe);
-    return gwebkitjs_context_new(jsctx);
+    return gwebkitjs_context_new_from_context(jsctx);
 }
 
 /**
@@ -671,7 +705,58 @@ gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
 gboolean
 gwebkitjs_context_is_function(GWebKitJSContext *self, GWebKitJSValue *value)
 {
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    JSObjectRef jsobject;
 
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, FALSE);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, FALSE);
+    jsobject = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_val_if_false(jsobject, FALSE);
+
+    return JSObjectIsFunction(jsctx, jsobject);
+}
+/**
+ * gwebkitjs_context_is_constructor:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value can be called as a constructor.
+ *
+ * Return value: whether the type of the value is undefined.
+ **/
+gboolean
+gwebkitjs_context_is_constructor(GWebKitJSContext *self, GWebKitJSValue *value)
+{
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    JSObjectRef jsobject;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, FALSE);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, FALSE);
+    jsobject = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_val_if_false(jsobject, FALSE);
+
+    return JSObjectIsConstructor(jsctx, jsobject);
+}
+/**
+ * gwebkitjs_context_get_object_type:
+ * @self: The #GWebKitJSContext related to the value..
+ * @value: A #GWebKitJSValue
+ *
+ * Check the type string of a value.
+ *
+ * Return value: (allow-none) a string that represent the type of @value.
+ **/
+gchar*
+gwebkitjs_context_get_object_type(GWebKitJSContext *self,
+                                  GWebKitJSValue *value)
+{
+    return NULL;
 }
 
 /**

@@ -19,7 +19,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include <glib.h>
+#include <glib-object.h>
 #include <JavaScriptCore/JSObjectRef.h>
 
 typedef enum {

@@ -56,7 +56,9 @@ struct _GWebKitJSContextClass {
 extern "C" {
 #endif
     GType gwebkitjs_context_get_type();
-    GWebKitJSContext *gwebkitjs_context_new(JSGlobalContextRef jsctx);
+    GWebKitJSContext *gwebkitjs_context_new(GType global);
+    GWebKitJSContext *gwebkitjs_context_new_from_context(
+        JSGlobalContextRef jsctx);
     GWebKitJSContext *gwebkitjs_context_new_from_frame(
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
@@ -76,6 +78,9 @@ extern "C" {
 
     GWebKitJSValueType gwebkitjs_context_get_value_type(GWebKitJSContext *self,
                                                         GWebKitJSValue *value);
+    //TODO
+    gchar *gwebkitjs_context_get_object_type(GWebKitJSContext *self,
+                                             GWebKitJSValue *value);
     gboolean gwebkitjs_context_is_bool(GWebKitJSContext *self,
                                        GWebKitJSValue *value);
     gboolean gwebkitjs_context_is_null(GWebKitJSContext *self,
@@ -88,15 +93,11 @@ extern "C" {
                                          GWebKitJSValue *value);
     gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
                                             GWebKitJSValue *value);
-    //TODO
     gboolean gwebkitjs_context_is_function(GWebKitJSContext *self,
                                             GWebKitJSValue *value);
-    //TODO
     gboolean gwebkitjs_context_is_constructor(GWebKitJSContext *self,
                                               GWebKitJSValue *value);
-    //TODO
-    gchar *gwebkitjs_context_get_object_type(GWebKitJSContext *self,
-                                             GWebKitJSValue *value);
+
     gboolean gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
                                               GWebKitJSValue *instance,
                                               GWebKitJSValue *construct,

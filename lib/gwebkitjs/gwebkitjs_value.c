@@ -50,10 +50,13 @@ static void _gwebkitjs_value_remove_from_table(JSValueRef key,
 static GWebKitJSValue* _gwebkitjs_value_update_table(GWebKitJSValue* gvalue,
                                                      JSValueRef jsvalue);
 
+static void gwebkitjs_value_context_dispose_cb(GWebKitJSValue *self,
+                                               GWebKitJSContext *ctx);
 static void gwebkitjs_value_add_context(GWebKitJSValue *self,
                                         GWebKitJSContext *ctx);
 static void gwebkitjs_value_remove_context(GWebKitJSValue *self,
-                                           GWebKitJSContext *ctx);
+                                           GWebKitJSContext *ctx,
+                                           gboolean rm_weak);
 
 
 /**
@@ -80,7 +83,7 @@ gwebkitjs_value_get_type()
 
         value_type = g_type_register_static(G_TYPE_OBJECT,
                                             "GWebKitJSValue",
-                                            &value_info, G_TYPE_FLAG_ABSTRACT);
+                                            &value_info, 0);
     }
     return value_type;
 }
@@ -107,6 +110,28 @@ gwebkitjs_value_class_init(GWebKitJSValueClass *klass, gpointer data)
     gobject_class->finalize = gwebkitjs_value_finalize;
 }
 
+void
+gwebkitjs_value_clear_ctx_table_cb(GWebKitJSContext *ctx, GWebKitJSValue *self)
+{
+    gwebkitjs_value_remove_context(self, ctx, TRUE);
+}
+
+/**
+ * Basically for removing weak reference, therefore also need to do what weak
+ * reference callback does.
+ **/
+static void
+gwebkitjs_value_clear_ctx_table(GWebKitJSValue *self)
+{
+    GList *ctxs = NULL;
+    g_rec_mutex_lock(&self->priv->ctx_lock);
+    ctxs = g_hash_table_get_values(self->priv->ctx_table);
+    g_rec_mutex_unlock(&self->priv->ctx_lock);
+
+    if (ctxs)
+        g_list_foreach(ctxs, (GFunc)gwebkitjs_value_clear_ctx_table_cb, self);
+}
+
 static void
 gwebkitjs_value_dispose(GObject *obj)
 {
@@ -117,6 +142,7 @@ gwebkitjs_value_dispose(GObject *obj)
         self->priv->jsvalue = NULL;
     }
     if (self->priv->ctx_table) {
+        gwebkitjs_value_clear_ctx_table(self);
         g_hash_table_unref(self->priv->ctx_table);
         self->priv->ctx_table = NULL;
     }
@@ -168,8 +194,9 @@ _gwebkitjs_value_remove_from_table(JSValueRef key, GWebKitJSValue *value)
     gpointer orig;
     G_LOCK(value_table);
     orig = g_hash_table_lookup(value_table, key);
-    if (G_LIKELY(orig == value))
+    if (G_LIKELY(orig == value)) {
         g_hash_table_remove(value_table, key);
+    }
     G_UNLOCK(value_table);
 }
 
@@ -217,11 +244,12 @@ update_start:
 static void
 gwebkitjs_value_context_dispose_cb(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
-    gwebkitjs_value_remove_context(self, ctx);
+    gwebkitjs_value_remove_context(self, ctx, FALSE);
 }
 
 static void
-gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
+gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx,
+                               gboolean rm_weak)
 {
     gboolean exist;
     gboolean hold_value = FALSE;
@@ -234,9 +262,10 @@ gwebkitjs_value_remove_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
             JSValueUnprotect(gwebkitjs_context_get_context(ctx),
                              self->priv->jsvalue);
         }
-        g_object_weak_ref(G_OBJECT(ctx),
-                          (GWeakNotify)gwebkitjs_value_context_dispose_cb,
-                          self);
+        if (rm_weak)
+            g_object_weak_unref(G_OBJECT(ctx),
+                                (GWeakNotify)gwebkitjs_value_context_dispose_cb,
+                                self);
     }
 }
 
@@ -257,9 +286,9 @@ gwebkitjs_value_add_context(GWebKitJSValue *self, GWebKitJSContext *ctx)
             JSValueProtect(gwebkitjs_context_get_context(ctx),
                            self->priv->jsvalue);
         }
-        g_object_weak_unref(G_OBJECT(ctx),
-                            (GWeakNotify)gwebkitjs_value_context_dispose_cb,
-                            self);
+        g_object_weak_ref(G_OBJECT(ctx),
+                          (GWeakNotify)gwebkitjs_value_context_dispose_cb,
+                          self);
     }
 }
 
