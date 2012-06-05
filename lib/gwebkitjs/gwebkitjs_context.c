@@ -274,7 +274,8 @@ try_update:
             return NULL;
         }
     } else {
-        /* An old instance is found in the table.
+        /* An old instance is found in the table. (not necessarily initialized
+         * since update_table() is called before initialization.)
          * Check if it has been initialized. Failing on this check indicate a
          * race condition with another new allocated instance. Therefore,
          * unref the found one (since it is not clear whether it is usable and
@@ -658,20 +659,30 @@ gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
     return res;
 }
 
+/**
+ * gwebkitjs_context_call_function:
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
 GWebKitJSValue*
 gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
                                 GWebKitJSValue *thisobj, size_t argc,
                                 GWebKitJSValue **argv, GError **error)
 {
-
+    return NULL;
 }
 
+/**
+ * gwebkitjs_context_call_constructor:
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
 GWebKitJSValue*
 gwebkitjs_context_call_constructor(GWebKitJSContext *self,
                                    GWebKitJSValue *func, size_t argc,
                                    GWebKitJSValue **argv, GError **error)
 {
-
+    return NULL;
 }
 
 gboolean
