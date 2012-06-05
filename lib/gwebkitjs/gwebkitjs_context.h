@@ -139,6 +139,12 @@ extern "C" {
     gchar *gwebkitjs_context_to_string(GWebKitJSContext *self,
                                        GWebKitJSValue *value,
                                        GError **error);
+    GWebKitJSValue *gwebkitjs_context_eval_js(GWebKitJSContext *self,
+                                              const gchar *script,
+                                              GWebKitJSValue *thisobj,
+                                              const gchar *url,
+                                              gint lineno,
+                                              GError **error);
 
     // JSObjectCopyPropertyNames
     // JSObjectDeleteProperty

@@ -898,3 +898,47 @@ gwebkitjs_context_to_json_str(GWebKitJSContext *self, GWebKitJSValue *value,
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_util_convert_str(jsres);
 }
+
+/**
+ * gwebkitjs_context_eval_js:
+ * @self: (allow-none):
+ * @script: (allow-none):
+ * @thisobj: (allow-none):
+ * @url: (allow-none):
+ * @lineno:
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_eval_js(GWebKitJSContext *self, const gchar *script,
+                          GWebKitJSValue *thisobj, const gchar *url,
+                          gint lineno, GError **error)
+{
+    JSContextRef jsctx;
+    JSObjectRef jsthis;
+    JSStringRef jsurl = NULL;
+    JSStringRef jsscript;
+    JSValueRef jserror = NULL;
+    JSValueRef jsres;
+
+    gwj_return_val_if_false(script, NULL);
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+    jsscript = JSStringCreateWithUTF8CString(script);
+    gwj_return_val_if_false(jsscript, NULL);
+    jsthis = (JSObjectRef)gwebkitjs_value_get_value(thisobj);
+    if (url)
+        jsurl = JSStringCreateWithUTF8CString(url);
+
+    jsres = JSEvaluateScript(jsctx, jsscript, jsthis, jsurl, lineno, &jserror);
+    if (jsres)
+        jserror = NULL;
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+
+    JSStringRelease(jsscript);
+    if (jsurl)
+        JSStringRelease(jsurl);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
