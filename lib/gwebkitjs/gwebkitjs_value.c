@@ -47,7 +47,8 @@ static void gwebkitjs_value_finalize(GObject *obj);
 static void _gwebkitjs_value_init_table();
 static void _gwebkitjs_value_remove_from_table(JSValueRef key,
                                                GWebKitJSValue *value);
-static GWebKitJSValue* _gwebkitjs_value_update_table(GWebKitJSValue* gvalue);
+static GWebKitJSValue* _gwebkitjs_value_update_table(GWebKitJSValue* gvalue,
+                                                     JSValueRef jsvalue);
 
 static void gwebkitjs_value_add_context(GWebKitJSValue *self,
                                         GWebKitJSContext *ctx);
