@@ -35,11 +35,22 @@ struct _GWebKitJSContextPrivate {
         ctx && GWEBKITJS_IS_CONTEXT(ctx) && ctx->priv->jsctx;   \
     })
 
+
+/**
+ * Declarations
+ **/
+static void gwebkitjs_context_init(GWebKitJSContext *self,
+                                   GWebKitJSContextClass *klass);
+
+static void gwebkitjs_context_class_init(GWebKitJSContextClass *klass,
+                                         gpointer data);
+static void gwebkitjs_context_dispose(GObject *obj);
+static void gwebkitjs_context_finalize(GObject *obj);
+
+
 /**
  * Context Table Related Stuff.
  **/
-
-
 /**
  * A hash table that saves the mapping between JSGlobalContextRef
  * and GWebKitJSContext. Used to find the right GWebKitJSContext
@@ -118,14 +129,10 @@ update_start:
     return gctx;
 }
 
-static void gwebkitjs_context_init(GWebKitJSContext *self,
-                                   GWebKitJSContextClass *klass);
 
-static void gwebkitjs_context_class_init(GWebKitJSContextClass *klass,
-                                         gpointer data);
-static void gwebkitjs_context_dispose(GObject *obj);
-static void gwebkitjs_context_finalize(GObject *obj);
-
+/**
+ * GObject Functions.
+ **/
 GType
 gwebkitjs_context_get_type()
 {
@@ -297,6 +304,9 @@ free:
     goto try_update;
 }
 
+/**
+ * JSCore API.
+ **/
 /**
  * gwebkitjs_context_new: (skip)
  * @jsctx: The Javascript Context wrapped by GWebKitJSContext.
@@ -492,7 +502,30 @@ gwebkitjs_context_make_undefined(GWebKitJSContext *self)
 GWebKitJSValueType
 gwebkitjs_context_get_value_type(GWebKitJSContext *self, GWebKitJSValue *value)
 {
-    return gwebkitjs_value_get_value_type(value, self);
+    JSType jstype;
+    JSGlobalContextRef jsctx;
+    JSValueRef jsvalue;
+    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
+                            GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(self)),
+                            GWEBKITJS_VALUE_TYPE_UNKNOWN);
+    jstype = JSValueGetType(jsctx, jsvalue);
+    switch (jstype) {
+    case kJSTypeUndefined:
+        return GWEBKITJS_VALUE_TYPE_UNDEFINED;
+    case kJSTypeNull:
+        return GWEBKITJS_VALUE_TYPE_NULL;
+    case kJSTypeBoolean:
+        return GWEBKITJS_VALUE_TYPE_BOOLEAN;
+    case kJSTypeNumber:
+        return GWEBKITJS_VALUE_TYPE_NUMBER;
+    case kJSTypeString:
+        return GWEBKITJS_VALUE_TYPE_STRING;
+    case kJSTypeObject:
+        return GWEBKITJS_VALUE_TYPE_OBJECT;
+    default:
+        return GWEBKITJS_VALUE_TYPE_UNKNOWN;
+    }
 }
 
 /**
@@ -583,7 +616,6 @@ gwebkitjs_context_is_string(GWebKitJSContext *self,
     return JSValueIsString(jsctx, jsvalue);
 }
 
-
 /**
  * gwebkitjs_context_is_object:
  * @self: The #GWebKitJSContext related to the value.
@@ -606,7 +638,6 @@ gwebkitjs_context_is_object(GWebKitJSContext *self,
     return JSValueIsObject(jsctx, jsvalue);
 }
 
-
 /**
  * gwebkitjs_context_is_undefined:
  * @self: The #GWebKitJSContext related to the value.
@@ -626,6 +657,21 @@ gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
     gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(value)),
                             FALSE);
     return JSValueIsUndefined(jsctx, jsvalue);
+}
+
+/**
+ * gwebkitjs_context_is_function:
+ * @self: The #GWebKitJSContext related to the value.
+ * @value: A #GWebKitJSValue.
+ *
+ * Check if the type of a value can be called as a function.
+ *
+ * Return value: whether the type of the value is undefined.
+ **/
+gboolean
+gwebkitjs_context_is_function(GWebKitJSContext *self, GWebKitJSValue *value)
+{
+
 }
 
 /**
@@ -684,24 +730,3 @@ gwebkitjs_context_call_constructor(GWebKitJSContext *self,
 {
     return NULL;
 }
-
-gboolean
-gwebkitjs_context_is_strict_equal(GWebKitJSContext *self,
-                                  GWebKitJSValue *left,
-                                  GWebKitJSValue *right,
-                                  GError **error);
-
-gboolean
-gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
-                                 GWebKitJSValue *instance,
-                                 GWebKitJSValue *construct,
-                                 GError **error);
-
-gboolean
-gwebkitjs_context_is_of_class(GWebKitJSContext *self,
-                              GWebKitJSValue *instance,
-                              GType klass, GError **error);
-
-gchar*
-gwebkitjs_context_to_json_str(GWebKitJSValue *self, guint indent,
-                              GError **error);

@@ -33,10 +33,10 @@ struct _GWebKitJSValuePrivate {
         jsvalue && GWEBKITJS_IS_VALUE(ctx) && ctx->priv->jsvalue; \
     })
 
+
 /**
  * Declarations
  **/
-
 static void gwebkitjs_value_init(GWebKitJSValue *self,
                                  GWebKitJSValueClass *klass);
 static void gwebkitjs_value_class_init(GWebKitJSValueClass *klass,
@@ -54,10 +54,10 @@ static void gwebkitjs_value_add_context(GWebKitJSValue *self,
 static void gwebkitjs_value_remove_context(GWebKitJSValue *self,
                                            GWebKitJSContext *ctx);
 
+
 /**
  * GObject Functions.
  **/
-
 GType
 gwebkitjs_value_get_type()
 {
@@ -128,10 +128,10 @@ gwebkitjs_value_finalize(GObject *obj)
     g_rec_mutex_clear(&self->priv->ctx_lock);
 }
 
+
 /**
  * Value Table Functions.
  **/
-
 /**
  * A hash table that saves the mapping between JSValueRef
  * and GWebKitJSContext. Used to find the right GWebKitJSContext
@@ -183,15 +183,13 @@ _gwebkitjs_value_remove_from_table(JSValueRef key, GWebKitJSValue *value)
  * Return Value: the correct #GWebKitJSValue correspond to the JSValueRef.
  **/
 static GWebKitJSValue*
-_gwebkitjs_value_update_table(GWebKitJSValue* gvalue)
+_gwebkitjs_value_update_table(GWebKitJSValue* gvalue, JSValueRef jsvalue)
 {
     gpointer orig;
-    JSValueRef jsvalue;
-    jsvalue = gvalue->priv->jsvalue;
 update_start:
     G_LOCK(value_table);
     orig = g_hash_table_lookup(value_table, jsvalue);
-    if (!orig) {
+    if (!orig && gvalue) {
         g_hash_table_replace(value_table, (gpointer)jsvalue, gvalue);
     }
     G_UNLOCK(value_table);
@@ -204,7 +202,8 @@ update_start:
             _gwebkitjs_value_remove_from_table(jsvalue, orig);
             goto update_start;
         }
-        g_object_unref(gvalue);
+        if (gvalue)
+            g_object_unref(gvalue);
         return orig;
     }
     return gvalue;
@@ -214,7 +213,6 @@ update_start:
 /**
  * Context Table and Reference Counting.
  **/
-
 static void
 gwebkitjs_value_context_dispose_cb(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
@@ -331,7 +329,6 @@ void gwebkitjs_value_unprotect_value(GWebKitJSValue *self)
 /**
  * JSCore API.
  **/
-
 /**
  * gwebkitjs_value_get_value: (skip)
  * @self: A #GWebKitJSValue.
@@ -349,7 +346,8 @@ gwebkitjs_value_get_value(GWebKitJSValue *self)
 
 /**
  * gwebkitjs_value_new: (skip)
- * @type: The GType of the instance, must be derived from #GWebKitJSValue.
+ * @type: The GType of the instance, must be derived from #GWebKitJSValue or
+ * %NULL for dry lookup.
  * @ctx: The #GWebKitJSContext related to the value.
  * @jsvalue: The JSValueRef to be wrapped by #GWebKitJSValue.
  *
@@ -360,19 +358,24 @@ gwebkitjs_value_get_value(GWebKitJSValue *self)
 GWebKitJSValue*
 gwebkitjs_value_new(GType type, GWebKitJSContext *ctx, JSValueRef jsvalue)
 {
-    GWebKitJSValue *self;
+    GWebKitJSValue *self = NULL;
     gwj_return_val_if_false(jsvalue, NULL);
-    gwj_return_val_if_false(g_type_is_a(type, GWEBKITJS_TYPE_VALUE), NULL);
+    if (type) {
+        gwj_return_val_if_false(g_type_is_a(type, GWEBKITJS_TYPE_VALUE), NULL);
+        self = g_object_new(type, NULL);
+        if (self)
+            self->priv->jsvalue = jsvalue;
+    }
+    self = _gwebkitjs_value_update_table(self, jsvalue);
 
-    self = g_object_new(type, NULL);
-    gwj_return_val_if_false(self, NULL);
-
-    self->priv->jsvalue = jsvalue;
-    self = _gwebkitjs_value_update_table(self);
-
-    gwebkitjs_value_add_context(self, ctx);
+    if (self)
+        gwebkitjs_value_add_context(self, ctx);
     return self;
 }
+
+/**
+ * Proxy of functions in gwebkitjs_context
+ **/
 
 /**
  * gwebkitjs_value_get_value_type:
@@ -386,30 +389,7 @@ gwebkitjs_value_new(GType type, GWebKitJSContext *ctx, JSValueRef jsvalue)
 GWebKitJSValueType
 gwebkitjs_value_get_value_type(GWebKitJSValue *self, GWebKitJSContext *ctx)
 {
-    JSType jstype;
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            GWEBKITJS_VALUE_TYPE_UNKNOWN);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            GWEBKITJS_VALUE_TYPE_UNKNOWN);
-    jstype = JSValueGetType(jsctx, jsvalue);
-    switch (jstype) {
-    case kJSTypeUndefined:
-        return GWEBKITJS_VALUE_TYPE_UNDEFINED;
-    case kJSTypeNull:
-        return GWEBKITJS_VALUE_TYPE_NULL;
-    case kJSTypeBoolean:
-        return GWEBKITJS_VALUE_TYPE_BOOLEAN;
-    case kJSTypeNumber:
-        return GWEBKITJS_VALUE_TYPE_NUMBER;
-    case kJSTypeString:
-        return GWEBKITJS_VALUE_TYPE_STRING;
-    case kJSTypeObject:
-        return GWEBKITJS_VALUE_TYPE_OBJECT;
-    default:
-        return GWEBKITJS_VALUE_TYPE_UNKNOWN;
-    }
+    return gwebkitjs_context_get_value_type(ctx, self);
 }
 
 /**
@@ -425,13 +405,7 @@ gboolean
 gwebkitjs_value_is_bool(GWebKitJSValue *self,
                         GWebKitJSContext *ctx)
 {
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            FALSE);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            FALSE);
-    return JSValueIsBoolean(jsctx, jsvalue);
+    return gwebkitjs_context_is_bool(ctx, self);
 }
 
 /**
@@ -447,13 +421,7 @@ gboolean
 gwebkitjs_value_is_null(GWebKitJSValue *self,
                         GWebKitJSContext *ctx)
 {
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            FALSE);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            FALSE);
-    return JSValueIsNull(jsctx, jsvalue);
+    return gwebkitjs_context_is_null(ctx, self);
 }
 
 /**
@@ -469,13 +437,7 @@ gboolean
 gwebkitjs_value_is_number(GWebKitJSValue *self,
                           GWebKitJSContext *ctx)
 {
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            FALSE);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            FALSE);
-    return JSValueIsNumber(jsctx, jsvalue);
+    return gwebkitjs_context_is_number(ctx, self);
 }
 
 /**
@@ -491,15 +453,8 @@ gboolean
 gwebkitjs_value_is_string(GWebKitJSValue *self,
                                    GWebKitJSContext *ctx)
 {
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            FALSE);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            FALSE);
-    return JSValueIsString(jsctx, jsvalue);
+    return gwebkitjs_context_is_string(ctx, self);
 }
-
 
 /**
  * gwebkitjs_value_is_object:
@@ -514,13 +469,7 @@ gboolean
 gwebkitjs_value_is_object(GWebKitJSValue *self,
                           GWebKitJSContext *ctx)
 {
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            FALSE);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            FALSE);
-    return JSValueIsObject(jsctx, jsvalue);
+    return gwebkitjs_context_is_object(ctx, self);
 }
 
 
@@ -536,11 +485,5 @@ gwebkitjs_value_is_object(GWebKitJSValue *self,
 gboolean gwebkitjs_value_is_undefined(GWebKitJSValue *self,
                                       GWebKitJSContext *ctx)
 {
-    JSGlobalContextRef jsctx;
-    JSValueRef jsvalue;
-    gwj_return_val_if_false((jsvalue = gwebkitjs_value_get_value(self)),
-                            FALSE);
-    gwj_return_val_if_false((jsctx = gwebkitjs_context_get_context(ctx)),
-                            FALSE);
-    return JSValueIsUndefined(jsctx, jsvalue);
+    return gwebkitjs_context_is_undefined(ctx, self);
 }

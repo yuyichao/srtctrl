@@ -88,10 +88,22 @@ extern "C" {
                                          GWebKitJSValue *value);
     gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
                                             GWebKitJSValue *value);
+    //TODO
     gboolean gwebkitjs_context_is_function(GWebKitJSContext *self,
                                             GWebKitJSValue *value);
+    //TODO
     gboolean gwebkitjs_context_is_constructor(GWebKitJSContext *self,
                                               GWebKitJSValue *value);
+    //TODO
+    gchar *gwebkitjs_context_get_object_type(GWebKitJSContext *self,
+                                             GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
+                                              GWebKitJSValue *instance,
+                                              GWebKitJSValue *construct,
+                                              GError **error);
+    gboolean gwebkitjs_context_is_of_class(GWebKitJSContext *self,
+                                           GWebKitJSValue *instance,
+                                           GType klass, GError **error);
 
     GWebKitJSValue *gwebkitjs_context_call_function(GWebKitJSContext *self,
                                                     GWebKitJSValue *func,
@@ -104,8 +116,6 @@ extern "C" {
                                                        size_t argc,
                                                        GWebKitJSValue **argv,
                                                        GError **error);
-    gchar *gwebkitjs_context_get_object_type(GWebKitJSContext *self,
-                                             GWebKitJSValue *value);
 
     gboolean gwebkitjs_context_is_equal(GWebKitJSContext *self,
                                         GWebKitJSValue *left,
@@ -116,15 +126,36 @@ extern "C" {
                                                GWebKitJSValue *right,
                                                GError **error);
 
-    gboolean gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
-                                              GWebKitJSValue *instance,
-                                              GWebKitJSValue *construct,
-                                              GError **error);
-    gboolean gwebkitjs_context_is_of_class(GWebKitJSContext *self,
-                                           GWebKitJSValue *instance,
-                                           GType klass, GError **error);
-    gchar *gwebkitjs_context_to_json_str(GWebKitJSValue *self, guint indent,
+    gchar *gwebkitjs_context_to_json_str(GWebKitJSContext *self,
+                                         GWebKitJSValue *value, guint indent,
                                          GError **error);
+    gboolean gwebkitjs_context_to_boolean(GWebKitJSContext *self,
+                                          GWebKitJSValue *value);
+    gdouble gwebkitjs_context_to_number(GWebKitJSContext *self,
+                                        GWebKitJSValue *value,
+                                        GError **error);
+    gchar *gwebkitjs_context_to_string(GWebKitJSContext *self,
+                                       GWebKitJSValue *value,
+                                       GError **error);
+
+    // JSObjectCopyPropertyNames
+    // JSObjectDeleteProperty
+    // JSObjectGetProperty
+    // JSObjectGetPropertyAtIndex
+    // JSObjectHasProperty
+    // JSObjectSetProperty
+    // JSObjectSetPropertyAtIndex
+
+    // JSObjectGetPrototype
+    // JSObjectSetPrototype
+
+    // JSObjectMakeArray
+    // JSObjectMakeConstructor
+    // JSObjectMakeDate
+    // JSObjectMakeError
+    // JSObjectMakeFunction
+    // JSObjectMakeFunctionWithCallback
+    // JSObjectMakeRegExp
 #ifdef __cplusplus
 }
 #endif
