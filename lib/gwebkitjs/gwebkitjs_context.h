@@ -64,6 +64,7 @@ extern "C" {
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);
 
     JSGlobalContextRef gwebkitjs_context_get_context(GWebKitJSContext *self);
+    GWebKitJSValue *gwebkitjs_context_get_global(GWebKitJSContext *self);
 
     GWebKitJSValue *gwebkitjs_context_make_bool(GWebKitJSContext *self,
                                                 gboolean b);
@@ -79,7 +80,7 @@ extern "C" {
     GWebKitJSValueType gwebkitjs_context_get_value_type(GWebKitJSContext *self,
                                                         GWebKitJSValue *value);
     //TODO
-    gchar *gwebkitjs_context_get_object_type(GWebKitJSContext *self,
+    gchar *gwebkitjs_context_get_object_name(GWebKitJSContext *self,
                                              GWebKitJSValue *value);
     gboolean gwebkitjs_context_is_bool(GWebKitJSContext *self,
                                        GWebKitJSValue *value);

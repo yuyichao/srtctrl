@@ -253,14 +253,11 @@ gwebkitjs_context_init_context(GWebKitJSContext *self,
     if (!global)
         goto free;
 
-    jsvalue = gwebkitjs_util_get_property(jsctx, global, "Object", NULL);
-    if (!jsvalue)
-        goto free;
-    object = JSValueToObject(jsctx, jsvalue, NULL);
+    object = JSObjectMake(jsctx, NULL, NULL);
     if (!object)
         goto free;
 
-    jsvalue = gwebkitjs_util_get_property(jsctx, global, "toString", NULL);
+    jsvalue = gwebkitjs_util_get_property(jsctx, object, "toString", NULL);
     if (!jsvalue)
         goto free;
     tostring = JSValueToObject(jsctx, jsvalue, NULL);
@@ -343,7 +340,7 @@ gwebkitjs_context_new(GType global)
 
 /**
  * gwebkitjs_context_new_from_context: (skip)
- * @jsctx: The Javascript Context wrapped by GWebKitJSContext.
+ * @jsctx: (allow-none): The Javascript Context wrapped by GWebKitJSContext.
  *
  * Find the corresponding #GWebKitJSContext of a JSGlobalContextRef.
  * Creates a new one if not exist.
@@ -410,13 +407,28 @@ gwebkitjs_context_get_context(GWebKitJSContext *self)
 }
 
 /**
+ * gwebkitjs_context_get_global:
+ * @self: (allow-none): A #GWebKitJSContext.
+ *
+ * Get the global object of the #GWebKitJSContext.
+ *
+ * Return value: (transfer none): the global object of the #GWebKitJSContext.
+ **/
+GWebKitJSValue*
+gwebkitjs_context_get_global(GWebKitJSContext *self)
+{
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
+    return self->priv->global;
+}
+
+/**
  * gwebkitjs_context_make_bool:
- * @self: A #GWebKitJSContext.
+ * @self: (allow-none): A #GWebKitJSContext.
  * @b: the boolean value of the created jsvalue.
  *
  * Create a #GWebKitJSValue from a boolean value.
  *
- * Return value: (transfer full): the created #GWebKitJSValue.
+ * Return value: (transfer full) (allow-none): the created #GWebKitJSValue.
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_bool(GWebKitJSContext *self, gboolean b)
@@ -430,12 +442,12 @@ gwebkitjs_context_make_bool(GWebKitJSContext *self, gboolean b)
 
 /**
  * gwebkitjs_context_make_from_json_str:
- * @self: A #GWebKitJSContext.
- * @json: the JSON string to create the object from.
+ * @self: (allow-none): A #GWebKitJSContext.
+ * @json: (allow-none): the JSON string to create the object from.
  *
  * Create a #GWebKitJSValue from a JSON string.
  *
- * Return value: (transfer full): the created #GWebKitJSValue.
+ * Return value: (transfer full) (allow-none): the created #GWebKitJSValue.
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
@@ -453,11 +465,11 @@ gwebkitjs_context_make_from_json_str(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_make_null:
- * @self: A #GWebKitJSContext.
+ * @self: (allow-none): A #GWebKitJSContext.
  *
  * Create a null #GWebKitJSValue.
  *
- * Return value: (transfer full): the created #GWebKitJSValue.
+ * Return value: (transfer full) (allow-none): the created #GWebKitJSValue.
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_null(GWebKitJSContext *self)
@@ -471,12 +483,12 @@ gwebkitjs_context_make_null(GWebKitJSContext *self)
 
 /**
  * gwebkitjs_context_make_number:
- * @self: A #GWebKitJSContext.
+ * @self: (allow-none): A #GWebKitJSContext.
  * @num: the value(number) of the created jsvalue.
  *
  * Create a #GWebKitJSValue from a number.
  *
- * Return value: (transfer full): the created #GWebKitJSValue.
+ * Return value: (transfer full) (allow-none): the created #GWebKitJSValue.
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
@@ -491,11 +503,11 @@ gwebkitjs_context_make_number(GWebKitJSContext *self, gdouble num)
 /**
  * gwebkitjs_context_make_string:
  * @self: A #GWebKitJSContext.
- * @str: the string to create the object from.
+ * @str: (allow-none): the string to create the object from.
  *
  * Create a #GWebKitJSValue from a string.
  *
- * Return value: (transfer full): the created #GWebKitJSValue.
+ * Return value: (transfer full) (allow-none): the created #GWebKitJSValue.
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
@@ -509,11 +521,11 @@ gwebkitjs_context_make_string(GWebKitJSContext *self, const gchar *str)
 
 /**
  * gwebkitjs_context_make_undefined:
- * @self: A #GWebKitJSContext.
+ * @self: (allow-none): A #GWebKitJSContext.
  *
  * Create a undefined #GWebKitJSValue.
  *
- * Return value: (transfer full): the created #GWebKitJSValue.
+ * Return value: (transfer full) (allow-none): the created #GWebKitJSValue.
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_undefined(GWebKitJSContext *self)
@@ -526,8 +538,8 @@ gwebkitjs_context_make_undefined(GWebKitJSContext *self)
 
 /**
  * gwebkitjs_context_get_value_type:
- * @self: The #GWebKitJSContext related to the value..
- * @value: A #GWebKitJSValue
+ * @self: (allow-none): The #GWebKitJSContext related to the value..
+ * @value: (allow-none): A #GWebKitJSValue
  *
  * Check the type of a value.
  *
@@ -564,8 +576,8 @@ gwebkitjs_context_get_value_type(GWebKitJSContext *self, GWebKitJSValue *value)
 
 /**
  * gwebkitjs_context_is_bool:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value is boolean.
  *
@@ -586,8 +598,8 @@ gwebkitjs_context_is_bool(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_null:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value is null.
  *
@@ -608,8 +620,8 @@ gwebkitjs_context_is_null(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_number:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value is number.
  *
@@ -630,8 +642,8 @@ gwebkitjs_context_is_number(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_string:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value is string.
  *
@@ -652,8 +664,8 @@ gwebkitjs_context_is_string(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_object:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value is object.
  *
@@ -674,8 +686,8 @@ gwebkitjs_context_is_object(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_undefined:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value is undefined.
  *
@@ -695,8 +707,8 @@ gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_function:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value can be called as a function.
  *
@@ -720,8 +732,8 @@ gwebkitjs_context_is_function(GWebKitJSContext *self, GWebKitJSValue *value)
 }
 /**
  * gwebkitjs_context_is_constructor:
- * @self: The #GWebKitJSContext related to the value.
- * @value: A #GWebKitJSValue.
+ * @self: (allow-none): The #GWebKitJSContext related to the value.
+ * @value: (allow-none): A #GWebKitJSValue.
  *
  * Check if the type of a value can be called as a constructor.
  *
@@ -744,16 +756,16 @@ gwebkitjs_context_is_constructor(GWebKitJSContext *self, GWebKitJSValue *value)
     return JSObjectIsConstructor(jsctx, jsobject);
 }
 /**
- * gwebkitjs_context_get_object_type:
- * @self: The #GWebKitJSContext related to the value..
- * @value: A #GWebKitJSValue
+ * gwebkitjs_context_get_object_name:
+ * @self: (allow-none): The #GWebKitJSContext related to the value..
+ * @value: (allow-none): A #GWebKitJSValue
  *
  * Check the type string of a value.
  *
  * Return value: (allow-none) a string that represent the type of @value.
  **/
 gchar*
-gwebkitjs_context_get_object_type(GWebKitJSContext *self,
+gwebkitjs_context_get_object_name(GWebKitJSContext *self,
                                   GWebKitJSValue *value)
 {
     return NULL;
@@ -761,10 +773,10 @@ gwebkitjs_context_get_object_type(GWebKitJSContext *self,
 
 /**
  * gwebkitjs_context_is_eqaul:
- * @self: A #GWebKitJSContext.
- * @left: A #GWebKitJSValue.
- * @right: Another #GWebKitJSValue.
- * @error: Return location for error or %NULL.
+ * @self: (allow-none): A #GWebKitJSContext.
+ * @left: (allow-none): A #GWebKitJSValue.
+ * @right: (allow-none): Another #GWebKitJSValue.
+ * @error: (allow-none): Return location for error or %NULL.
  *
  * Compare whether @left and @right are equal in the context @self.
  *
@@ -800,6 +812,11 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
                                 GWebKitJSValue *thisobj, size_t argc,
                                 GWebKitJSValue **argv, GError **error)
 {
+    JSContextRef jsctx;
+    JSValueRef jsfunc_val;
+    JSValueRef jsthis_val;
+    JSObjectRef jsfunc;
+    JSObjectRef jsthis;
     return NULL;
 }
 
@@ -814,4 +831,30 @@ gwebkitjs_context_call_constructor(GWebKitJSContext *self,
                                    GWebKitJSValue **argv, GError **error)
 {
     return NULL;
+}
+
+/**
+ * gwebkitjs_context_to_json_str:
+ * @self: (allow-none):
+ * @value: (allow-none):
+ *
+ * Return Value: The JSON String correspond to the object;
+ **/
+gchar*
+gwebkitjs_context_to_json_str(GWebKitJSContext *self, GWebKitJSValue *value,
+                              guint indent, GError **error)
+{
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    JSValueRef jserror = NULL;
+    JSStringRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, NULL);
+
+    jsres = JSValueCreateJSONString(jsctx, jsvalue, indent, &jserror);
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_util_convert_str(jsres);
 }

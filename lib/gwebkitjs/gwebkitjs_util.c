@@ -115,13 +115,16 @@ gwebkitjs_util_gerror_from_jserror(JSContextRef ctx, JSValueRef jserror,
     gchar *name;
     gchar *msg;
     GQuark domain;
+    gwj_return_if_false(ctx);
+    gwj_return_if_false(jserror);
     gwj_return_if_false(error);
 
     name = gwebkitjs_util_jserror_get_name(ctx, jserror);
     msg = gwebkitjs_util_jserror_get_message(ctx, jserror);
-    domain = g_quark_from_string(name);
+    gwj_return_if_false(name || msg);
+    domain = g_quark_from_string(name ? name : "Error");
     g_free(name);
-    *error = g_error_new_literal(domain, 0, msg);
+    *error = g_error_new_literal(domain, 0, msg ? msg : "");
     g_free(msg);
 }
 

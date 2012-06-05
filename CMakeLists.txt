@@ -7,6 +7,12 @@ include(PythonMacros)
 include(CheckAll)
 include(GObjectIntrospection)
 
+option(ENABLE_TEST "Test build" OFF)
+
+if(ENABLE_TEST)
+  enable_testing()
+endif()
+
 if(NOT DEFINED BIN_INSTALL_DIR)
   set(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin")
 endif(NOT DEFINED BIN_INSTALL_DIR)
