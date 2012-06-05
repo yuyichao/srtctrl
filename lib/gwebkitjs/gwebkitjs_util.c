@@ -21,19 +21,14 @@
  ***************************************************************************/
 
 /**
- * gwebkitjs_util_value_to_str: (skip)
+ * gwebkitjs_util_dup_str: (skip)
  **/
 gchar*
-gwebkitjs_util_value_to_str(JSContextRef ctx, JSValueRef jsvalue)
+gwebkitjs_util_dup_str(JSStringRef jsstr)
 {
-    gchar *str = NULL;
-    JSStringRef jsstr;
+    char *str = NULL;
     gint l;
-    gwj_return_val_if_false(ctx && jsvalue, NULL);
-
-    jsstr = JSValueToStringCopy(ctx, jsvalue, NULL);
     gwj_return_val_if_false(jsstr, NULL);
-
     l = JSStringGetMaximumUTF8CStringSize(jsstr);
     if (l > 0) {
         gchar *buf;
@@ -42,9 +37,33 @@ gwebkitjs_util_value_to_str(JSContextRef ctx, JSValueRef jsvalue)
         str = g_strdup(buf);
         g_free(buf);
     }
-    JSStringRelease (jsstr);
-
     return str;
+}
+
+/**
+ * gwebkitjs_util_convert_str: (skip)
+ **/
+gchar*
+gwebkitjs_util_convert_str(JSStringRef jsstr)
+{
+    gchar *str;
+    gwj_return_val_if_false(jsstr, NULL);
+    str = gwebkitjs_util_dup_str(jsstr);
+    JSStringRelease(jsstr);
+    return str;
+}
+
+/**
+ * gwebkitjs_util_value_to_str: (skip)
+ **/
+gchar*
+gwebkitjs_util_value_to_str(JSContextRef ctx, JSValueRef jsvalue)
+{
+    JSStringRef jsstr;
+    gwj_return_val_if_false(ctx && jsvalue, NULL);
+
+    jsstr = JSValueToStringCopy(ctx, jsvalue, NULL);
+    return gwebkitjs_util_convert_str(jsstr);
 }
 
 /**

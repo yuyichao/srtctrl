@@ -88,6 +88,24 @@ extern "C" {
                                          GWebKitJSValue *value);
     gboolean gwebkitjs_context_is_undefined(GWebKitJSContext *self,
                                             GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_function(GWebKitJSContext *self,
+                                            GWebKitJSValue *value);
+    gboolean gwebkitjs_context_is_constructor(GWebKitJSContext *self,
+                                              GWebKitJSValue *value);
+
+    GWebKitJSValue *gwebkitjs_context_call_function(GWebKitJSContext *self,
+                                                    GWebKitJSValue *func,
+                                                    GWebKitJSValue *thisobj,
+                                                    size_t argc,
+                                                    GWebKitJSValue **argv,
+                                                    GError **error);
+    GWebKitJSValue *gwebkitjs_context_call_constructor(GWebKitJSContext *self,
+                                                       GWebKitJSValue *func,
+                                                       size_t argc,
+                                                       GWebKitJSValue **argv,
+                                                       GError **error);
+    gchar *gwebkitjs_context_get_object_type(GWebKitJSContext *self,
+                                             GWebKitJSValue *value);
 
     gboolean gwebkitjs_context_is_equal(GWebKitJSContext *self,
                                         GWebKitJSValue *left,

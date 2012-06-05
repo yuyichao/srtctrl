@@ -44,8 +44,11 @@ typedef enum {
 #ifdef __cplusplus
 extern "C" {
 #endif
+    gchar *gwebkitjs_util_dup_str(JSStringRef jsstr);
+    gchar *gwebkitjs_util_convert_str(JSStringRef jsstr);
     gchar *gwebkitjs_util_value_to_str(JSContextRef ctx, JSValueRef jsvalue);
     JSValueRef gwebkitjs_util_make_str(JSContextRef ctx, const char *str);
+
     gchar *gwebkitjs_util_jserror_get_name(JSContextRef ctx,
                                            JSValueRef jserror);
     gchar *gwebkitjs_util_jserror_get_message(JSContextRef ctx,

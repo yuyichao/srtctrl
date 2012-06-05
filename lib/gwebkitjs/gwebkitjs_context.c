@@ -85,22 +85,22 @@ _gwebkitjs_context_remove_from_table(gpointer key, gpointer value)
  * @gctx: A new created #GWebKitJSContext. (cannot be NULL)
  *
  * Look up the corresponding JSGlobalContextRef of the #GWebKitJSContext.
- * If found, add the reference counting of the found #GWebKitJSContext
- * and unref() the new one. Otherwise, add the new one to context_table.
+ * If found, add the reference counting of the found #GWebKitJSContext.
+ * The new one (@gctx) will NOT be unref().
+ * Otherwise, add the new one to context_table.
  *
  * Return Value: the correct #GWebKitJSContext correspond to
  * the JSGlobalContextRef.
  **/
 static GWebKitJSContext*
-_gwebkitjs_context_update_table(GWebKitJSContext* gctx)
+_gwebkitjs_context_update_table(GWebKitJSContext* gctx,
+                                JSGlobalContextRef jsctx)
 {
     gpointer orig;
-    JSGlobalContextRef jsctx;
-    jsctx = gctx->priv->jsctx;
 update_start:
     G_LOCK(context_table);
     orig = g_hash_table_lookup(context_table, jsctx);
-    if (!orig) {
+    if (!orig && gctx) {
         g_hash_table_replace(context_table, jsctx, gctx);
     }
     G_UNLOCK(context_table);
@@ -113,7 +113,6 @@ update_start:
             _gwebkitjs_context_remove_from_table(jsctx, orig);
             goto update_start;
         }
-        g_object_unref(gctx);
         return orig;
     }
     return gctx;
@@ -202,40 +201,99 @@ gwebkitjs_context_finalize(GObject *obj)
 }
 
 static gboolean
+gwebkitjs_context_initialized(GWebKitJSContext *self)
+{
+    GWebKitJSContextPrivate *priv;
+    gwj_return_val_if_false(GWEBKITJS_IS_CONTEXT(self), FALSE);
+
+    priv = self->priv;
+    return (priv->global && priv->object && priv->tostring);
+}
+
+static GWebKitJSContext*
 gwebkitjs_context_init_context(GWebKitJSContext *self,
                                JSGlobalContextRef jsctx)
 {
     GWebKitJSContextPrivate *priv;
+    GWebKitJSContext *res;
     JSValueRef jsvalue;
     JSObjectRef global;
     JSObjectRef object;
     JSObjectRef tostring;
-    gwj_return_val_if_false(jsctx && GWEBKITJS_IS_CONTEXT(self), FALSE);
-
+    gwj_return_val_if_false(jsctx, NULL);
+    if (!GWEBKITJS_IS_CONTEXT(self)) {
+        self = NULL;
+        goto try_update;
+    }
     priv = self->priv;
+    priv->global = NULL;
+    priv->object = NULL;
+    priv->tostring = NULL;
 
     priv->jsctx = jsctx;
     JSGlobalContextRetain(jsctx);
 
     global = JSContextGetGlobalObject(jsctx);
-    gwj_return_val_if_false(global, FALSE);
+    if (!global)
+        goto free;
 
     jsvalue = gwebkitjs_util_get_property(jsctx, global, "Object", NULL);
-    gwj_return_val_if_false(jsvalue, FALSE);
+    if (!jsvalue)
+        goto free;
     object = JSValueToObject(jsctx, jsvalue, NULL);
-    gwj_return_val_if_false(object, FALSE);
+    if (!object)
+        goto free;
 
     jsvalue = gwebkitjs_util_get_property(jsctx, global, "toString", NULL);
-    gwj_return_val_if_false(jsvalue, FALSE);
+    if (!jsvalue)
+        goto free;
     tostring = JSValueToObject(jsctx, jsvalue, NULL);
-    gwj_return_val_if_false(tostring, FALSE);
+    if (!tostring)
+        goto free;
+    if (!JSObjectIsFunction(jsctx, tostring))
+        goto free;
 
-    priv->global = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, global);
-    priv->object = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, object);
-    priv->tostring = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, tostring);
-    if (!(priv->global && priv->object && priv->tostring))
-        return FALSE;
-    return TRUE;
+try_update:
+    res = _gwebkitjs_context_update_table(self, jsctx);
+
+    if (!res) {
+        /* This can only happen if self was NULL and no existing instance is
+         * found in the table.
+         */
+        return NULL;
+    } else if (res == self) {
+        /* No existing instance is found in the table, try initialize the
+         * new one and check if it is initialized correctly.
+         */
+        priv->global = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, global);
+        priv->object = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, object);
+        priv->tostring = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE,
+                                             self, tostring);
+        if (!gwebkitjs_context_initialized(self)) {
+            g_object_unref(self);
+            return NULL;
+        }
+    } else {
+        /* An old instance is found in the table.
+         * Check if it has been initialized. Failing on this check indicate a
+         * race condition with another new allocated instance. Therefore,
+         * unref the found one (since it is not clear whether it is usable and
+         * a reference is obtain in the update_table function) and try again.
+         * Otherwise, unref the new one (self) and return the found one.
+         */
+        if (!gwebkitjs_context_initialized(res)) {
+            g_object_unref(res);
+            goto try_update;
+        } else {
+            g_object_unref(self);
+        }
+    }
+    return res;
+free:
+    if (self)
+        g_object_unref(self);
+    self = NULL;
+    goto try_update;
 }
 
 /**
@@ -256,11 +314,7 @@ gwebkitjs_context_new(JSGlobalContextRef jsctx)
     self = g_object_new(GWEBKITJS_TYPE_CONTEXT, NULL);
     gwj_return_val_if_false(self, NULL);
 
-    if (!gwebkitjs_context_init_context(self, jsctx)) {
-        g_object_unref(self);
-        return NULL;
-    }
-    return _gwebkitjs_context_update_table(self);
+    return gwebkitjs_context_init_context(self, jsctx);
 }
 
 /**
@@ -602,6 +656,22 @@ gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
 
     res = JSValueIsEqual(jsctx, jsleft, jsright, &jserror);
     return res;
+}
+
+GWebKitJSValue*
+gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
+                                GWebKitJSValue *thisobj, size_t argc,
+                                GWebKitJSValue **argv, GError **error)
+{
+
+}
+
+GWebKitJSValue*
+gwebkitjs_context_call_constructor(GWebKitJSContext *self,
+                                   GWebKitJSValue *func, size_t argc,
+                                   GWebKitJSValue **argv, GError **error)
+{
+
 }
 
 gboolean
