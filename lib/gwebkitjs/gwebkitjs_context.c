@@ -804,6 +804,12 @@ gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
 
 /**
  * gwebkitjs_context_call_function:
+ * @self: (allow-none):
+ * @func: (allow-none):
+ * @thisobj: (allow-none):
+ * @argc:
+ * @argv: (allow-none) (array length=argc):
+ * @error: (allow-none):
  *
  * Return Value: (transfer full) (allow-none):
  **/
@@ -814,10 +820,44 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
 {
     JSContextRef jsctx;
     JSValueRef jsfunc_val;
-    JSValueRef jsthis_val;
     JSObjectRef jsfunc;
     JSObjectRef jsthis;
-    return NULL;
+    JSValueRef jserror;
+    JSValueRef *jsargv;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+    jsfunc_val = gwebkitjs_value_get_value(func);
+    gwj_return_val_if_false(jsfunc_val, NULL);
+    jsthis = (JSObjectRef)gwebkitjs_value_get_value(thisobj);
+    jsfunc = JSValueToObject(jsctx, jsfunc_val, &jserror);
+    if (!jsfunc) {
+        gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+        return NULL;
+    }
+    jserror = NULL;
+
+    if (argc <= 0 || !argv) {
+        argc = 0;
+        jsargv = NULL;
+    } else {
+        int i;
+        jsargv = g_new0(JSValueRef, argc);
+        for (i = 0;i < argc;i++) {
+            jsargv[i] = gwebkitjs_value_get_value(argv[i]);
+            if (!jsargv[i])
+                jsargv[i] = JSValueMakeUndefined(jsctx);
+        }
+    }
+    jsres = JSObjectCallAsFunction(jsctx, jsfunc, jsthis,
+                                   argc, jsargv, &jserror);
+    g_free(jsargv);
+    if (jsres) {
+        jserror = NULL;
+    }
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
 
 /**
