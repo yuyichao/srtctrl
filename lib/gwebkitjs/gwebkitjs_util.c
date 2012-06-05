@@ -77,6 +77,7 @@ gwebkitjs_util_make_str(JSContextRef ctx, const char *str)
     gwj_return_val_if_false(ctx && str, NULL);
 
     jsstr = JSStringCreateWithUTF8CString(str);
+    gwj_return_val_if_false(jsstr, NULL);
     jsvalue = JSValueMakeString(ctx, jsstr);
     JSStringRelease(jsstr);
 
@@ -147,7 +148,10 @@ gwebkitjs_util_make_jserror(JSContextRef ctx, JSValueRef *jserror,
 
     if (msg) {
         jsmsg = gwebkitjs_util_make_str(ctx, msg);
-        *jserror = JSObjectMakeError(ctx, 1, &jsmsg, NULL);
+        if (jsmsg)
+            *jserror = JSObjectMakeError(ctx, 1, &jsmsg, NULL);
+        else
+            *jserror = JSObjectMakeError(ctx, 0, NULL, NULL);
     } else {
         *jserror = JSObjectMakeError(ctx, 0, NULL, NULL);
     }
@@ -156,8 +160,10 @@ gwebkitjs_util_make_jserror(JSContextRef ctx, JSValueRef *jserror,
 
     if (name) {
         jsname = gwebkitjs_util_make_str(ctx, name);
-        gwebkitjs_util_set_property(ctx, *jserror, "name", jsname,
-                                    GWEBKITJS_PROPERTY_ATTRIBUTE_NONE, NULL);
+        if (jsname)
+            gwebkitjs_util_set_property(ctx, *jserror, "name", jsname,
+                                        GWEBKITJS_PROPERTY_ATTRIBUTE_NONE,
+                                        NULL);
     }
 }
 
@@ -189,7 +195,7 @@ gwebkitjs_util_get_property(JSContextRef ctx, JSValueRef self,
     JSValueRef jserror = NULL;
     JSValueRef res;
     JSObjectRef jsobject;
-    gwj_return_val_if_false(ctx && self &&  name, NULL);
+    gwj_return_val_if_false(ctx && self && name, NULL);
     jsobject = JSValueToObject(ctx, self, &jserror);
     if (!jsobject) {
         gwebkitjs_util_gerror_from_jserror(ctx, jserror, error);
@@ -216,7 +222,7 @@ gwebkitjs_util_set_property(JSContextRef ctx, JSValueRef self,
     JSStringRef jsname;
     JSValueRef jserror = NULL;
     JSObjectRef jsobject;
-    gwj_return_if_false(ctx && self &&  name && prop);
+    gwj_return_if_false(ctx && self && name && prop);
     jsobject = JSValueToObject(ctx, self, &jserror);
     if (!jsobject) {
         gwebkitjs_util_gerror_from_jserror(ctx, jserror, error);
