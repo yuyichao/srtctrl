@@ -187,12 +187,11 @@ extern "C" {
                                                     const char *url,
                                                     gint lineno,
                                                     GError **error);
-
+    void gwebkitjs_context_garbage_collect(GWebKitJSContext *self);
     // JSObjectMakeArray
     // JSObjectMakeConstructor
     // JSObjectMakeDate
     // JSObjectMakeError
-    // JSObjectMakeFunction
     // JSObjectMakeFunctionWithCallback
     // JSObjectMakeRegExp
 #ifdef __cplusplus

@@ -1454,3 +1454,16 @@ gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
+
+/**
+ * gwebkitjs_context_garbage_collect:
+ * @self: (allow-none) (transfer none):
+ **/
+void
+gwebkitjs_context_garbage_collect(GWebKitJSContext *self)
+{
+    JSContextRef jsctx;
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_if_false(jsctx);
+    JSGarbageCollect(jsctx);
+}
