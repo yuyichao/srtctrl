@@ -771,6 +771,7 @@ gwebkitjs_context_is_constructor(GWebKitJSContext *self, GWebKitJSValue *value)
  * @self: (allow-none) (transfer none): The #GWebKitJSContext related to
  * the value..
  * @value: (allow-none) (transfer none): A #GWebKitJSValue
+ * @error:
  *
  * Check the type string of a value.
  *
@@ -778,9 +779,21 @@ gwebkitjs_context_is_constructor(GWebKitJSContext *self, GWebKitJSValue *value)
  **/
 gchar*
 gwebkitjs_context_get_object_name(GWebKitJSContext *self,
-                                  GWebKitJSValue *value)
+                                  GWebKitJSValue *value,
+                                  GError **error)
 {
-    return NULL;
+    GWebKitJSValue *tostring;
+    GWebKitJSValue *res_val;
+    gchar *res;
+    gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
+    gwj_return_val_if_false(gwebkitjs_context_initialized(self), NULL);
+    tostring = self->priv->tostring;
+    res_val = gwebkitjs_context_call_function(self, tostring, value,
+                                              0, NULL, error);
+    gwj_return_val_if_false(res_val, NULL);
+    res = gwebkitjs_context_to_string(self, res_val, error);
+    g_object_unref(res_val);
+    return res;
 }
 
 /**
@@ -802,7 +815,7 @@ gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
     JSValueRef jsleft;
     JSValueRef jsright;
     gboolean res;
-    JSValueRef jserror;
+    JSValueRef jserror = NULL;
     jsctx = gwebkitjs_context_get_context(self);
     gwj_return_val_if_false(jsctx, FALSE);
     jsleft = gwebkitjs_value_get_value(left);
@@ -864,7 +877,7 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     JSValueRef jsfunc_val;
     JSObjectRef jsfunc;
     JSObjectRef jsthis;
-    JSValueRef jserror;
+    JSValueRef jserror = NULL;
     JSValueRef *jsargv;
     JSValueRef jsres;
 
@@ -920,7 +933,7 @@ gwebkitjs_context_call_constructor(GWebKitJSContext *self,
     JSContextRef jsctx;
     JSValueRef jsfunc_val;
     JSObjectRef jsfunc;
-    JSValueRef jserror;
+    JSValueRef jserror = NULL;
     JSValueRef *jsargv;
     JSValueRef jsres;
 
@@ -1061,7 +1074,7 @@ gwebkitjs_context_to_number(GWebKitJSContext *self, GWebKitJSValue *value,
 {
     JSContextRef jsctx;
     JSValueRef jsvalue;
-    JSValueRef jserror;
+    JSValueRef jserror = NULL;
     gdouble res;
 
     jsctx = gwebkitjs_context_get_context(self);
@@ -1088,7 +1101,7 @@ gwebkitjs_context_to_string(GWebKitJSContext *self, GWebKitJSValue *value,
 {
     JSContextRef jsctx;
     JSValueRef jsvalue;
-    JSValueRef jserror;
+    JSValueRef jserror = NULL;
     JSStringRef jsres;
 
     jsctx = gwebkitjs_context_get_context(self);
