@@ -1390,3 +1390,67 @@ gwebkitjs_context_set_prototype(GWebKitJSContext *self, GWebKitJSValue *value,
 
     JSObjectSetPrototype(jsctx, jsobject, jsproto);
 }
+
+/**
+ * gwebkitjs_context_make_function:
+ * @self: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @argn:
+ * @argnames: (allow-none) (transfer none) (array length=argn) (element-type utf8):
+ * @body: (allow-none) (transfer none):
+ * @url: (allow-none) (transfer none):
+ * @lineno:
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
+                                guint argn, const char **argnames,
+                                const char *body, const char *url,
+                                gint lineno, GError **error)
+{
+    JSContextRef jsctx;
+    JSStringRef jsname = NULL;
+    JSStringRef *jsargnames = NULL;
+    JSStringRef jsbody;
+    JSStringRef jsurl = NULL;
+    JSValueRef jserror = NULL;
+    JSValueRef jsres;
+    int i;
+    gwj_return_val_if_false(body, NULL);
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+    if (name)
+        jsname = JSStringCreateWithUTF8CString(name);
+    if (argn && argnames) {
+        jsargnames = g_new0(JSStringRef, argn);
+        for (i = 0;i < argn;i++)
+            jsargnames[i] = JSStringCreateWithUTF8CString(argnames[i]);
+    } else {
+        argn = 0;
+    }
+    jsbody = JSStringCreateWithUTF8CString(body);
+    if (url)
+        jsurl = JSStringCreateWithUTF8CString(url);
+
+    jsres = JSObjectMakeFunction(jsctx, jsname, argn, jsargnames, jsbody,
+                                 jsurl, lineno, &jserror);
+
+    if (jsurl)
+        JSStringRelease(jsurl);
+    if (jsbody)
+        JSStringRelease(jsbody);
+    for (i = 0;i < argn;i++) {
+        if (jsargnames[i]) {
+            JSStringRelease(jsargnames[i]);
+        }
+    }
+    if (jsargnames)
+        g_free(jsargnames);
+    if (jsname)
+        JSStringRelease(jsname);
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}

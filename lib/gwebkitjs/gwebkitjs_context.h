@@ -174,13 +174,19 @@ extern "C" {
                                                  guint index,
                                                  GWebKitJSValue *prop_value,
                                                  GError **error);
-    //TODO
     GWebKitJSValue *gwebkitjs_context_get_prototype(GWebKitJSContext *self,
                                                     GWebKitJSValue *value);
-    //TODO
     void gwebkitjs_context_set_prototype(GWebKitJSContext *self,
                                          GWebKitJSValue *value,
                                          GWebKitJSValue *proto);
+    GWebKitJSValue *gwebkitjs_context_make_function(GWebKitJSContext *self,
+                                                    const char *name,
+                                                    guint argn,
+                                                    const char **argnames,
+                                                    const char *body,
+                                                    const char *url,
+                                                    gint lineno,
+                                                    GError **error);
 
     // JSObjectMakeArray
     // JSObjectMakeConstructor
