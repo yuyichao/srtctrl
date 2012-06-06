@@ -1137,7 +1137,7 @@ gwebkitjs_context_get_property_names(GWebKitJSContext *self,
         res = g_new0(gchar*, *n);
     if (res) {
         for (i = 0;i < *n;i++) {
-            res[i] = gwebkitjs_util_convert_str(
+            res[i] = gwebkitjs_util_dup_str(
                 JSPropertyNameArrayGetNameAtIndex(jsnamearray, i));
         }
     }
