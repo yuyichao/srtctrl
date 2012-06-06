@@ -1100,3 +1100,176 @@ gwebkitjs_context_to_string(GWebKitJSContext *self, GWebKitJSValue *value,
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_util_convert_str(jsres);
 }
+
+/**
+ * gwebkitjs_context_get_property_names:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @n: (out):
+ *
+ * Return Value: (array length=n) (element-type utf8) (allow-none) (transfer full):
+ **/
+gchar**
+gwebkitjs_context_get_property_names(GWebKitJSContext *self,
+                                     GWebKitJSValue *value, gint *n)
+{
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    JSObjectRef jsobject;
+    JSPropertyNameArrayRef jsnamearray;
+    gchar **res = NULL;
+    gint i;
+    gwj_return_val_if_false(n, NULL);
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, NULL);
+    jsobject = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_val_if_false(jsobject, NULL);
+
+    jsnamearray = JSObjectCopyPropertyNames(jsctx, jsobject);
+    gwj_return_val_if_false(jsnamearray, NULL);
+
+    *n = JSPropertyNameArrayGetCount(jsnamearray);
+
+    if (*n > 0)
+        res = g_new0(gchar*, *n);
+    if (res) {
+        for (i = 0;i < *n;i++) {
+            res[i] = gwebkitjs_util_convert_str(
+                JSPropertyNameArrayGetNameAtIndex(jsnamearray, i));
+        }
+    }
+
+    JSPropertyNameArrayRelease(jsnamearray);
+
+    return res;
+}
+
+/**
+ * gwebkitjs_context_delete_property:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value:
+ **/
+gboolean
+gwebkitjs_context_delete_property(GWebKitJSContext *self,
+                                  GWebKitJSValue *value,
+                                  const gchar *name, GError **error)
+{
+    return FALSE;
+}
+
+/**
+ * gwebkitjs_context_get_property:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_get_property(GWebKitJSContext *self, GWebKitJSValue *value,
+                               const gchar *name, GError **error)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_get_property_at_index:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @index:
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_get_property_at_index(GWebKitJSContext *self,
+                                        GWebKitJSValue *value,
+                                        guint index, GError **error)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_has_property:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ *
+ * Return Value:
+ **/
+gboolean
+gwebkitjs_context_has_property(GWebKitJSContext *self, GWebKitJSValue *value,
+                               const gchar *name)
+{
+    return FALSE;
+}
+
+/**
+ * gwebkitjs_context_set_property:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @prop_value: (allow-none) (transfer none):
+ * @attr:
+ * @error:
+ **/
+void
+gwebkitjs_context_set_property(GWebKitJSContext *self, GWebKitJSValue *value,
+                               const gchar *name, GWebKitJSValue *prop_value,
+                               GWebKitJSPropertyAttribute attr,
+                               GError **error)
+{
+
+}
+
+/**
+ * gwebkitjs_context_set_property_at_index:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @index:
+ * @prop_value: (allow-none) (transfer none):
+ * @error:
+ **/
+void
+gwebkitjs_context_set_property_at_index(GWebKitJSContext *self,
+                                        GWebKitJSValue *value,
+                                        guint index,
+                                        GWebKitJSValue *prop_value,
+                                        GError **error)
+{
+
+}
+
+/**
+ * gwebkitjs_context_get_prototype:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_get_prototype(GWebKitJSContext *self, GWebKitJSValue *value)
+{
+    return NULL;
+}
+
+/**
+ * gwebkitjs_context_set_prototype:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @proto: (allow-none) (transfer none):
+ **/
+void
+gwebkitjs_context_set_prototype(GWebKitJSContext *self, GWebKitJSValue *value,
+                                GWebKitJSValue *proto)
+{
+
+}

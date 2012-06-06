@@ -23,6 +23,7 @@
 #include <JavaScriptCore/JSContextRef.h>
 #include <webkit/webkitwebview.h>
 #include <gwebkitjs_value.h>
+#include <gwebkitjs_util.h>
 
 #define GWEBKITJS_TYPE_CONTEXT (gwebkitjs_context_get_type())
 #define GWEBKITJS_CONTEXT(obj)                                  \
@@ -146,17 +147,47 @@ extern "C" {
                                               const gchar *url,
                                               gint lineno,
                                               GError **error);
-
-    // JSObjectCopyPropertyNames
-    // JSObjectDeleteProperty
-    // JSObjectGetProperty
-    // JSObjectGetPropertyAtIndex
-    // JSObjectHasProperty
-    // JSObjectSetProperty
-    // JSObjectSetPropertyAtIndex
-
-    // JSObjectGetPrototype
-    // JSObjectSetPrototype
+    //TODO
+    gchar **gwebkitjs_context_get_property_names(GWebKitJSContext *self,
+                                                 GWebKitJSValue *value,
+                                                 gint *n);
+    //TODO
+    gboolean gwebkitjs_context_delete_property(GWebKitJSContext *self,
+                                               GWebKitJSValue *value,
+                                               const gchar *name,
+                                               GError **error);
+    //TODO
+    GWebKitJSValue *gwebkitjs_context_get_property(
+        GWebKitJSContext *self, GWebKitJSValue *value, const gchar *name,
+        GError **error);
+    //TODO
+    GWebKitJSValue *gwebkitjs_context_get_property_at_index(
+        GWebKitJSContext *self, GWebKitJSValue *value, guint index,
+        GError **error);
+    //TODO
+    gboolean gwebkitjs_context_has_property(GWebKitJSContext *self,
+                                            GWebKitJSValue *value,
+                                            const gchar *name);
+    //TODO
+    void gwebkitjs_context_set_property(GWebKitJSContext *self,
+                                        GWebKitJSValue *value,
+                                        const gchar *name,
+                                        GWebKitJSValue *prop_value,
+                                        GWebKitJSPropertyAttribute attr,
+                                        GError **error);
+    //TODO
+    void gwebkitjs_context_set_property_at_index(GWebKitJSContext *self,
+                                                 GWebKitJSValue *value,
+                                                 guint index,
+                                                 GWebKitJSValue *prop_value,
+                                                 GError **error);
+    //TODO
+    GWebKitJSValue *gwebkitjs_context_get_prototype(GWebKitJSContext *self,
+                                                    GWebKitJSValue *value);
+    //TODO
+    void gwebkitjs_context_set_prototype(GWebKitJSContext *self,
+                                         GWebKitJSValue *value,
+                                         GWebKitJSValue *proto);
 
     // JSObjectMakeArray
     // JSObjectMakeConstructor
