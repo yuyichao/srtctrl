@@ -1348,7 +1348,20 @@ gwebkitjs_context_set_property_at_index(GWebKitJSContext *self,
 GWebKitJSValue*
 gwebkitjs_context_get_prototype(GWebKitJSContext *self, GWebKitJSValue *value)
 {
-    return NULL;
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    JSObjectRef jsobject;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, NULL);
+    jsobject = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_val_if_false(jsobject, NULL);
+
+    jsres = JSObjectGetPrototype(jsctx, jsobject);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
 
 /**
@@ -1361,5 +1374,19 @@ void
 gwebkitjs_context_set_prototype(GWebKitJSContext *self, GWebKitJSValue *value,
                                 GWebKitJSValue *proto)
 {
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    JSObjectRef jsobject;
+    JSValueRef jsproto;
 
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_if_false(jsctx);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_if_false(jsvalue);
+    jsobject = JSValueToObject(jsctx, jsvalue, NULL);
+    gwj_return_if_false(jsobject);
+    jsproto = gwebkitjs_value_get_value(proto);
+    gwj_return_if_false(jsproto);
+
+    JSObjectSetPrototype(jsctx, jsobject, jsproto);
 }
