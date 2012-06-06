@@ -99,10 +99,12 @@ extern "C" {
     gboolean gwebkitjs_context_is_constructor(GWebKitJSContext *self,
                                               GWebKitJSValue *value);
 
+    //TODO
     gboolean gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
                                               GWebKitJSValue *instance,
                                               GWebKitJSValue *construct,
                                               GError **error);
+    //TODO
     gboolean gwebkitjs_context_is_of_class(GWebKitJSContext *self,
                                            GWebKitJSValue *instance,
                                            GType klass, GError **error);
@@ -125,14 +127,13 @@ extern "C" {
                                         GError **error);
     gboolean gwebkitjs_context_is_strict_equal(GWebKitJSContext *self,
                                                GWebKitJSValue *left,
-                                               GWebKitJSValue *right,
-                                               GError **error);
+                                               GWebKitJSValue *right);
 
     gchar *gwebkitjs_context_to_json_str(GWebKitJSContext *self,
                                          GWebKitJSValue *value, guint indent,
                                          GError **error);
-    gboolean gwebkitjs_context_to_boolean(GWebKitJSContext *self,
-                                          GWebKitJSValue *value);
+    gboolean gwebkitjs_context_to_bool(GWebKitJSContext *self,
+                                       GWebKitJSValue *value);
     gdouble gwebkitjs_context_to_number(GWebKitJSContext *self,
                                         GWebKitJSValue *value,
                                         GError **error);
