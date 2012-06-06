@@ -202,6 +202,7 @@ gwebkitjs_util_get_property(JSContextRef ctx, JSValueRef self,
         return NULL;
     }
     jsname = JSStringCreateWithUTF8CString(name);
+    gwj_return_val_if_false(jsname, NULL);
     res = JSObjectGetProperty(ctx, jsobject, jsname, &jserror);
     JSStringRelease(jsname);
     if (res)
@@ -229,6 +230,7 @@ gwebkitjs_util_set_property(JSContextRef ctx, JSValueRef self,
         return;
     }
     jsname = JSStringCreateWithUTF8CString(name);
+    gwj_return_if_false(jsname);
     JSObjectSetProperty(ctx, jsobject, jsname, prop, prop_attr, &jserror);
     JSStringRelease(jsname);
     gwebkitjs_util_gerror_from_jserror(ctx, jserror, error);
