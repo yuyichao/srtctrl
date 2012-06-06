@@ -914,6 +914,25 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
+/**
+ * gwebkitjs_context_call_function_simple:
+ * @self: (allow-none) (transfer none):
+ * @func: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (allow-none) (array length=argc) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_call_function_simple(GWebKitJSContext *self,
+                                       GWebKitJSValue *func,
+                                       size_t argc, GWebKitJSValue **argv,
+                                       GError **error)
+{
+    return gwebkitjs_context_call_function(self, func, NULL,
+                                           argc, argv, error);
+}
 
 /**
  * gwebkitjs_context_call_constructor:
@@ -973,6 +992,8 @@ gwebkitjs_context_call_constructor(GWebKitJSContext *self,
  * gwebkitjs_context_to_json_str:
  * @self: (allow-none) (transfer none):
  * @value: (allow-none) (transfer none):
+ * @indent:
+ * @error:
  *
  * Return Value: The JSON String correspond to the object;
  **/
@@ -993,6 +1014,20 @@ gwebkitjs_context_to_json_str(GWebKitJSContext *self, GWebKitJSValue *value,
     jsres = JSValueCreateJSONString(jsctx, jsvalue, indent, &jserror);
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_util_convert_str(jsres);
+}
+/**
+ * gwebkitjs_context_to_json_str_simple:
+ * @self: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value: The JSON String correspond to the object;
+ **/
+gchar*
+gwebkitjs_context_to_json_str_simple(GWebKitJSContext *self,
+                                     GWebKitJSValue *value, GError **error)
+{
+    return gwebkitjs_context_to_json_str(self, value, 0, error);
 }
 
 /**
@@ -1037,6 +1072,22 @@ gwebkitjs_context_eval_js(GWebKitJSContext *self, const gchar *script,
     if (jsurl)
         JSStringRelease(jsurl);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+/**
+ * gwebkitjs_context_eval_js_simple:
+ * @self: (allow-none) (transfer none):
+ * @script: (allow-none) (transfer none):
+ * @thisobj: (allow-none) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_eval_js_simple(GWebKitJSContext *self, const gchar *script,
+                                 GWebKitJSValue *thisobj, GError **error)
+{
+    return gwebkitjs_context_eval_js(self, script, thisobj, NULL, 0, error);
 }
 
 /**
@@ -1466,6 +1517,25 @@ gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
         JSStringRelease(jsname);
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+/**
+ * gwebkitjs_context_make_function_simple:
+ * @self: (allow-none) (transfer none):
+ * @argn:
+ * @argnames: (allow-none) (transfer none) (array length=argn) (element-type utf8):
+ * @body: (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_function_simple(GWebKitJSContext *self,
+                                       guint argn, const char **argnames,
+                                       const char *body, GError **error)
+{
+    return gwebkitjs_context_make_function(self, NULL, argn, argnames,
+                                           body, NULL, 0, error);
 }
 
 /**

@@ -117,6 +117,9 @@ extern "C" {
                                                     size_t argc,
                                                     GWebKitJSValue **argv,
                                                     GError **error);
+    GWebKitJSValue *gwebkitjs_context_call_function_simple(
+        GWebKitJSContext *self, GWebKitJSValue *func,
+        size_t argc, GWebKitJSValue **argv, GError **error);
     GWebKitJSValue *gwebkitjs_context_call_constructor(GWebKitJSContext *self,
                                                        GWebKitJSValue *func,
                                                        size_t argc,
@@ -134,6 +137,9 @@ extern "C" {
     gchar *gwebkitjs_context_to_json_str(GWebKitJSContext *self,
                                          GWebKitJSValue *value, guint indent,
                                          GError **error);
+    gchar *gwebkitjs_context_to_json_str_simple(GWebKitJSContext *self,
+                                                GWebKitJSValue *value,
+                                                GError **error);
     gboolean gwebkitjs_context_to_bool(GWebKitJSContext *self,
                                        GWebKitJSValue *value);
     gdouble gwebkitjs_context_to_number(GWebKitJSContext *self,
@@ -148,6 +154,10 @@ extern "C" {
                                               const gchar *url,
                                               gint lineno,
                                               GError **error);
+    GWebKitJSValue *gwebkitjs_context_eval_js_simple(GWebKitJSContext *self,
+                                                     const gchar *script,
+                                                     GWebKitJSValue *thisobj,
+                                                     GError **error);
     gchar **gwebkitjs_context_get_property_names(GWebKitJSContext *self,
                                                  GWebKitJSValue *value,
                                                  gint *n);
@@ -188,7 +198,11 @@ extern "C" {
                                                     const char *url,
                                                     gint lineno,
                                                     GError **error);
+    GWebKitJSValue *gwebkitjs_context_make_function_simple(
+        GWebKitJSContext *self, guint argn, const char **argnames,
+        const char *body, GError **error);
     void gwebkitjs_context_garbage_collect(GWebKitJSContext *self);
+
     // JSObjectMakeArray
     // JSObjectMakeConstructor
     // JSObjectMakeDate
