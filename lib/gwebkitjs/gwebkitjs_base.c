@@ -104,3 +104,12 @@ gwebkitjs_base_get_jsclass(GType type)
 {
     return NULL;
 }
+
+/**
+ * GWebKitJSBaseGetName:
+ * @self: (allow-none) (transfer none):
+ *
+ * AAAAAAAAAAAAAAAAAAAAAAAAAA
+ *
+ * Return Value: (allow-none) (transfer none):
+ **/
