@@ -829,6 +829,44 @@ gwebkitjs_context_is_equal(GWebKitJSContext *self, GWebKitJSValue *left,
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return res;
 }
+/**
+ * gwebkitjs_context_is_instance_of:
+ * @self: (allow-none) (transfer none): A #GWebKitJSContext.
+ * @instance: (allow-none) (transfer none): A #GWebKitJSValue.
+ * @construct: (allow-none) (transfer none): Another #GWebKitJSValue.
+ * @error: (allow-none): Return location for error or %NULL.
+ *
+ * Return Value:
+ */
+gboolean
+gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
+                                 GWebKitJSValue *instance,
+                                 GWebKitJSValue *construct, GError **error)
+{
+    JSGlobalContextRef jsctx;
+    JSValueRef jsins;
+    JSValueRef jscons;
+    gboolean res;
+    JSValueRef jserror = NULL;
+    JSObjectRef jsobj;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, FALSE);
+    jsins = gwebkitjs_value_get_value(instance);
+    gwj_return_val_if_false(jsins, FALSE);
+    jscons = gwebkitjs_value_get_value(construct);
+    gwj_return_val_if_false(jscons, FALSE);
+    jsobj = JSValueToObject(jsctx, jscons, &jserror);
+    if (!jsobj) {
+        gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+        return FALSE;
+    }
+    jserror = NULL;
+
+    res = JSValueIsInstanceOfConstructor(jsctx, jsins, jsobj, &jserror);
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return res;
+}
 
 /**
  * gwebkitjs_context_is_strict_eqaul:

@@ -80,7 +80,6 @@ extern "C" {
 
     GWebKitJSValueType gwebkitjs_context_get_value_type(GWebKitJSContext *self,
                                                         GWebKitJSValue *value);
-    //TODO
     gchar *gwebkitjs_context_get_name_str(GWebKitJSContext *self,
                                              GWebKitJSValue *value,
                                              GError **error);
@@ -106,7 +105,7 @@ extern "C" {
                                               GWebKitJSValue *instance,
                                               GWebKitJSValue *construct,
                                               GError **error);
-    //TODO
+    //TODO (need base)
     gboolean gwebkitjs_context_is_of_class(GWebKitJSContext *self,
                                            GWebKitJSValue *instance,
                                            GType klass, GError **error);
