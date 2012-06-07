@@ -48,27 +48,27 @@ typedef const gchar *(*GWebKitJSBaseGetName)(GWebKitJSBase *self);
 typedef gboolean (*GWebKitJSBaseHasProperty)(
     GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name);
 typedef GWebKitJSValue *(*GWebKitJSBaseGetProperty)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSBase *self, GWebKitJSContext *ctx,
     const char *name, GError **error);
 typedef gboolean (*GWebKitJSBaseSetProperty)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx, const char *name,
+    GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name,
     GWebKitJSValue *value, GError **error);
 typedef gboolean (*GWebKitJSBaseDeleteProperty)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSBase *self, GWebKitJSContext *ctx,
     const char *name, GError **error);
 typedef gchar **(*GWebKitJSBaseGetPropertyNames)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx, GError **error);
+    GWebKitJSBase *self, GWebKitJSContext *ctx, gint *n, GError **error);
 typedef GWebKitJSValue *(*GWebKitJSBaseCallFunction)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx, GWebKitJSValue *thisobj,
+    GWebKitJSBase *self, GWebKitJSContext *ctx, GWebKitJSValue *thisobj,
     size_t argc, GWebKitJSValue **argv, GError **error);
 typedef GWebKitJSValue *(*GWebKitJSBaseCallConstruct)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSBase *self, GWebKitJSContext *ctx,
     size_t argc, GWebKitJSValue **argv, GError **error);
 typedef gboolean (*GWebKitJSBaseHasInstance)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSBase *self, GWebKitJSContext *ctx,
     GWebKitJSValue *instance, GError **error);
 typedef GWebKitJSValue *(*GWebKitJSBaseConvertTo)(
-    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSBase *self, GWebKitJSContext *ctx,
     GWebKitJSValueType type, GError **error);
 
 struct _GWebKitJSBaseClass {

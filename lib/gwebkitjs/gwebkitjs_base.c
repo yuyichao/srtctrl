@@ -109,7 +109,89 @@ gwebkitjs_base_get_jsclass(GType type)
  * GWebKitJSBaseGetName:
  * @self: (allow-none) (transfer none):
  *
- * AAAAAAAAAAAAAAAAAAAAAAAAAA
+ * Return Value: (allow-none) (transfer none):
+ **/
+/**
+ * GWebKitJSBaseHasProperty:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ *
+ * Return Value:
+ **/
+/**
+ * GWebKitJSBaseGetProperty:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @error:
  *
  * Return Value: (allow-none) (transfer none):
+ **/
+/**
+ * GWebKitJSBaseSetProperty:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @value: (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value:
+ **/
+/**
+ * GWebKitJSBaseDeleteProperty:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @name: (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value:
+ **/
+/**
+ * GWebKitJSBaseGetPropertyNames:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @n: (out)
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full) (array length=n) (element-type utf8):
+ **/
+/**
+ * GWebKitJSBaseCallFunction:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @thisobj: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (array length=argc) (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+/**
+ * GWebKitJSBaseCallConstruct:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (array length=argc) (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
+ **/
+/**
+ * GWebKitJSBaseHasInstance:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @instance: (allow-none) (transfer none):
+ * @error:
+ *
+ * Return Value:
+ **/
+/**
+ * GWebKitJSBaseConvertTo:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @type:
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
  **/
