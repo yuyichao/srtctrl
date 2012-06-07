@@ -20,6 +20,7 @@
 
 struct _GWebKitJSBaseClassPrivate {
     JSClassRef jsclass;
+    JSClassDefinition jsdefine;
 };
 
 static void gwebkitjs_base_init(GWebKitJSBase *self,
@@ -30,12 +31,6 @@ static void gwebkitjs_base_class_init(GWebKitJSBaseClass *klass,
                                       gpointer data);
 static void gwebkitjs_base_dispose(GObject *obj);
 static void gwebkitjs_base_finalize(GObject *obj);
-static void gwebkitjs_base_set_property(GObject *obj, guint prop_id,
-                                        const GValue *value,
-                                        GParamSpec *pspec);
-static void gwebkitjs_base_get_property(GObject *obj, guint prop_id,
-                                        GValue *value,
-                                        GParamSpec *pspec);
 
 GType
 gwebkitjs_base_get_type()
@@ -83,8 +78,6 @@ static void
 gwebkitjs_base_class_init(GWebKitJSBaseClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-    gobject_class->set_property = gwebkitjs_base_set_property;
-    gobject_class->get_property = gwebkitjs_base_get_property;
     gobject_class->dispose = gwebkitjs_base_dispose;
     gobject_class->finalize = gwebkitjs_base_finalize;
 }
@@ -100,28 +93,14 @@ gwebkitjs_base_finalize(GObject *obj)
 {
 }
 
-static void
-gwebkitjs_base_set_property(GObject *obj, guint prop_id,
-                            const GValue *value, GParamSpec *pspec)
+/**
+ * gwebkitjs_base_get_jsclass: (skip)
+ * @type:
+ *
+ * Return Value:
+ **/
+JSClassRef
+gwebkitjs_base_get_jsclass(GType type)
 {
-    /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
-
-    /* switch (prop_id) { */
-    /* default: */
-    /*     G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec); */
-    /*     break; */
-    /* } */
-}
-
-static void
-gwebkitjs_base_get_property(GObject *obj, guint prop_id,
-                            GValue *value, GParamSpec *pspec)
-{
-    /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
-
-    /* switch (prop_id) { */
-    /* default: */
-    /*     G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec); */
-    /*     break; */
-    /* } */
+    return NULL;
 }

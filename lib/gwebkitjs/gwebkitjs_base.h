@@ -44,25 +44,53 @@ struct _GWebKitJSBase {
     GWebKitJSValue parent;
 };
 
+typedef const gchar *(*GWebKitJSBaseGetName)(GWebKitJSBase *self);
+typedef gboolean (*GWebKitJSBaseHasProperty)(
+    GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name);
+typedef GWebKitJSValue *(*GWebKitJSBaseGetProperty)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    const char *name, GError **error);
+typedef gboolean (*GWebKitJSBaseSetProperty)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx, const char *name,
+    GWebKitJSValue *value, GError **error);
+typedef gboolean (*GWebKitJSBaseDeleteProperty)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    const char *name, GError **error);
+typedef gchar **(*GWebKitJSBaseGetPropertyNames)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx, GError **error);
+typedef GWebKitJSValue *(*GWebKitJSBaseCallFunction)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx, GWebKitJSValue *thisobj,
+    size_t argc, GWebKitJSValue **argv, GError **error);
+typedef GWebKitJSValue *(*GWebKitJSBaseCallConstruct)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    size_t argc, GWebKitJSValue **argv, GError **error);
+typedef gboolean (*GWebKitJSBaseHasInstance)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSValue *instance, GError **error);
+typedef GWebKitJSValue *(*GWebKitJSBaseConvertTo)(
+    GWebKitJSBase *base, GWebKitJSContext *ctx,
+    GWebKitJSValueType type, GError **error);
+
 struct _GWebKitJSBaseClass {
     GWebKitJSValueClass parent_class;
     GWebKitJSBaseClassPrivate *priv;
-    const gchar *(*get_name)(GWebKitJSBase *base);
-    void (*initialize)(GWebKitJSBase *base);
-    void (*finalize)(GWebKitJSBase *base);
-    gboolean (*has_property)(GWebKitJSBase *base, const char *name);
-    GWebKitJSValue *(*get_property)(GWebKitJSBase *base, const char *name,
-                                    GError **error);
-    gboolean (*set_property)(GWebKitJSBase *base, const char *name,
-                             GWebKitJSValue *value, GError **error);
-    gboolean (*delete_property)(GWebKitJSBase *base, const char *name,
-                                GError **error);
+    GWebKitJSBaseGetName get_name;
+    GWebKitJSBaseHasProperty has_property;
+    GWebKitJSBaseGetProperty get_property;
+    GWebKitJSBaseSetProperty set_property;
+    GWebKitJSBaseDeleteProperty delete_property;
+    GWebKitJSBaseGetPropertyNames get_property_names;
+    GWebKitJSBaseCallFunction call_function;
+    GWebKitJSBaseCallConstruct call_construct;
+    GWebKitJSBaseHasInstance has_instance;
+    GWebKitJSBaseConvertTo convert_to;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
     GType gwebkitjs_base_get_type();
+    JSClassRef gwebkitjs_base_get_jsclass(GType type);
 #ifdef __cplusplus
 }
 #endif
