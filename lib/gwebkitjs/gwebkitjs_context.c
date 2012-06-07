@@ -48,6 +48,9 @@ static void gwebkitjs_context_class_init(GWebKitJSContextClass *klass,
                                          gpointer data);
 static void gwebkitjs_context_dispose(GObject *obj);
 static void gwebkitjs_context_finalize(GObject *obj);
+static JSValueRef *gwebkitjs_context_make_arg_array(JSContextRef jsctx,
+                                                    size_t argc,
+                                                    GWebKitJSValue **argv);
 
 
 /**
@@ -856,6 +859,24 @@ gwebkitjs_context_is_strict_equal(GWebKitJSContext *self,
     res = JSValueIsStrictEqual(jsctx, jsleft, jsright);
     return res;
 }
+static JSValueRef*
+gwebkitjs_context_make_arg_array(JSContextRef jsctx,
+                                 size_t argc, GWebKitJSValue **argv)
+{
+    JSValueRef *jsargv = NULL;
+    if (argc <= 0 || !argv) {
+        return NULL;
+    } else {
+        int i;
+        jsargv = g_new0(JSValueRef, argc);
+        for (i = 0;i < argc;i++) {
+            jsargv[i] = gwebkitjs_value_get_value(argv[i]);
+            if (!jsargv[i])
+                jsargv[i] = JSValueMakeUndefined(jsctx);
+        }
+    }
+    return jsargv;
+}
 
 /**
  * gwebkitjs_context_call_function:
@@ -893,24 +914,14 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     }
     jserror = NULL;
 
-    if (argc <= 0 || !argv) {
+    jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
+    if (!jsargv)
         argc = 0;
-        jsargv = NULL;
-    } else {
-        int i;
-        jsargv = g_new0(JSValueRef, argc);
-        for (i = 0;i < argc;i++) {
-            jsargv[i] = gwebkitjs_value_get_value(argv[i]);
-            if (!jsargv[i])
-                jsargv[i] = JSValueMakeUndefined(jsctx);
-        }
-    }
     jsres = JSObjectCallAsFunction(jsctx, jsfunc, jsthis,
                                    argc, jsargv, &jserror);
     g_free(jsargv);
-    if (jsres) {
+    if (jsres)
         jserror = NULL;
-    }
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
@@ -967,23 +978,13 @@ gwebkitjs_context_call_constructor(GWebKitJSContext *self,
     }
     jserror = NULL;
 
-    if (argc <= 0 || !argv) {
+    jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
+    if (!jsargv)
         argc = 0;
-        jsargv = NULL;
-    } else {
-        int i;
-        jsargv = g_new0(JSValueRef, argc);
-        for (i = 0;i < argc;i++) {
-            jsargv[i] = gwebkitjs_value_get_value(argv[i]);
-            if (!jsargv[i])
-                jsargv[i] = JSValueMakeUndefined(jsctx);
-        }
-    }
     jsres = JSObjectCallAsConstructor(jsctx, jsfunc, argc, jsargv, &jserror);
     g_free(jsargv);
-    if (jsres) {
+    if (jsres)
         jserror = NULL;
-    }
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
@@ -1459,8 +1460,8 @@ gwebkitjs_context_set_prototype(GWebKitJSContext *self, GWebKitJSValue *value,
  * gwebkitjs_context_make_function:
  * @self: (allow-none) (transfer none):
  * @name: (allow-none) (transfer none):
- * @argn:
- * @argnames: (allow-none) (transfer none) (array length=argn) (element-type utf8):
+ * @argc:
+ * @argnames: (allow-none) (transfer none) (array length=argc) (element-type utf8):
  * @body: (allow-none) (transfer none):
  * @url: (allow-none) (transfer none):
  * @lineno:
@@ -1470,7 +1471,7 @@ gwebkitjs_context_set_prototype(GWebKitJSContext *self, GWebKitJSValue *value,
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
-                                guint argn, const char **argnames,
+                                guint argc, const char **argnames,
                                 const char *body, const char *url,
                                 gint lineno, GError **error)
 {
@@ -1488,25 +1489,25 @@ gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
     gwj_return_val_if_false(jsctx, NULL);
     if (name)
         jsname = JSStringCreateWithUTF8CString(name);
-    if (argn && argnames) {
-        jsargnames = g_new0(JSStringRef, argn);
-        for (i = 0;i < argn;i++)
+    if (argc && argnames) {
+        jsargnames = g_new0(JSStringRef, argc);
+        for (i = 0;i < argc;i++)
             jsargnames[i] = JSStringCreateWithUTF8CString(argnames[i]);
     } else {
-        argn = 0;
+        argc = 0;
     }
     jsbody = JSStringCreateWithUTF8CString(body);
     if (url)
         jsurl = JSStringCreateWithUTF8CString(url);
 
-    jsres = JSObjectMakeFunction(jsctx, jsname, argn, jsargnames, jsbody,
+    jsres = JSObjectMakeFunction(jsctx, jsname, argc, jsargnames, jsbody,
                                  jsurl, lineno, &jserror);
 
     if (jsurl)
         JSStringRelease(jsurl);
     if (jsbody)
         JSStringRelease(jsbody);
-    for (i = 0;i < argn;i++) {
+    for (i = 0;i < argc;i++) {
         if (jsargnames[i]) {
             JSStringRelease(jsargnames[i]);
         }
@@ -1522,8 +1523,8 @@ gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
 /**
  * gwebkitjs_context_make_function_simple:
  * @self: (allow-none) (transfer none):
- * @argn:
- * @argnames: (allow-none) (transfer none) (array length=argn) (element-type utf8):
+ * @argc:
+ * @argnames: (allow-none) (transfer none) (array length=argc) (element-type utf8):
  * @body: (allow-none) (transfer none):
  * @error:
  *
@@ -1531,10 +1532,10 @@ gwebkitjs_context_make_function(GWebKitJSContext *self, const char *name,
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_function_simple(GWebKitJSContext *self,
-                                       guint argn, const char **argnames,
+                                       guint argc, const char **argnames,
                                        const char *body, GError **error)
 {
-    return gwebkitjs_context_make_function(self, NULL, argn, argnames,
+    return gwebkitjs_context_make_function(self, NULL, argc, argnames,
                                            body, NULL, 0, error);
 }
 
@@ -1549,4 +1550,132 @@ gwebkitjs_context_garbage_collect(GWebKitJSContext *self)
     jsctx = gwebkitjs_context_get_context(self);
     gwj_return_if_false(jsctx);
     JSGarbageCollect(jsctx);
+}
+
+/**
+ * gwebkitjs_context_make_array:
+ * @self: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (allow-none) (array length=argc) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_array(GWebKitJSContext *self, size_t argc,
+                             GWebKitJSValue **argv, GError **error)
+{
+    JSContextRef jsctx;
+    JSValueRef jserror = NULL;
+    JSValueRef *jsargv;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+
+    jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
+    if (!jsargv)
+        argc = 0;
+    jsres = JSObjectMakeArray(jsctx, argc, jsargv, &jserror);
+    g_free(jsargv);
+    if (jsres)
+        jserror = NULL;
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+/**
+ * gwebkitjs_context_make_date:
+ * @self: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (allow-none) (array length=argc) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_date(GWebKitJSContext *self, size_t argc,
+                             GWebKitJSValue **argv, GError **error)
+{
+    JSContextRef jsctx;
+    JSValueRef jserror = NULL;
+    JSValueRef *jsargv;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+
+    jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
+    if (!jsargv)
+        argc = 0;
+    jsres = JSObjectMakeDate(jsctx, argc, jsargv, &jserror);
+    g_free(jsargv);
+    if (jsres)
+        jserror = NULL;
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+/**
+ * gwebkitjs_context_make_error:
+ * @self: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (allow-none) (array length=argc) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_error(GWebKitJSContext *self, size_t argc,
+                             GWebKitJSValue **argv, GError **error)
+{
+    JSContextRef jsctx;
+    JSValueRef jserror = NULL;
+    JSValueRef *jsargv;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+
+    jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
+    if (!jsargv)
+        argc = 0;
+    jsres = JSObjectMakeError(jsctx, argc, jsargv, &jserror);
+    g_free(jsargv);
+    if (jsres)
+        jserror = NULL;
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+/**
+ * gwebkitjs_context_make_regexp:
+ * @self: (allow-none) (transfer none):
+ * @argc:
+ * @argv: (allow-none) (array length=argc) (transfer none):
+ * @error: (allow-none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_regexp(GWebKitJSContext *self, size_t argc,
+                             GWebKitJSValue **argv, GError **error)
+{
+    JSContextRef jsctx;
+    JSValueRef jserror = NULL;
+    JSValueRef *jsargv;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+
+    jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
+    if (!jsargv)
+        argc = 0;
+    jsres = JSObjectMakeRegExp(jsctx, argc, jsargv, &jserror);
+    g_free(jsargv);
+    if (jsres)
+        jserror = NULL;
+    gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }

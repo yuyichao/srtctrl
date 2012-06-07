@@ -192,22 +192,35 @@ extern "C" {
                                          GWebKitJSValue *proto);
     GWebKitJSValue *gwebkitjs_context_make_function(GWebKitJSContext *self,
                                                     const char *name,
-                                                    guint argn,
+                                                    guint argc,
                                                     const char **argnames,
                                                     const char *body,
                                                     const char *url,
                                                     gint lineno,
                                                     GError **error);
     GWebKitJSValue *gwebkitjs_context_make_function_simple(
-        GWebKitJSContext *self, guint argn, const char **argnames,
+        GWebKitJSContext *self, guint argc, const char **argnames,
         const char *body, GError **error);
     void gwebkitjs_context_garbage_collect(GWebKitJSContext *self);
+    GWebKitJSValue *gwebkitjs_context_make_array(GWebKitJSContext *self,
+                                                 size_t argc,
+                                                 GWebKitJSValue **argv,
+                                                 GError **error);
+    GWebKitJSValue *gwebkitjs_context_make_date(GWebKitJSContext *self,
+                                                size_t argc,
+                                                GWebKitJSValue **argv,
+                                                GError **error);
+    GWebKitJSValue *gwebkitjs_context_make_error(GWebKitJSContext *self,
+                                                 size_t argc,
+                                                 GWebKitJSValue **argv,
+                                                 GError **error);
+    GWebKitJSValue *gwebkitjs_context_make_regexp(GWebKitJSContext *self,
+                                                  size_t argc,
+                                                  GWebKitJSValue **argv,
+                                                  GError **error);
 
-    // JSObjectMakeArray
-    // JSObjectMakeConstructor
-    // JSObjectMakeDate
-    // JSObjectMakeError
-    // JSObjectMakeFunctionWithCallback
+    // JSObjectMakeConstructor (need Base)
+    // JSObjectMakeFunctionWithCallback (need Base)
     // JSObjectMakeRegExp
 #ifdef __cplusplus
 }
