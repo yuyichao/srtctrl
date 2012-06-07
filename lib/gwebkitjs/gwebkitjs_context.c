@@ -770,7 +770,7 @@ gwebkitjs_context_is_constructor(GWebKitJSContext *self, GWebKitJSValue *value)
     return JSObjectIsConstructor(jsctx, jsobject);
 }
 /**
- * gwebkitjs_context_get_object_name:
+ * gwebkitjs_context_get_name_str:
  * @self: (allow-none) (transfer none): The #GWebKitJSContext related to
  * the value..
  * @value: (allow-none) (transfer none): A #GWebKitJSValue
@@ -781,9 +781,8 @@ gwebkitjs_context_is_constructor(GWebKitJSContext *self, GWebKitJSValue *value)
  * Return value: (allow-none) a string that represent the type of @value.
  **/
 gchar*
-gwebkitjs_context_get_object_name(GWebKitJSContext *self,
-                                  GWebKitJSValue *value,
-                                  GError **error)
+gwebkitjs_context_get_name_str(GWebKitJSContext *self, GWebKitJSValue *value,
+                               GError **error)
 {
     GWebKitJSValue *tostring;
     GWebKitJSValue *res_val;

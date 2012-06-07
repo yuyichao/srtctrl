@@ -81,7 +81,7 @@ extern "C" {
     GWebKitJSValueType gwebkitjs_context_get_value_type(GWebKitJSContext *self,
                                                         GWebKitJSValue *value);
     //TODO
-    gchar *gwebkitjs_context_get_object_name(GWebKitJSContext *self,
+    gchar *gwebkitjs_context_get_name_str(GWebKitJSContext *self,
                                              GWebKitJSValue *value,
                                              GError **error);
     gboolean gwebkitjs_context_is_bool(GWebKitJSContext *self,
