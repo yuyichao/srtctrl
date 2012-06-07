@@ -100,7 +100,6 @@ extern "C" {
     gboolean gwebkitjs_context_is_constructor(GWebKitJSContext *self,
                                               GWebKitJSValue *value);
 
-    //TODO
     gboolean gwebkitjs_context_is_instance_of(GWebKitJSContext *self,
                                               GWebKitJSValue *instance,
                                               GWebKitJSValue *construct,

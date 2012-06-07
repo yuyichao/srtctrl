@@ -789,6 +789,7 @@ gwebkitjs_context_get_name_str(GWebKitJSContext *self, GWebKitJSValue *value,
     gchar *res;
     gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
     gwj_return_val_if_false(gwebkitjs_context_initialized(self), NULL);
+    gwj_return_val_if_false(gwebkitjs_value_get_value(value), NULL);
     tostring = self->priv->tostring;
     res_val = gwebkitjs_context_call_function(self, tostring, value,
                                               0, NULL, error);
