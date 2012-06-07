@@ -221,7 +221,6 @@ extern "C" {
 
     // JSObjectMakeConstructor (need Base)
     // JSObjectMakeFunctionWithCallback (need Base)
-    // JSObjectMakeRegExp
 #ifdef __cplusplus
 }
 #endif
