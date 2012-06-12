@@ -86,43 +86,28 @@ def _j_to_arr_end(jstr, start=0):
         if i in (_J_RES_BLK, _J_RES_OPEN):
             return _J_RES_OPEN
 
-_j_num_possible = '-0123456789.eE+'
+def _j_is_common(char):
+    char = char[0]
+    return ((char in '_-.+') or ('a' <= char <= 'z') or ('A' <= char <= 'Z')
+            or ('0' <= char <= '9'))
 
-# it is hard to tell if a number is finished
-def _j_to_num_end(jstr, start=0):
+def _j_to_common_end(jstr, start=0):
     l = len(jstr)
-    i = _j_none_blk(jstr, start=start, char=_j_num_possible)
-    if i is None:
+    i = _j_none_blk(jstr, start=start)
+    if not _j_is_common(jstr[i]):
         return
     if i == _J_RES_BLK:
         return _J_RES_BLK
     while i < l - 1:
         i += 1
-        if not jstr[i] in _j_num_possible:
+        if not _j_is_common(jstr[i]):
             return i - 1
     return i
-
-_j_specials = ['true',
-               'false',
-               'null']
-def _j_to_spe_end(jstr, start=0):
-    l = len(jstr)
-    i = _j_none_blk(jstr, start=start)
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    for spe in _j_specials:
-        if jstr[i:].lower().startswith(spe):
-            i += len(spe)
-            if i >= l or jstr[i] in _j_blk_chars:
-                return i - 1
-            return
-    return
 
 _j_to_ends = [_j_to_str_end,
               _j_to_obj_end,
               _j_to_arr_end,
-              _j_to_num_end,
-              _j_to_spe_end]
+              _j_to_common_end]
 
 _j_blk_chars = ' \t\n\r'
 

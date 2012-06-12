@@ -4,3 +4,7 @@ set(srt_comm_py
   )
 
 python_install_module(srt_comm ${srt_comm_py})
+
+if(ENABLE_TEST)
+  add_subdirectory(test)
+endif()
