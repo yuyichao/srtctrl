@@ -434,6 +434,12 @@ srtsock_sock_close(SrtSockSock *self, GError **error)
 gboolean
 srtsock_sock_connect(SrtSockSock *self, GSocketAddress *addr, GError **error)
 {
+    GSocketConnection *conn;
+    gboolean res;
+    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
+    conn = srtsock_sock_get_connection(self);
+    res = g_socket_connection_connect(conn, addr, NULL, error);
+    return res;
 }
 
 /**
@@ -447,6 +453,10 @@ void
 srtsock_sock_connect_async(SrtSockSock *self, GSocketAddress *addr,
                            GAsyncReadyCallback cb, gpointer p)
 {
+    GSocketConnection *conn;
+    g_return_if_fail(SRTSOCK_IS_SOCK(self));
+    conn = srtsock_sock_get_connection(self);
+    g_socket_connection_connect_async(conn, addr, NULL, cb, p);
 }
 
 /**
@@ -461,6 +471,10 @@ gboolean
 srtsock_sock_connect_finish(SrtSockSock *self, GAsyncResult *result,
                             GError **error)
 {
+    GSocketConnection *conn;
+    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
+    conn = srtsock_sock_get_connection(self);
+    return g_socket_connection_connect_finish(conn, result, error);
 }
 
 /**
@@ -473,6 +487,13 @@ srtsock_sock_connect_finish(SrtSockSock *self, GAsyncResult *result,
 GSocketAddress*
 srtsock_sock_get_local_address(SrtSockSock *self, GError **error)
 {
+    GSocket *sock;
+    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), NULL);
+
+    sock = self->priv->sock;
+    if (G_UNLIKELY(!sock))
+        return NULL;
+    return g_socket_get_local_address(sock, error);
 }
 
 /**
@@ -485,18 +506,13 @@ srtsock_sock_get_local_address(SrtSockSock *self, GError **error)
 GSocketAddress*
 srtsock_sock_get_remote_address(SrtSockSock *self, GError **error)
 {
-}
+    GSocket *sock;
+    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), NULL);
 
-/**
- * srtsock_sock_listen:
- * @self: (transfer none) (allow-none):
- * @error:
- *
- * Return Value:
- **/
-gboolean
-srtsock_sock_listen(SrtSockSock *self, GError **error)
-{
+    sock = self->priv->sock;
+    if (G_UNLIKELY(!sock))
+        return NULL;
+    return g_socket_get_remote_address(sock, error);
 }
 
 /**
