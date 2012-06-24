@@ -67,8 +67,9 @@ extern "C" {
 
     gboolean srtsock_sock_connect(SrtSockSock *self, GSocketAddress *addr,
                                   GError **error);
-    void srtsock_sock_connect_async(SrtSockSock *self, GSocketAddress *addr,
-                                    GAsyncReadyCallback cb, gpointer p);
+    gboolean srtsock_sock_connect_async(SrtSockSock *self,
+                                        GSocketAddress *addr,
+                                        GAsyncReadyCallback cb, gpointer p);
     gboolean srtsock_sock_connect_finish(SrtSockSock *self,
                                          GAsyncResult *result, GError **error);
 
@@ -80,10 +81,10 @@ extern "C" {
     gboolean srtsock_sock_start_recv(SrtSockSock *self, GError **error);
     gchar *srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize,
                              GError **error);
-    gssize srtsock_sock_send(SrtSockSock *self, const gchar *buff,
-                             gsize size, GError **error);
-    void srtsock_sock_send_async(SrtSockSock *self, const gchar *buff,
-                                 gsize size);
+    void srtsock_sock_send(SrtSockSock *self, const gchar *buff, gsize size);
+    void srtsock_sock_start_send(SrtSockSock *self);
+    void srtsock_sock_stop_send(SrtSockSock *self);
+    gboolean srtsock_sock_wait_send(SrtSockSock *self);
 
     gboolean srtsock_sock_close(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_shutdown(SrtSockSock *self, gboolean read,
