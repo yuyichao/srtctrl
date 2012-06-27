@@ -28,6 +28,8 @@ extern "C" {
 
     ffi_type *gwebkitjs_closure_type_create(guint argc, ...);
     ffi_cif *gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...);
+    ffi_cif *gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc,
+                                              guint argc, ...);
 
 #ifdef __cplusplus
 }

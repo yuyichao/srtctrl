@@ -188,3 +188,30 @@ gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...)
     g_free(res);
     return NULL;
 }
+
+/**
+ * gwebkitjs_closure_cif_create_var: (skip)
+ **/
+ffi_cif*
+gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc, guint argc, ...)
+{
+    ffi_cif *res;
+    va_list ap;
+
+    void *ret_p;
+    void *argv_p;
+
+    if (!ret_t)
+        ret_t = &ffi_type_void;
+    va_start(ap, argc);
+    res = gwebkitjs_closure_cif_alloc(argc, ret_t, ap, &ret_p, &argv_p);
+    va_end(ap);
+
+    if (!res)
+        return NULL;
+    if (ffi_prep_cif_var(res, FFI_DEFAULT_ABI, fixc,
+                         argc, ret_p, argv_p) == FFI_OK)
+        return res;
+    g_free(res);
+    return NULL;
+}
