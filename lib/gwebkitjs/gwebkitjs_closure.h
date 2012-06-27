@@ -23,6 +23,8 @@
 #include <glib.h>
 #include <glib-object.h>
 
+typedef gpointer GWebKitJSClosureType;
+
 typedef struct {
     GCallback func;
 } GWebKitJSClosure;
@@ -39,7 +41,9 @@ extern "C" {
     ffi_cif *gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...);
     ffi_cif *gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc,
                                               guint argc, ...);
-    GWebKitJSClosure *gwebkitjs_closure_create(ffi_cif *cif,
+    GWebKitJSClosureType gwebkitjs_closure_new_type(ffi_type *ret_t,
+                                                    guint argc, ...);
+    GWebKitJSClosure *gwebkitjs_closure_create(GWebKitJSClosureType type,
                                                GCallback user_func,
                                                gpointer p);
     void gwebkitjs_closure_free(GWebKitJSClosure *self);
