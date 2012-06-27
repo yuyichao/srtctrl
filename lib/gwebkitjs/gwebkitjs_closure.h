@@ -22,30 +22,10 @@
 #include <ffi.h>
 #include <glib.h>
 
-typedef struct _GWebKitJSClosure GWebKitJSClosure;
-typedef struct _GWebKitJSClosureType GWebKitJSClosureType;
-
-typedef GWebKitJSClosure *(*GWebKitJSClosureCreate)();
-
-struct _GWebKitJSClosureType {
-    gboolean front;
-    guint cbargc;
-    guint extraargc;
-    ffi_cif cbcif;
-    ffi_cif extracif;
-    ffi_cif fullcif;
-    ffi_closure *closure;
-    GWebKitJSClosureCreate create;
-};
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-    GWebKitJSClosureType *gwebkitjs_closure_type_new(
-        ffi_type *rtype, gboolean front, guint cbargc, ffi_type **cbargtypes,
-        guint extraargc, ffi_type **extraargtypes);
-    GWebKitJSClosure *gwebkitjs_closure_new(GWebKitJSClosureType *type, ...);
     ffi_type *gwebkitjs_closure_type_create(guint argc, ...);
     ffi_cif *gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...);
 
