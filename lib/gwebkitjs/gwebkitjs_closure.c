@@ -118,46 +118,71 @@ gwebkitjs_closure_type_create(guint argc, ...)
     return gwebkitjs_closure_type_copy(&tmpres);
 }
 
+static guint
+gwebkitjs_closure_cif_prep_arg(ffi_type *ret_t, ffi_type **argv,
+                               guint argc, va_list ap)
+{
+    guint i;
+    guint size;
+
+    size = sizeof(ffi_cif);
+    size += gwebkitjs_closure_type_total_size(ret_t);
+    size += argc * sizeof(ffi_type*);
+
+    for (i = 0;i < argc;i++) {
+        argv[i] = va_arg(ap, ffi_type*);
+        size += gwebkitjs_closure_type_total_size(argv[i]);
+    }
+    return size;
+}
+
+static void*
+gwebkitjs_closure_cif_alloc(guint argc, ffi_type *ret_t, va_list ap,
+                            void **ret_p, void **argv_p)
+{
+    guint i;
+    ffi_cif *res;
+    void *arg_p;
+    ffi_type *argv[argc];
+    guint size;
+
+    size = gwebkitjs_closure_cif_prep_arg(ret_t, argv, argc, ap);
+
+    res = g_malloc0(size);
+    if (!res)
+        return NULL;
+    *ret_p = res + sizeof(ffi_cif);
+    *argv_p = *ret_p + gwebkitjs_closure_type_fill_buff(*ret_p, ret_t);
+    arg_p = *argv_p + argc * sizeof(ffi_type*);
+    for (i = 0;i < argc;i++) {
+        ((ffi_cif**)*argv_p)[i] = arg_p;
+        arg_p += gwebkitjs_closure_type_fill_buff(arg_p, argv[i]);
+    }
+    if (!argc)
+        *argv_p = NULL;
+    return res;
+}
+
 /**
  * gwebkitjs_closure_cif_create: (skip)
  **/
 ffi_cif*
 gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...)
 {
-    guint i;
-    guint size;
     ffi_cif *res;
     va_list ap;
 
-    ffi_type *argv[argc];
     void *ret_p;
     void *argv_p;
-    void *arg_p;
 
-    size = sizeof(ffi_cif);
     if (!ret_t)
         ret_t = &ffi_type_void;
-    size += gwebkitjs_closure_type_total_size(ret_t) + sizeof(argv);
-
     va_start(ap, argc);
-    for (i = 0;i < argc;i++) {
-        argv[i] = va_arg(ap, ffi_type*);
-        size += gwebkitjs_closure_type_total_size(argv[i]);
-    }
+    res = gwebkitjs_closure_cif_alloc(argc, ret_t, ap, &ret_p, &argv_p);
     va_end(ap);
 
-    res = g_malloc0(size);
     if (!res)
         return NULL;
-    ret_p = res + sizeof(ffi_cif);
-    argv_p = ret_p + gwebkitjs_closure_type_fill_buff(ret_p, ret_t);
-    arg_p = argv_p + sizeof(argv);
-    for (i = 0;i < argc;i++) {
-        ((ffi_cif**)argv_p)[i] = arg_p;
-        arg_p += gwebkitjs_closure_type_fill_buff(arg_p, argv[i]);
-    }
-    if (!argc)
-        argv_p = NULL;
     if (ffi_prep_cif(res, FFI_DEFAULT_ABI, argc, ret_p, argv_p) == FFI_OK)
         return res;
     g_free(res);
