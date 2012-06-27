@@ -21,15 +21,28 @@
 
 #include <ffi.h>
 #include <glib.h>
+#include <glib-object.h>
+
+typedef struct {
+    GCallback func;
+} GWebKitJSClosure;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
     ffi_type *gwebkitjs_closure_type_create(guint argc, ...);
+    ffi_cif *gwebkitjs_closure_cif_create_va(ffi_type *ret_t, guint argc,
+                                             va_list ap);
+    ffi_cif *gwebkitjs_closure_cif_create_var_va(ffi_type *ret_t, guint fixc,
+                                                 guint argc, va_list ap);
     ffi_cif *gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...);
     ffi_cif *gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc,
                                               guint argc, ...);
+    GWebKitJSClosure *gwebkitjs_closure_create(ffi_cif *cif,
+                                               GCallback user_func,
+                                               gpointer p);
+    void gwebkitjs_closure_free(GWebKitJSClosure *self);
 
 #ifdef __cplusplus
 }

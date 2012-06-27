@@ -21,6 +21,12 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+typedef struct {
+    GWebKitJSClosure pub;
+    GCallback user_func;
+    gpointer p;
+} GWebKitJSClosureInter;
+
 static guint
 gwebkitjs_closure_type_total_size(ffi_type *type)
 {
@@ -119,8 +125,7 @@ gwebkitjs_closure_type_create(guint argc, ...)
 }
 
 static guint
-gwebkitjs_closure_cif_prep_arg(ffi_type *ret_t, ffi_type **argv,
-                               guint argc, va_list ap)
+gwebkitjs_closure_cif_prep_arg(ffi_type *ret_t, ffi_type **argv, guint argc)
 {
     guint i;
     guint size;
@@ -130,23 +135,21 @@ gwebkitjs_closure_cif_prep_arg(ffi_type *ret_t, ffi_type **argv,
     size += argc * sizeof(ffi_type*);
 
     for (i = 0;i < argc;i++) {
-        argv[i] = va_arg(ap, ffi_type*);
         size += gwebkitjs_closure_type_total_size(argv[i]);
     }
     return size;
 }
 
 static void*
-gwebkitjs_closure_cif_alloc(guint argc, ffi_type *ret_t, va_list ap,
+gwebkitjs_closure_cif_alloc(guint argc, ffi_type *ret_t, ffi_type **argv,
                             void **ret_p, void **argv_p)
 {
     guint i;
     ffi_cif *res;
     void *arg_p;
-    ffi_type *argv[argc];
     guint size;
 
-    size = gwebkitjs_closure_cif_prep_arg(ret_t, argv, argc, ap);
+    size = gwebkitjs_closure_cif_prep_arg(ret_t, argv, argc);
 
     res = g_malloc0(size);
     if (!res)
@@ -164,22 +167,19 @@ gwebkitjs_closure_cif_alloc(guint argc, ffi_type *ret_t, va_list ap,
 }
 
 /**
- * gwebkitjs_closure_cif_create: (skip)
+ * gwebkitjs_closure_cif_create_lst: (skip)
  **/
 ffi_cif*
-gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...)
+gwebkitjs_closure_cif_create_lst(ffi_type *ret_t, guint argc, ffi_type **argv)
 {
     ffi_cif *res;
-    va_list ap;
 
     void *ret_p;
     void *argv_p;
 
     if (!ret_t)
         ret_t = &ffi_type_void;
-    va_start(ap, argc);
-    res = gwebkitjs_closure_cif_alloc(argc, ret_t, ap, &ret_p, &argv_p);
-    va_end(ap);
+    res = gwebkitjs_closure_cif_alloc(argc, ret_t, argv, &ret_p, &argv_p);
 
     if (!res)
         return NULL;
@@ -190,22 +190,47 @@ gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...)
 }
 
 /**
- * gwebkitjs_closure_cif_create_var: (skip)
+ * gwebkitjs_closure_cif_create_va: (skip)
  **/
 ffi_cif*
-gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc, guint argc, ...)
+gwebkitjs_closure_cif_create_va(ffi_type *ret_t, guint argc, va_list ap)
+{
+    guint i;
+    ffi_type *argv[argc];
+    for (i = 0;i < argc;i++)
+        argv[i] = va_arg(ap, ffi_type*);
+    return gwebkitjs_closure_cif_create_lst(ret_t, argc, argv);
+}
+
+/**
+ * gwebkitjs_closure_cif_create: (skip)
+ **/
+ffi_cif*
+gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...)
+{
+    va_list ap;
+    ffi_cif *res;
+    va_start(ap, argc);
+    res = gwebkitjs_closure_cif_create_va(ret_t, argc, ap);
+    va_end(ap);
+    return res;
+}
+
+/**
+ * gwebkitjs_closure_cif_create_var_lst: (skip)
+ **/
+ffi_cif*
+gwebkitjs_closure_cif_create_var_lst(ffi_type *ret_t, guint fixc, guint argc,
+                                    ffi_type **argv)
 {
     ffi_cif *res;
-    va_list ap;
 
     void *ret_p;
     void *argv_p;
 
     if (!ret_t)
         ret_t = &ffi_type_void;
-    va_start(ap, argc);
-    res = gwebkitjs_closure_cif_alloc(argc, ret_t, ap, &ret_p, &argv_p);
-    va_end(ap);
+    res = gwebkitjs_closure_cif_alloc(argc, ret_t, argv, &ret_p, &argv_p);
 
     if (!res)
         return NULL;
@@ -214,4 +239,57 @@ gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc, guint argc, ...)
         return res;
     g_free(res);
     return NULL;
+}
+
+/**
+ * gwebkitjs_closure_cif_create_var_va: (skip)
+ **/
+ffi_cif*
+gwebkitjs_closure_cif_create_var_va(ffi_type *ret_t, guint fixc,
+                                    guint argc, va_list ap)
+{
+    guint i;
+    ffi_type *argv[argc];
+    for (i = 0;i < argc;i++)
+        argv[i] = va_arg(ap, ffi_type*);
+    return gwebkitjs_closure_cif_create_var_lst(ret_t, fixc, argc, argv);
+}
+
+/**
+ * gwebkitjs_closure_cif_create_var: (skip)
+ **/
+ffi_cif*
+gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc, guint argc, ...)
+{
+    va_list ap;
+    ffi_cif *res;
+    va_start(ap, argc);
+    res = gwebkitjs_closure_cif_create_var_va(ret_t, fixc, argc, ap);
+    va_end(ap);
+    return res;
+}
+
+static void
+gwebkitjs_closure_cb(ffi_cif *cif, gpointer ret, void* args[],
+                     gpointer data)
+{
+
+}
+
+/**
+ * gwebkitjs_closure_create: (skip)
+ **/
+GWebKitJSClosure*
+gwebkitjs_closure_create(ffi_cif *cif, GCallback user_func, gpointer p)
+{
+
+}
+
+/**
+ * gwebkitjs_closure_free: (skip)
+ **/
+void
+gwebkitjs_closure_free(GWebKitJSClosure *self)
+{
+
 }
