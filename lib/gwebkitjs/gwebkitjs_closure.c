@@ -406,7 +406,6 @@ gwebkitjs_closure_create(GWebKitJSClosureType type,
     res->p = p;
     res->clsr = ffi_closure_alloc(sizeof(ffi_closure),
                                   (void**)&(res->pub.func));
-    printf("%lx\n", (unsigned long)res->pub.func);
     if (!res->clsr)
         goto free_res;
     if (ffi_prep_closure_loc(res->clsr, clsr_cif, gwebkitjs_closure_cb, res,
