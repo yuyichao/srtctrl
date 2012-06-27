@@ -25,85 +25,11 @@ struct _GWebKitJSBaseClassPrivate {
 
 static void gwebkitjs_base_init(GWebKitJSBase *self,
                                 GWebKitJSBaseClass *klass);
-
 static void gwebkitjs_base_base_init(GWebKitJSBaseClass *klass);
 static void gwebkitjs_base_class_init(GWebKitJSBaseClass *klass,
                                       gpointer data);
 static void gwebkitjs_base_dispose(GObject *obj);
 static void gwebkitjs_base_finalize(GObject *obj);
-
-GType
-gwebkitjs_base_get_type()
-{
-    static GType base_type = 0;
-    if (G_UNLIKELY(base_type == 0)) {
-        const GTypeInfo base_info = {
-            .class_size = sizeof(GWebKitJSBaseClass),
-            .base_init = NULL,
-            .base_finalize = (GBaseInitFunc)gwebkitjs_base_base_init,
-            .class_init = (GClassInitFunc)gwebkitjs_base_class_init,
-            .class_finalize = NULL,
-            .class_data = NULL,
-            .instance_size = sizeof(GWebKitJSBase),
-            .n_preallocs = 0,
-            .instance_init = (GInstanceInitFunc)gwebkitjs_base_init,
-            .value_table = NULL,
-        };
-
-        base_type = g_type_register_static(GWEBKITJS_TYPE_VALUE,
-                                           "GWebKitJSBase",
-                                           &base_info, G_TYPE_FLAG_ABSTRACT);
-        g_type_add_class_private(base_type, sizeof(GWebKitJSBaseClassPrivate));
-    }
-    return base_type;
-}
-
-static void
-gwebkitjs_base_init(GWebKitJSBase *self, GWebKitJSBaseClass *klass)
-{
-    if (!klass->priv->jsclass) {
-        /* TODO: register the type into webkit. */
-    }
-}
-
-static void
-gwebkitjs_base_base_init(GWebKitJSBaseClass *klass)
-{
-    klass->priv = G_TYPE_CLASS_GET_PRIVATE(klass, GWEBKITJS_TYPE_BASE,
-                                           GWebKitJSBaseClassPrivate);
-    klass->priv->jsclass = NULL;
-}
-
-static void
-gwebkitjs_base_class_init(GWebKitJSBaseClass *klass, gpointer data)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-    gobject_class->dispose = gwebkitjs_base_dispose;
-    gobject_class->finalize = gwebkitjs_base_finalize;
-}
-
-static void
-gwebkitjs_base_dispose(GObject *obj)
-{
-    /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
-}
-
-static void
-gwebkitjs_base_finalize(GObject *obj)
-{
-}
-
-/**
- * gwebkitjs_base_get_jsclass: (skip)
- * @type:
- *
- * Return Value:
- **/
-JSClassRef
-gwebkitjs_base_get_jsclass(GType type)
-{
-    return NULL;
-}
 
 /**
  * GWebKitJSBaseGetName:
@@ -195,3 +121,77 @@ gwebkitjs_base_get_jsclass(GType type)
  *
  * Return Value: (allow-none) (transfer full):
  **/
+
+GType
+gwebkitjs_base_get_type()
+{
+    static GType base_type = 0;
+    if (G_UNLIKELY(base_type == 0)) {
+        const GTypeInfo base_info = {
+            .class_size = sizeof(GWebKitJSBaseClass),
+            .base_init = NULL,
+            .base_finalize = (GBaseInitFunc)gwebkitjs_base_base_init,
+            .class_init = (GClassInitFunc)gwebkitjs_base_class_init,
+            .class_finalize = NULL,
+            .class_data = NULL,
+            .instance_size = sizeof(GWebKitJSBase),
+            .n_preallocs = 0,
+            .instance_init = (GInstanceInitFunc)gwebkitjs_base_init,
+            .value_table = NULL,
+        };
+
+        base_type = g_type_register_static(GWEBKITJS_TYPE_VALUE,
+                                           "GWebKitJSBase",
+                                           &base_info, G_TYPE_FLAG_ABSTRACT);
+        g_type_add_class_private(base_type, sizeof(GWebKitJSBaseClassPrivate));
+    }
+    return base_type;
+}
+
+static void
+gwebkitjs_base_init(GWebKitJSBase *self, GWebKitJSBaseClass *klass)
+{
+    if (!klass->priv->jsclass) {
+        /* TODO: register the type into webkit. */
+    }
+}
+
+static void
+gwebkitjs_base_base_init(GWebKitJSBaseClass *klass)
+{
+    klass->priv = G_TYPE_CLASS_GET_PRIVATE(klass, GWEBKITJS_TYPE_BASE,
+                                           GWebKitJSBaseClassPrivate);
+    klass->priv->jsclass = NULL;
+}
+
+static void
+gwebkitjs_base_class_init(GWebKitJSBaseClass *klass, gpointer data)
+{
+    GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    gobject_class->dispose = gwebkitjs_base_dispose;
+    gobject_class->finalize = gwebkitjs_base_finalize;
+}
+
+static void
+gwebkitjs_base_dispose(GObject *obj)
+{
+    /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
+}
+
+static void
+gwebkitjs_base_finalize(GObject *obj)
+{
+    /* GWebKitJSBase *self = GWEBKITJS_BASE(obj); */
+}
+
+/**
+ * gwebkitjs_base_get_jsclass: (skip)
+ * @type:
+ *
+ * Return Value:
+ **/
+JSClassRef
+gwebkitjs_base_get_jsclass(GType type)
+{
+    return NULL;
+}

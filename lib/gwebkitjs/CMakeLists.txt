@@ -14,6 +14,7 @@ endif(NOT DEFINED GWEBKITJS_HEADER_INSTALL_DIR)
 
 set(GWEBKITJS_SOURCES
   gwebkitjs_context.c
+  gwebkitjs_closure.c
   gwebkitjs_value.c
   gwebkitjs_base.c
   gwebkitjs_util.c
@@ -21,6 +22,7 @@ set(GWEBKITJS_SOURCES
 
 set(GWEBKITJS_HEADERS
   gwebkitjs_context.h
+  gwebkitjs_closure.h
   gwebkitjs_value.h
   gwebkitjs_base.h
   gwebkitjs_util.h
