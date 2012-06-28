@@ -330,12 +330,15 @@ free:
 GWebKitJSContext*
 gwebkitjs_context_new(GType global)
 {
-    JSClassRef globalclass = NULL;
+    JSClassRef globalclass;
     JSGlobalContextRef jsctx;
     GWebKitJSContext *res;
-    if (g_type_is_a(global, GWEBKITJS_TYPE_BASE)) {
-        // TODO
-    }
+    GWebKitJSBaseClass *baseklass;
+
+    baseklass = g_type_class_ref(global);
+    globalclass = gwebkitjs_base_get_jsclass(baseklass);
+    g_type_class_unref(baseklass);
+
     jsctx = JSGlobalContextCreate(globalclass);
     res = gwebkitjs_context_new_from_context(jsctx);
     JSGlobalContextRelease(jsctx);

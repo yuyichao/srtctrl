@@ -44,7 +44,6 @@ struct _GWebKitJSBase {
     GWebKitJSValue parent;
 };
 
-typedef const gchar *(*GWebKitJSBaseGetName)(GWebKitJSBase *self);
 typedef gboolean (*GWebKitJSBaseHasProperty)(
     GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name);
 typedef GWebKitJSValue *(*GWebKitJSBaseGetProperty)(
@@ -74,7 +73,6 @@ typedef GWebKitJSValue *(*GWebKitJSBaseConvertTo)(
 struct _GWebKitJSBaseClass {
     GWebKitJSValueClass parent_class;
     GWebKitJSBaseClassPrivate *priv;
-    GWebKitJSBaseGetName get_name;
     GWebKitJSBaseHasProperty has_property;
     GWebKitJSBaseGetProperty get_property;
     GWebKitJSBaseSetProperty set_property;
@@ -90,7 +88,8 @@ struct _GWebKitJSBaseClass {
 extern "C" {
 #endif
     GType gwebkitjs_base_get_type();
-    JSClassRef gwebkitjs_base_get_jsclass(GType type);
+    JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *class);
+    void gwebkitjs_base_set_name(GType type, const gchar *name);
 #ifdef __cplusplus
 }
 #endif
