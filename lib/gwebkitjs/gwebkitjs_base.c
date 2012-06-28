@@ -21,6 +21,10 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+struct _GWebKitJSBasePrivate {
+    gboolean toggle_added;
+};
+
 struct _GWebKitJSBaseClassPrivate {
     gchar *name;
     JSClassRef jsclass;
@@ -138,8 +142,8 @@ gwebkitjs_base_get_type()
     if (G_UNLIKELY(base_type == 0)) {
         const GTypeInfo base_info = {
             .class_size = sizeof(GWebKitJSBaseClass),
-            .base_init = NULL,
-            .base_finalize = (GBaseInitFunc)gwebkitjs_base_base_init,
+            .base_init = (GBaseInitFunc)gwebkitjs_base_base_init,
+            .base_finalize = NULL,
             .class_init = (GClassInitFunc)gwebkitjs_base_class_init,
             .class_finalize = NULL,
             .class_data = NULL,
@@ -161,7 +165,12 @@ gwebkitjs_base_get_type()
 static void
 gwebkitjs_base_init(GWebKitJSBase *self, GWebKitJSBaseClass *klass)
 {
+    GWebKitJSBasePrivate *priv;
+    priv = self->priv = G_TYPE_INSTANCE_GET_PRIVATE(self,
+                                                    GWEBKITJS_TYPE_BASE,
+                                                    GWebKitJSBasePrivate);
     gwebkitjs_base_get_jsclass(klass);
+    priv->toggle_added = FALSE;
 }
 
 static void
@@ -178,6 +187,7 @@ static void
 gwebkitjs_base_class_init(GWebKitJSBaseClass *klass, gpointer data)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+    g_type_class_add_private(klass, sizeof(GWebKitJSBasePrivate));
     gobject_class->dispose = gwebkitjs_base_dispose;
     gobject_class->finalize = gwebkitjs_base_finalize;
 }
@@ -195,16 +205,73 @@ gwebkitjs_base_finalize(GObject *obj)
 }
 
 static void
+gwebkitjs_base_toggle_cb(gpointer data, GObject *self, gboolean is_last)
+{
+    if (is_last)
+        gwebkitjs_value_unprotect_value(GWEBKITJS_VALUE(self));
+    else
+        gwebkitjs_value_protect_value(GWEBKITJS_VALUE(self));
+}
+
+static void
 gwebkitjs_base_init_cb(gpointer ptr, JSGlobalContextRef jsctx,
                        JSObjectRef jsvalue)
 {
     GType type;
     GWebKitJSContext *ctx;
-    GWebKitJSValue *value;
+    GWebKitJSBase *self;
     type = GPOINTER_TO_INT(ptr);
     ctx = gwebkitjs_context_new_from_context(jsctx);
-    value = gwebkitjs_value_new(type, ctx, jsvalue);
-    JSObjectSetPrivate(jsvalue, value);
+    self = GWEBKITJS_BASE(gwebkitjs_value_new(type, ctx, jsvalue));
+    JSObjectSetPrivate(jsvalue, self);
+    if (g_atomic_int_compare_and_exchange(&self->priv->toggle_added,
+                                          FALSE, TRUE)) {
+        g_object_add_toggle_ref(G_OBJECT(self), gwebkitjs_base_toggle_cb,
+                                NULL);
+        g_object_unref(self);
+    }
+}
+
+static void
+gwebkitjs_base_finalize_cb(JSObjectRef jsobj)
+{
+    GWebKitJSBase *self;
+    self = JSObjectGetPrivate(jsobj);
+    if (!self)
+        return;
+    if (g_atomic_int_compare_and_exchange(&self->priv->toggle_added,
+                                          TRUE, FALSE)) {
+        g_object_remove_toggle_ref(G_OBJECT(self), gwebkitjs_base_toggle_cb,
+                                   NULL);
+    }
+    JSObjectSetPrivate(jsobj, NULL);
+}
+
+bool
+gwebkitjs_base_has_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
+                               JSStringRef jsname)
+{
+    GWebKitJSBase *self;
+    GWebKitJSBaseClass *klass;
+    GWebKitJSContext *ctx;
+    bool res;
+    gchar *name;
+    self = JSObjectGetPrivate(jsobj);
+    gwj_return_val_if_false(self, false);
+    klass = GWEBKITJS_BASE_GET_CLASS(self);
+    gwj_return_val_if_false(klass, false);
+    gwj_return_val_if_false(klass->has_property, false);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    gwj_return_val_if_false(ctx, false);
+    name = gwebkitjs_util_dup_str(jsname);
+    if (G_UNLIKELY(!name)) {
+        res = false;
+    } else {
+        res = klass->has_property(self, ctx, name);
+        g_free(name);
+    }
+    g_object_unref(ctx);
+    return res;
 }
 
 static JSClassDefinition*
@@ -213,25 +280,30 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
     GWebKitJSBaseClass *pklass;
     JSClassRef pjsclass;
     JSClassDefinition *define;
+    GWebKitJSBaseClassPrivate *priv;
     gwj_return_val_if_false(GWEBKITJS_IS_BASE_CLASS(klass), NULL);
-    if (klass->priv->jsdefine.className)
-        return &klass->priv->jsdefine;
+    priv = klass->priv;
+    if (priv->jsdefine.className)
+        return &priv->jsdefine;
 
-    define = &klass->priv->jsdefine;
+    define = &priv->jsdefine;
     pklass = g_type_class_peek_parent(klass);
     pjsclass = gwebkitjs_base_get_jsclass(pklass);
     define->version = 0;
     define->attributes = kJSClassAttributeNone;
     define->parentClass = pjsclass;
-    if (klass->priv->name)
-        define->className = klass->priv->name;
+    if (priv->name)
+        define->className = priv->name;
     else
         define->className = "GWebKitJS";
     klass->priv->init_clsr = gwebkitjs_closure_create(
         clsr_type_v_p_p, G_CALLBACK(gwebkitjs_base_init_cb),
         GINT_TO_POINTER(G_TYPE_FROM_CLASS(klass)));
     define->initialize =
-        (JSObjectInitializeCallback)klass->priv->init_clsr->func;
+        (JSObjectInitializeCallback)priv->init_clsr->func;
+    define->finalize = gwebkitjs_base_finalize_cb;
+    if (klass->has_property)
+        define->hasProperty = gwebkitjs_base_has_property_cb;
     return define;
 }
 

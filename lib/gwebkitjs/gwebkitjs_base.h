@@ -37,11 +37,13 @@
                                GWebKitJSBaseClass))
 
 typedef struct _GWebKitJSBase GWebKitJSBase;
+typedef struct _GWebKitJSBasePrivate GWebKitJSBasePrivate;
 typedef struct _GWebKitJSBaseClass GWebKitJSBaseClass;
 typedef struct _GWebKitJSBaseClassPrivate GWebKitJSBaseClassPrivate;
 
 struct _GWebKitJSBase {
     GWebKitJSValue parent;
+    GWebKitJSBasePrivate *priv;
 };
 
 typedef gboolean (*GWebKitJSBaseHasProperty)(
