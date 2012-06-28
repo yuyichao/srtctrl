@@ -34,15 +34,28 @@ extern "C" {
 #endif
 
     ffi_type *gwebkitjs_closure_type_create(guint argc, ...);
+
+    ffi_cif *gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...);
     ffi_cif *gwebkitjs_closure_cif_create_va(ffi_type *ret_t, guint argc,
                                              va_list ap);
-    ffi_cif *gwebkitjs_closure_cif_create_var_va(ffi_type *ret_t, guint fixc,
-                                                 guint argc, va_list ap);
-    ffi_cif *gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...);
+    ffi_cif *gwebkitjs_closure_cif_create_lst(ffi_type *ret_t, guint argc,
+                                              ffi_type **argv);
+
     ffi_cif *gwebkitjs_closure_cif_create_var(ffi_type *ret_t, guint fixc,
                                               guint argc, ...);
+    ffi_cif *gwebkitjs_closure_cif_create_var_va(ffi_type *ret_t, guint fixc,
+                                                 guint argc, va_list ap);
+    ffi_cif *gwebkitjs_closure_cif_create_var_lst(ffi_type *ret_t, guint fixc,
+                                                  guint argc,ffi_type **argv);
+
     GWebKitJSClosureType gwebkitjs_closure_new_type(ffi_type *ret_t,
                                                     guint argc, ...);
+    GWebKitJSClosureType gwebkitjs_closure_new_type_va(ffi_type *ret_t,
+                                                       guint argc, va_list ap);
+    GWebKitJSClosureType gwebkitjs_closure_new_type_lst(ffi_type *ret_t,
+                                                        guint argc,
+                                                        ffi_type **argv);
+
     GWebKitJSClosure *gwebkitjs_closure_create(GWebKitJSClosureType type,
                                                GCallback user_func,
                                                gpointer p);
