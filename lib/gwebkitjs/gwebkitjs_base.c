@@ -320,6 +320,87 @@ gwebkitjs_base_get_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     return NULL;
 }
 
+bool
+gwebkitjs_base_set_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
+                               JSStringRef jsname, JSValueRef jsvalue,
+                               JSValueRef *jserr)
+{
+    GWebKitJSBase *self;
+    GWebKitJSBaseClass *klass;
+    GWebKitJSContext *ctx;
+    GWebKitJSValue *value;
+    bool res = false;
+    gchar *name;
+    self = JSObjectGetPrivate(jsobj);
+    if (G_UNLIKELY(!self)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Object Not Found.");
+        return false;
+    }
+    klass = GWEBKITJS_BASE_GET_CLASS(self);
+    if (G_UNLIKELY(!klass)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Class Not Found.");
+        return false;
+    }
+    gwj_return_val_if_false(klass->set_property, false);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    if (G_UNLIKELY(!ctx)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Context Not Found.");
+        return false;
+    }
+    value = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, ctx, jsvalue);
+    if (G_UNLIKELY(!value))
+        goto out;
+    name = gwebkitjs_util_dup_str(jsname);
+    if (G_LIKELY(name)) {
+        res = klass->set_property(self, ctx, name, value, NULL);
+        g_free(name);
+    }
+    g_object_unref(value);
+out:
+    g_object_unref(ctx);
+    return res;
+}
+
+bool
+gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
+                                  JSStringRef jsname, JSValueRef *jserr)
+{
+    GWebKitJSBase *self;
+    GWebKitJSBaseClass *klass;
+    GWebKitJSContext *ctx;
+    bool res = false;
+    gchar *name;
+    self = JSObjectGetPrivate(jsobj);
+    if (G_UNLIKELY(!self)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Object Not Found.");
+        return false;
+    }
+    klass = GWEBKITJS_BASE_GET_CLASS(self);
+    if (G_UNLIKELY(!klass)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Class Not Found.");
+        return false;
+    }
+    gwj_return_val_if_false(klass->delete_property, false);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    if (G_UNLIKELY(!ctx)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Context Not Found.");
+        return false;
+    }
+    name = gwebkitjs_util_dup_str(jsname);
+    if (G_LIKELY(name)) {
+        res = klass->delete_property(self, ctx, name, NULL);
+        g_free(name);
+    }
+    g_object_unref(ctx);
+    return res;
+}
+
 static JSClassDefinition*
 gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
 {
@@ -350,6 +431,12 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
     define->finalize = gwebkitjs_base_finalize_cb;
     if (klass->has_property)
         define->hasProperty = gwebkitjs_base_has_property_cb;
+    if (klass->get_property)
+        define->getProperty = gwebkitjs_base_get_property_cb;
+    if (klass->set_property)
+        define->setProperty = gwebkitjs_base_set_property_cb;
+    if (klass->delete_property)
+        define->deleteProperty = gwebkitjs_base_delete_property_cb;
     return define;
 }
 
