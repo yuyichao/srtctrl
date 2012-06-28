@@ -57,7 +57,7 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * @name: (allow-none) (transfer none):
  * @error:
  *
- * Return Value: (allow-none) (transfer none):
+ * Return Value: (allow-none) (transfer full):
  **/
 /**
  * GWebKitJSBaseSetProperty:
@@ -272,6 +272,52 @@ gwebkitjs_base_has_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     }
     g_object_unref(ctx);
     return res;
+}
+
+JSValueRef
+gwebkitjs_base_get_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
+                               JSStringRef jsname, JSValueRef *jserr)
+{
+    GWebKitJSBase *self;
+    GWebKitJSBaseClass *klass;
+    GWebKitJSContext *ctx;
+    gchar *name;
+    GWebKitJSValue *res;
+    self = JSObjectGetPrivate(jsobj);
+    if (G_UNLIKELY(!self)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Object Not Found.");
+        return NULL;
+    }
+    klass = GWEBKITJS_BASE_GET_CLASS(self);
+    if (G_UNLIKELY(!klass)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Class Not Found.");
+        return NULL;
+    }
+    gwj_return_val_if_false(klass->get_property, NULL);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    if (G_UNLIKELY(!ctx)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Context Not Found.");
+        return NULL;
+    }
+    name = gwebkitjs_util_dup_str(jsname);
+    if (G_UNLIKELY(!name)) {
+        gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
+                                    "Context Not Found.");
+        res = NULL;
+    } else {
+        res = klass->get_property(self, ctx, name, NULL);
+        g_free(name);
+    }
+    g_object_unref(ctx);
+    if (res) {
+        JSValueRef jsres = gwebkitjs_value_get_value(res);
+        g_object_unref(res);
+        return jsres;
+    }
+    return NULL;
 }
 
 static JSClassDefinition*
