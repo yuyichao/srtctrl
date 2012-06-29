@@ -2,6 +2,7 @@
 #include <gwebkitjs_util.h>
 #include <JavaScriptCore/JSValueRef.h>
 #include <JavaScriptCore/JSStringRef.h>
+#include <stdio.h>
 
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
@@ -257,8 +258,10 @@ gwebkitjs_util_list_to_obj(int n, gchar **array)
     garray = g_array_sized_new(FALSE, TRUE, sizeof(gchar*), n);
     g_array_set_clear_func(garray, g_free);
     carray = (gchar**)garray->data;
-    for (i = 0;i < n;i++)
+    for (i = 0;i < n;i++) {
         carray[i] = g_strdup(array[i]);
+    }
+    garray->len = n;
     g_object_set_data_full(obj, "_name_array_", garray,
                            (GDestroyNotify)g_array_unref);
     return obj;
