@@ -47,7 +47,6 @@ class MObj(GWebKitJS.Base):
         print("get_property_names")
         return GWebKitJS.util_list_to_obj(['a'])
 
-
 GWebKitJS.Base.set_name(MObj, "PY")
 GWebKitJS.Base.set_name(MObj, "MObj")
 GWebKitJS.Base.set_name(MObj, "RegExp")
