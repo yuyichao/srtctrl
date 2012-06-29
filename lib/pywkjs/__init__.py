@@ -1,1 +1,1 @@
-from pywkjs.general import *
+from pywkjs.general import js2py, py2js
