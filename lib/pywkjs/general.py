@@ -34,3 +34,6 @@ def js2py(ctx, jsobj):
     if jsname == "[object Array]":
         return _js2array(ctx, jsobj)
     return jsobj
+
+def py2js(ctx, pyobj):
+    pass
