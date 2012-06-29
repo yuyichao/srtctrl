@@ -44,6 +44,8 @@ static void gwebkitjs_base_finalize(GObject *obj);
 
 static GWebKitJSClosureType clsr_type_v_p_p = NULL;
 
+static gboolean gwebkitjs_base_is_valid_name(const gchar *name);
+
 /**
  * GWebKitJSBaseClass::has_property:
  * @self: (allow-none) (transfer none):
@@ -637,7 +639,7 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
     define->version = 0;
     define->attributes = kJSClassAttributeNone;
     define->parentClass = pjsclass;
-    if (priv->name)
+    if (gwebkitjs_base_is_valid_name(priv->name))
         define->className = priv->name;
     else
         define->className = "GWebKitJS";
@@ -690,22 +692,46 @@ gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass)
     return klass->priv->jsclass;
 }
 
+static gboolean
+gwebkitjs_base_is_valid_name(const gchar *name)
+{
+    static gchar *black_list[] = {
+        "Boolean",
+        "Null",
+        "Undefined",
+        "Number",
+        "String",
+        "Array",
+        "Error",
+        "Date",
+        "Function",
+        "RegExp"
+    };
+    int i;
+    if (!name)
+        return FALSE;
+    for (i = 0;i < sizeof(black_list) / sizeof(gchar*);i++) {
+        if (!g_strcmp0(black_list[i], name))
+            return FALSE;
+    }
+    return TRUE;
+}
+
 void
 gwebkitjs_base_set_name(GType type, const gchar *name)
 {
     GWebKitJSBaseClass *klass;
     gwj_return_if_false(g_type_is_a(type, GWEBKITJS_TYPE_BASE));
     gwj_return_if_false(type != GWEBKITJS_TYPE_BASE);
+    if (!gwebkitjs_base_is_valid_name(name))
+        return;
 
     klass = g_type_class_ref(type);
     do {
         if (klass->priv->jsdefine.className)
             break;
         g_free(klass->priv->name);
-        if (name)
-            klass->priv->name = g_strdup(name);
-        else
-            klass->priv->name = NULL;
+        klass->priv->name = g_strdup(name);
     } while(0);
     g_type_class_unref(klass);
 }

@@ -1736,3 +1736,16 @@ gwebkitjs_context_is_of_class(GWebKitJSContext *self, GWebKitJSValue *value,
     gwj_return_val_if_false(jsclass, FALSE);
     return JSValueIsObjectOfClass(jsctx, jsvalue, jsclass);
 }
+
+/**
+ * gwebkitjs_context_make_object:
+ * @ctx: (allow-none) (transfer none):
+ * @type:
+ *
+ * Returns: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_object(GWebKitJSContext *ctx, GType type)
+{
+    return gwebkitjs_base_new(ctx, type);
+}

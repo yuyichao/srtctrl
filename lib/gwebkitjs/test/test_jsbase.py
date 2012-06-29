@@ -47,9 +47,14 @@ class MObj(GWebKitJS.Base):
         print("get_property_names")
         return GWebKitJS.util_list_to_obj(['a'])
 
-GWebKitJS.Base.set_name(MObj, "PY")
 
-mobj = GWebKitJS.Base.new(ctx, MObj)
+GWebKitJS.Base.set_name(MObj, "PY")
+GWebKitJS.Base.set_name(MObj, "MObj")
+GWebKitJS.Base.set_name(MObj, "RegExp")
+
+mobj = ctx.make_object(MObj)
+GWebKitJS.Base.set_name(MObj, "A")
+mobj = ctx.make_object(MObj)
 print(ctx.get_name_str(mobj))
 print(ctx.get_property_names(mobj))
 print(ctx.to_number(ctx.get_property(mobj, "a")))

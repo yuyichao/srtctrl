@@ -215,6 +215,8 @@ extern "C" {
                                                   size_t argc,
                                                   GWebKitJSValue **argv,
                                                   GError **error);
+    GWebKitJSValue *gwebkitjs_context_make_object(GWebKitJSContext *ctx,
+                                                  GType type);
 
     // JSObjectMakeConstructor (need Base)
     // JSObjectMakeFunctionWithCallback (need Base)
