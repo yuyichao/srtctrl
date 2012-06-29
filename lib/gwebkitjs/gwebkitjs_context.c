@@ -1720,3 +1720,19 @@ gwebkitjs_context_make_regexp(GWebKitJSContext *self, size_t argc,
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
+
+gboolean
+gwebkitjs_context_is_of_class(GWebKitJSContext *self, GWebKitJSValue *value,
+                              GType type)
+{
+    JSClassRef jsclass;
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, FALSE);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, FALSE);
+    jsclass = gwebkitjs_base_get_jsclass_from_type(type);
+    gwj_return_val_if_false(jsclass, FALSE);
+    return JSValueIsObjectOfClass(jsctx, jsvalue, jsclass);
+}

@@ -86,6 +86,7 @@ extern "C" {
 #endif
     GType gwebkitjs_base_get_type();
     JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
+    JSClassRef gwebkitjs_base_get_jsclass_from_type(GType type);
     void gwebkitjs_base_set_name(GType type, const gchar *name);
     GWebKitJSValue *gwebkitjs_base_new(GWebKitJSContext *ctx, GType type);
 #ifdef __cplusplus

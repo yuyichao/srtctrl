@@ -720,20 +720,33 @@ gwebkitjs_base_set_name(GType type, const gchar *name)
 GWebKitJSValue*
 gwebkitjs_base_new(GWebKitJSContext *ctx, GType type)
 {
-    GWebKitJSBaseClass *klass;
     JSObjectRef jsobj;
     JSClassRef jsclass;
     JSContextRef jsctx;
     GWebKitJSValue *res;
-    gwj_return_val_if_false(g_type_is_a(type, GWEBKITJS_TYPE_BASE), NULL);
-    gwj_return_val_if_false(type != GWEBKITJS_TYPE_BASE, NULL);
     jsctx = gwebkitjs_context_get_context(ctx);
     gwj_return_val_if_false(jsctx, NULL);
+    jsclass = gwebkitjs_base_get_jsclass_from_type(type);
+    gwj_return_val_if_false(jsclass, NULL);
+
+    jsobj = JSObjectMake(jsctx, jsclass, NULL);
+    res = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, ctx, jsobj);
+    return res;
+}
+
+/**
+ * gwebkitjs_base_get_jsclass_from_type: (skip)
+ **/
+JSClassRef
+gwebkitjs_base_get_jsclass_from_type(GType type)
+{
+    GWebKitJSBaseClass *klass;
+    JSClassRef jsclass;
+    gwj_return_val_if_false(g_type_is_a(type, GWEBKITJS_TYPE_BASE), NULL);
+    gwj_return_val_if_false(type != GWEBKITJS_TYPE_BASE, NULL);
 
     klass = g_type_class_ref(type);
     jsclass = gwebkitjs_base_get_jsclass(klass);
-    jsobj = JSObjectMake(jsctx, jsclass, NULL);
-    res = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, ctx, jsobj);
     g_type_class_unref(klass);
-    return res;
+    return jsclass;
 }
