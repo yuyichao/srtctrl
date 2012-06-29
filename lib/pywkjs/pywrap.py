@@ -29,7 +29,7 @@ class WKPYObject(_gwkjs.Base):
         try:
             iname = int(name)
         except ValueError:
-            return None
+            return
         try:
             value = self._pyobj[iname]
             return py2js(value)
@@ -40,7 +40,6 @@ class WKPYObject(_gwkjs.Base):
             return py2js(value)
         except:
             pass
-        return None
     def do_set_property(self, ctx, name, value):
         value = js2py(value, jsthis=self)
         try:
@@ -91,14 +90,53 @@ class WKPYObject(_gwkjs.Base):
                 pass
             return False
     def do_delete_property(self, ctx, name):
-        pass
+        try:
+            del self._pyobj[name]
+        except:
+            pass
+        try:
+            delattr(self._pyobj, name)
+        except:
+            pass
+        try:
+            iname = int(name)
+        except ValueError:
+            return
+        try:
+            del self._pyobj[iname]
+        except:
+            pass
+        try:
+            delattr(self._pyobj, iname)
+        except:
+            pass
+        return not self.do_has_property(ctx, name)
     def do_get_property_names(self, ctx):
-        pass
+        names = dir(self._pyobj)
+        return _gwkjs.util_list_to_obj(names)
     def do_call_function(self, ctx, this, args):
-        pass
-    def do_has_instance(self, ctx, args):
-        pass
+        return self.do_call_construct(ctx, args)
+    def do_call_construct(self, ctx, args):
+        try:
+            res = self._pyobj(*args)
+            return py2js(res)
+        except:
+            pass
     def do_has_instance(self, ctx, ins):
-        pass
+        if (isinstance(self._pyobj, type) &&
+            isinstance(js2py(ins), self._pyobj)):
+            return True
+        return False
     def do_convert_to(self, ctx, jstype):
-        pass
+        if jstype == _gwkjs.ValueType.NUMBER:
+            try:
+                return float(self._pyobj)
+            except:
+                pass
+            return
+        if jstype == _gwkjs.ValueType.STRING:
+            try:
+                return str(self._pyobj)
+            except:
+                pass
+            return
