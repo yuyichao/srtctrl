@@ -11,14 +11,15 @@ def _std_key(key):
         pass
     return str(key)
 
-class JSObject(object):
+class WKJSObject(object):
     def __init__(self, jsctx, jsvalue, jsthis=None):
         super().__setattr__(self, '_jsctx', jsctx)
         super().__setattr__(self, '_jsvalue', jsvalue)
         super().__setattr__(self, '_jsthis', jsthis)
     def __getitem__(self, key):
         key = _std_key(key)
-        return js2py(self._jsctx.get_property(self._jsvalue, key))
+        return js2py(self._jsctx.get_property(self._jsvalue, key),
+                     jsthis=self._jsvalue)
     def __setitem__(self, key, value):
         key = _std_key(key)
         value = py2js(self._jsctx, value)
@@ -39,7 +40,7 @@ class JSObject(object):
     def __dir__(self):
         return self._jsctx.get_property_names(self._jsvalue)
     def __str__(self):
-        return js2py(self._jsctx.to_string(self._jsvalue))
+        return self._jsctx.to_string(self._jsvalue)
     def __repr__(self):
         return self.__str__()
     def __iter__(self):
