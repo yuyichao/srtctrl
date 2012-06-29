@@ -1,5 +1,8 @@
 from gi.repository import (GWebKitJS as _gwkjs), (GLib as _GLib)
 
+from pywkjs.pywrap import *
+from pywkjs.jswrap import *
+
 def _js2array(ctx, jsobj):
     try:
         n = ctx.get_property("length")
@@ -14,7 +17,7 @@ def _js2array(ctx, jsobj):
             pass
     return res
 
-def js2py(ctx, jsobj):
+def js2py(ctx, jsobj, jsthis=None):
     jstype = ctx.get_value_type(jsobj)
     if jstype in [_gwkjs.ValueType.UNKNOWN,
                   _gwkjs.ValueType.UNDEFINED,
@@ -33,7 +36,21 @@ def js2py(ctx, jsobj):
         return None
     if jsname == "[object Array]":
         return _js2array(ctx, jsobj)
-    return jsobj
+    return WKJSObject(ctx, jsobj, jsthis=jsthis)
 
 def py2js(ctx, pyobj):
-    pass
+    if pyobj is None:
+        return ctx.make_null()
+    elif isinstance(pyobj, bool):
+        return ctx.make_boolean(pyobj)
+    elif isinstance(pyobj, float) or isinstance(pyobj, int):
+        return ctx.make_number(float(pyobj))
+    elif isinstance(pyobj, str):
+        return ctx.make_string(pyobj)
+    elif isinstance(pyobj, list) or isinstance(pyobj, tuple):
+        ary = list(pyobj)
+        jsary = []
+        for ele in ary:
+            jsary.append(py2js(ctx, ele))
+        return ctx.make_array(jsary)
+    return WKPYObject(ctx, pyobj)
