@@ -31,6 +31,8 @@ def js2py(ctx, jsobj, jsthis=None):
         return ctx.to_string(jstype)
     if jstype != _gwkjs.ValueType.OBJECT:
         return None
+    if isinstance(jsobj, WKPYObject):
+        return jsobj._pyobj
     jsname = ctx.get_name_str(jsobj)
     if not jsname:
         return None
@@ -53,4 +55,6 @@ def py2js(ctx, pyobj):
         for ele in ary:
             jsary.append(py2js(ctx, ele))
         return ctx.make_array(jsary)
-    return WKPYObject(ctx, pyobj)
+    if isinstance(pyobj, WKJSObject):
+        return pyobj._jsvalue
+    return WKPYObject(pyobj)
