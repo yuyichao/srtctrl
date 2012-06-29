@@ -46,44 +46,39 @@ struct _GWebKitJSBase {
     GWebKitJSBasePrivate *priv;
 };
 
-typedef gboolean (*GWebKitJSBaseHasProperty)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name);
-typedef GWebKitJSValue *(*GWebKitJSBaseGetProperty)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx,
-    const char *name, GError **error);
-typedef gboolean (*GWebKitJSBaseSetProperty)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name,
-    GWebKitJSValue *value, GError **error);
-typedef gboolean (*GWebKitJSBaseDeleteProperty)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx,
-    const char *name, GError **error);
-typedef gchar **(*GWebKitJSBaseGetPropertyNames)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx, gint *n, GError **error);
-typedef GWebKitJSValue *(*GWebKitJSBaseCallFunction)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx, GWebKitJSValue *thisobj,
-    size_t argc, GWebKitJSValue **argv, GError **error);
-typedef GWebKitJSValue *(*GWebKitJSBaseCallConstruct)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx,
-    size_t argc, GWebKitJSValue **argv, GError **error);
-typedef gboolean (*GWebKitJSBaseHasInstance)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx,
-    GWebKitJSValue *instance, GError **error);
-typedef GWebKitJSValue *(*GWebKitJSBaseConvertTo)(
-    GWebKitJSBase *self, GWebKitJSContext *ctx,
-    GWebKitJSValueType type, GError **error);
-
 struct _GWebKitJSBaseClass {
     GWebKitJSValueClass parent_class;
     GWebKitJSBaseClassPrivate *priv;
-    GWebKitJSBaseHasProperty has_property;
-    GWebKitJSBaseGetProperty get_property;
-    GWebKitJSBaseSetProperty set_property;
-    GWebKitJSBaseDeleteProperty delete_property;
-    GWebKitJSBaseGetPropertyNames get_property_names;
-    GWebKitJSBaseCallFunction call_function;
-    GWebKitJSBaseCallConstruct call_construct;
-    GWebKitJSBaseHasInstance has_instance;
-    GWebKitJSBaseConvertTo convert_to;
+    gboolean (*has_property)(GWebKitJSBase *self, GWebKitJSContext *ctx,
+                             const char *name);
+    GWebKitJSValue *(*get_property)(GWebKitJSBase *self, GWebKitJSContext *ctx,
+                                    const char *name, GError **error);
+    gboolean (*set_property)(
+        GWebKitJSBase *self, GWebKitJSContext *ctx, const char *name,
+        GWebKitJSValue *value, GError **error);
+    gboolean (*delete_property)(GWebKitJSBase *self, GWebKitJSContext *ctx,
+                                const char *name, GError **error);
+    /**
+     * I don't really want to say bad word in source code but I think this
+     * REALLY is the right time to do that..... WTF pygobject!!!!! for not
+     * supporting directly returning arrays and I have to use a object to do
+     * that!!!! Fine here since this library is DESIGNED for language bindings
+     * (therefore it can be a little hard to use for c programmers), but isn't
+     * gir designed for easy language binding!!!...... also please catch python
+     * exceptions and turn it into a GError, when the callback has a error out
+     * argument....
+     **/
+    GObject *(*get_property_names)(GWebKitJSBase *self, GWebKitJSContext *ctx);
+    GWebKitJSValue *(*call_function)(
+        GWebKitJSBase *self, GWebKitJSContext *ctx, GWebKitJSValue *thisobj,
+        size_t argc, GWebKitJSValue **argv, GError **error);
+    GWebKitJSValue *(*call_construct)(
+        GWebKitJSBase *self, GWebKitJSContext *ctx,
+        size_t argc, GWebKitJSValue **argv, GError **error);
+    gboolean (*has_instance)(GWebKitJSBase *self, GWebKitJSContext *ctx,
+                             GWebKitJSValue *instance, GError **error);
+    GWebKitJSValue *(*convert_to)(GWebKitJSBase *self, GWebKitJSContext *ctx,
+                                  GWebKitJSValueType type, GError **error);
 };
 
 #ifdef __cplusplus

@@ -2,6 +2,7 @@
 #include <gwebkitjs_base.h>
 #include <gwebkitjs_util.h>
 #include <gwebkitjs_closure.h>
+#include <JavaScriptCore/JSStringRef.h>
 
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
@@ -43,7 +44,7 @@ static void gwebkitjs_base_finalize(GObject *obj);
 static GWebKitJSClosureType clsr_type_v_p_p = NULL;
 
 /**
- * GWebKitJSBaseHasProperty:
+ * GWebKitJSBaseClass::has_property:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @name: (allow-none) (transfer none):
@@ -51,7 +52,7 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * Return Value:
  **/
 /**
- * GWebKitJSBaseGetProperty:
+ * GWebKitJSBaseClass::get_property:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @name: (allow-none) (transfer none):
@@ -60,7 +61,7 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * Return Value: (allow-none) (transfer full):
  **/
 /**
- * GWebKitJSBaseSetProperty:
+ * GWebKitJSBaseClass::set_property:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @name: (allow-none) (transfer none):
@@ -70,7 +71,7 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * Return Value:
  **/
 /**
- * GWebKitJSBaseDeleteProperty:
+ * GWebKitJSBaseClass::delete_property:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @name: (allow-none) (transfer none):
@@ -79,16 +80,14 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * Return Value:
  **/
 /**
- * GWebKitJSBaseGetPropertyNames:
+ * GWebKitJSBaseClass::get_property_names:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
- * @n: (out)
- * @error:
  *
- * Return Value: (allow-none) (transfer full) (array length=n) (element-type utf8):
+ * Return Value: (allow-none) (transfer full):
  **/
 /**
- * GWebKitJSBaseCallFunction:
+ * GWebKitJSBaseClass::call_function:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @thisobj: (allow-none) (transfer none):
@@ -99,7 +98,7 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * Return Value: (allow-none) (transfer full):
  **/
 /**
- * GWebKitJSBaseCallConstruct:
+ * GWebKitJSBaseClass::call_construct:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @argc:
@@ -109,13 +108,22 @@ static GWebKitJSClosureType clsr_type_v_p_p = NULL;
  * Return Value: (allow-none) (transfer full):
  **/
 /**
- * GWebKitJSBaseHasInstance:
+ * GWebKitJSBaseClass::has_instance:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @instance: (allow-none) (transfer none):
  * @error:
  *
  * Return Value:
+ **/
+/**
+ * GWebKitJSBaseClass::confert_to:
+ * @self: (allow-none) (transfer none):
+ * @ctx: (allow-none) (transfer none):
+ * @type:
+ * @error:
+ *
+ * Return Value: (allow-none) (transfer full):
  **/
 
 static void
@@ -124,16 +132,6 @@ gwebkitjs_base_init_clsr()
     clsr_type_v_p_p = gwebkitjs_closure_new_type(NULL, 2, &ffi_type_pointer,
                                                  &ffi_type_pointer);
 }
-
-/**
- * GWebKitJSBaseConvertTo:
- * @self: (allow-none) (transfer none):
- * @ctx: (allow-none) (transfer none):
- * @type:
- * @error:
- *
- * Return Value: (allow-none) (transfer full):
- **/
 
 GType
 gwebkitjs_base_get_type()
@@ -401,6 +399,38 @@ gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     return res;
 }
 
+void
+gwebkitjs_base_get_property_names_cb(JSContextRef jsctx, JSObjectRef jsobj,
+                                JSPropertyNameAccumulatorRef jsnames)
+{
+    GWebKitJSBase *self;
+    GWebKitJSBaseClass *klass;
+    GWebKitJSContext *ctx;
+    GObject *obj;
+    GArray *ary;
+    self = JSObjectGetPrivate(jsobj);
+    gwj_return_if_false(self);
+    klass = GWEBKITJS_BASE_GET_CLASS(self);
+    gwj_return_if_false(klass);
+    gwj_return_if_false(klass->get_property_names);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    gwj_return_if_false(ctx);
+    obj = klass->get_property_names(self, ctx);
+    ary = gwebkitjs_util_get_name_ary(obj);
+    if (G_LIKELY(ary)) {
+        guint i;
+        JSStringRef jsname;
+        for (i = 0;i < ary->len;i++) {
+            jsname = JSStringCreateWithUTF8CString(((gchar**)(ary->data))[i]);
+            JSPropertyNameAccumulatorAddName(jsnames, jsname);
+            JSStringRelease(jsname);
+        }
+    }
+    if (obj)
+        g_object_unref(obj);
+    g_object_unref(ctx);
+}
+
 static JSClassDefinition*
 gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
 {
@@ -437,6 +467,8 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
         define->setProperty = gwebkitjs_base_set_property_cb;
     if (klass->delete_property)
         define->deleteProperty = gwebkitjs_base_delete_property_cb;
+    if (klass->get_property_names)
+        define->getPropertyNames = gwebkitjs_base_get_property_names_cb;
     return define;
 }
 
