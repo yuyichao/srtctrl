@@ -709,3 +709,31 @@ gwebkitjs_base_set_name(GType type, const gchar *name)
     } while(0);
     g_type_class_unref(klass);
 }
+
+/**
+ * gwebkitjs_base_new:
+ * @ctx: (allow-none) (transfer none):
+ * @type:
+ *
+ * Returns: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_base_new(GWebKitJSContext *ctx, GType type)
+{
+    GWebKitJSBaseClass *klass;
+    JSObjectRef jsobj;
+    JSClassRef jsclass;
+    JSContextRef jsctx;
+    GWebKitJSValue *res;
+    gwj_return_val_if_false(g_type_is_a(type, GWEBKITJS_TYPE_BASE), NULL);
+    gwj_return_val_if_false(type != GWEBKITJS_TYPE_BASE, NULL);
+    jsctx = gwebkitjs_context_get_context(ctx);
+    gwj_return_val_if_false(jsctx, NULL);
+
+    klass = g_type_class_ref(type);
+    jsclass = gwebkitjs_base_get_jsclass(klass);
+    jsobj = JSObjectMake(jsctx, jsclass, NULL);
+    res = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, ctx, jsobj);
+    g_type_class_unref(klass);
+    return res;
+}
