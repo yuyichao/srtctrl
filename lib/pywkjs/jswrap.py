@@ -1,4 +1,4 @@
-from gi.repository import (GWebKitJS as _gwkjs)
+from gi.repository import GWebKitJS as _gwkjs
 
 from pywkjs.general import *
 
@@ -24,12 +24,12 @@ class WKJSObject(object):
         key = _std_key(key)
         value = py2js(self._jsctx, value)
         res = self._jsctx.set_property(self._jsvalue, key, value)
-        if !res:
+        if not res:
             raise AttributeError(key)
     def __delitem__(self, key):
         key = _std_key(key)
         res = self._jsctx.delete_property(self._jsvalue, key)
-        if !res:
+        if not res:
             raise AttributeError(key)
     def __getattr__(self, key):
         return self.__getitem__(self, key)

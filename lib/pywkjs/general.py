@@ -1,4 +1,4 @@
-from gi.repository import (GWebKitJS as _gwkjs), (GLib as _GLib)
+from gi.repository import GWebKitJS as _gwkjs, GLib as _GLib
 
 from pywkjs.pywrap import *
 from pywkjs.jswrap import *

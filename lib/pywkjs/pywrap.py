@@ -1,4 +1,4 @@
-from gi.repository import (GWebKitJS as _gwkjs)
+from gi.repository import GWebKitJS as _gwkjs
 
 from pywkjs.general import *
 
@@ -123,7 +123,7 @@ class WKPYObject(_gwkjs.Base):
         except:
             pass
     def do_has_instance(self, ctx, ins):
-        if (isinstance(self._pyobj, type) &&
+        if (isinstance(self._pyobj, type) and
             isinstance(js2py(ins), self._pyobj)):
             return True
         return False
