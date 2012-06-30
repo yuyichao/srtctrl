@@ -677,7 +677,7 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
  *
  * Return Value:
  **/
-JSClassRef
+static JSClassRef
 gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass)
 {
     JSClassDefinition *define;
