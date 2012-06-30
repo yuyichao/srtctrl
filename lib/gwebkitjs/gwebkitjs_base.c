@@ -226,7 +226,7 @@ gwebkitjs_base_is_derived_class(GType type, JSGlobalContextRef jsctx,
     gboolean res = FALSE;
     children = g_type_children(type, &n);
     for (i = 0;i < n;i++) {
-        jsclass = gwebkitjs_base_get_jsclass_from_type(type);
+        jsclass = gwebkitjs_base_get_jsclass_from_type(children[i]);
         if (JSValueIsObjectOfClass(jsctx, jsvalue, jsclass)) {
             res = TRUE;
             break;

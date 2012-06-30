@@ -1,12 +1,18 @@
 from gi.repository import GWebKitJS as _gwkjs
 
-from pywkjs.general import *
+import pywkjs
+
+def js2py(*args, **kwargs):
+    return pywkjs.general.js2py(*args, **kwargs)
+def py2js(*args, **kwargs):
+    return pywkjs.general.py2js(*args, **kwargs)
 
 class WKPYObject(_gwkjs.Base):
     @classmethod
     def new(klass, ctx, pyobj):
         self = ctx.make_object(klass)
         self.set_pyobj(pyobj)
+        return self
     def set_pyobj(self, pyobj):
         self._pyobj = pyobj
     def do_has_property(self, ctx, name):
@@ -28,12 +34,12 @@ class WKPYObject(_gwkjs.Base):
     def do_get_property(self, ctx, name):
         try:
             value = self._pyobj[name]
-            return py2js(value)
+            return py2js(ctx, value)
         except:
             pass
         try:
             value = getattr(self._pyobj, name)
-            return py2js(value)
+            return py2js(ctx, value)
         except:
             pass
         try:
@@ -42,16 +48,16 @@ class WKPYObject(_gwkjs.Base):
             return
         try:
             value = self._pyobj[iname]
-            return py2js(value)
+            return py2js(ctx, value)
         except:
             pass
         try:
             value = getattr(self._pyobj, iname)
-            return py2js(value)
+            return py2js(ctx, value)
         except:
             pass
     def do_set_property(self, ctx, name, value):
-        value = js2py(value, jsthis=self)
+        value = js2py(ctx, value, jsthis=self)
         try:
             if name in self._pyobj:
                 self._pyobj[name] = value
@@ -129,12 +135,12 @@ class WKPYObject(_gwkjs.Base):
     def do_call_construct(self, ctx, args):
         try:
             res = self._pyobj(*args)
-            return py2js(res)
+            return py2js(ctx, res)
         except:
             pass
     def do_has_instance(self, ctx, ins):
         if (isinstance(self._pyobj, type) and
-            isinstance(js2py(ins), self._pyobj)):
+            isinstance(js2py(ctx, ins), self._pyobj)):
             return True
         return False
     def do_convert_to(self, ctx, jstype):
