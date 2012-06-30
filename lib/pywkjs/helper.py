@@ -9,6 +9,7 @@ class Helper(GObject.GObject):
                                   (WebKit.WebFrame, GObject.TYPE_PYOBJECT))
     }
     def __init__(self, view):
+        super().__init__()
         self._helper = _gwkjs.Helper.new(view)
         self._helper.connect("window-object-cleared", self._win_obj_cb)
     def _win_obj_cb(self, helper, frame, ctx, obj):
