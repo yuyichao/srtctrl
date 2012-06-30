@@ -4,7 +4,7 @@ from gi.repository import Gtk, GWebKitJS, WebKit, GLib
 import os, sys
 
 def win_obj_clr_cb(helper, frame, ctx, obj):
-    print(helper, frame, ctx, obj)
+    print(helper.get_view(), frame, ctx, obj)
     ctx.set_property(obj, "pyobj", ctx.make_string("this is a py str"), 0)
 
 def load_finished_cb(view, frame):
