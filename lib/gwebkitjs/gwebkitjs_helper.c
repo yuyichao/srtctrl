@@ -156,3 +156,15 @@ gwebkitjs_helper_new(WebKitWebView *webview)
     printf("connection id: %lu\n", self->priv->win_obj_clear_id);
     return self;
 }
+
+/**
+ * gwebkitjs_helper_get_view:
+ * @self: (allow-none) (transfer none):
+ *
+ * Returns: (allow-none) (transfer none):
+ **/
+WebKitWebView *gwebkitjs_helper_get_view(GWebKitJSHelper *self)
+{
+    gwj_return_val_if_false(GWEBKITJS_IS_HELPER(self), NULL);
+    return self->priv->webview;
+}
