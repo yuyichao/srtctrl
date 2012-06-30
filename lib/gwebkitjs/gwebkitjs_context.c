@@ -227,7 +227,7 @@ gwebkitjs_context_initialized(GWebKitJSContext *self)
     gwj_return_val_if_false(GWEBKITJS_IS_CONTEXT(self), FALSE);
 
     priv = self->priv;
-    return (priv->global && priv->object && priv->tostring);
+    return (priv->object && priv->tostring);
 }
 
 static GWebKitJSContext*
@@ -237,7 +237,6 @@ gwebkitjs_context_init_context(GWebKitJSContext *self,
     GWebKitJSContextPrivate *priv;
     GWebKitJSContext *res;
     JSValueRef jsvalue;
-    JSObjectRef global;
     JSObjectRef object;
     JSObjectRef tostring;
     gwj_return_val_if_false(jsctx, NULL);
@@ -252,10 +251,6 @@ gwebkitjs_context_init_context(GWebKitJSContext *self,
 
     priv->jsctx = jsctx;
     JSGlobalContextRetain(jsctx);
-
-    global = JSContextGetGlobalObject(jsctx);
-    if (!global)
-        goto free;
 
     object = JSObjectMake(jsctx, NULL, NULL);
     if (!object)
@@ -282,7 +277,6 @@ try_update:
         /* No existing instance is found in the table, try initialize the
          * new one and check if it is initialized correctly.
          */
-        priv->global = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, global);
         priv->object = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, object);
         priv->tostring = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE,
                                              self, tostring);
@@ -423,6 +417,12 @@ GWebKitJSValue*
 gwebkitjs_context_get_global(GWebKitJSContext *self)
 {
     gwj_return_val_if_false(GWEBKITJS_CONTEXT_IS_VALID(self), NULL);
+    if (!self->priv->global) {
+        JSObjectRef global;
+        global = JSContextGetGlobalObject(self->priv->jsctx);
+        self->priv->global = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE,
+                                                 self, global);
+    }
     return self->priv->global;
 }
 

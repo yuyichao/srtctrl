@@ -1,0 +1,5 @@
+add_test(NAME pywkjs_helper
+  COMMAND env "GI_TYPELIB_PATH=${CMAKE_CURRENT_BINARY_DIR}/../../gwebkitjs"
+  "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/../.."
+  "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/../../gwebkitjs"
+  "${PYTHON_EXECUTABLE}" ${CMAKE_CURRENT_SOURCE_DIR}/test_helper.py)

@@ -3,7 +3,9 @@ from gi.repository import GWebKitJS as _gwkjs
 from pywkjs.general import *
 
 class WKPYObject(_gwkjs.Base):
-    def __init__(self, pyobj):
+    def set_pyobj(self, pyobj):
+        print('set')
+        print(self)
         self._pyobj = pyobj
     def do_has_property(self, ctx, name):
         if name in self._pyobj or hasattr(self._pyobj, name):
@@ -140,3 +142,4 @@ class WKPYObject(_gwkjs.Base):
             except:
                 pass
             return
+_gwkjs.Base.set_name(WKPYObject, "WKPYObject")

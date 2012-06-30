@@ -13,9 +13,9 @@ def _std_key(key):
 
 class WKJSObject(object):
     def __init__(self, jsctx, jsvalue, jsthis=None):
-        super().__setattr__(self, '_jsctx', jsctx)
-        super().__setattr__(self, '_jsvalue', jsvalue)
-        super().__setattr__(self, '_jsthis', jsthis)
+        super().__setattr__('_jsctx', jsctx)
+        super().__setattr__('_jsvalue', jsvalue)
+        super().__setattr__('_jsthis', jsthis)
     def __getitem__(self, key):
         key = _std_key(key)
         return js2py(self._jsctx.get_property(self._jsvalue, key),

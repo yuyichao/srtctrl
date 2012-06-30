@@ -57,4 +57,6 @@ def py2js(ctx, pyobj):
         return ctx.make_array(jsary)
     if isinstance(pyobj, WKJSObject):
         return pyobj._jsvalue
-    return WKPYObject(pyobj)
+    res = WKPYObject()
+    res.set_pyobj(pyobj)
+    return res
