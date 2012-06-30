@@ -648,7 +648,7 @@ srtsock_sock_get_next_buffer(SrtSockSock *self, gsize *size, gchar **buff)
 }
 
 static void
-srtsock_sock_sent_size(SrtSockSock *self, gsize size)
+srtsock_sock_send_size(SrtSockSock *self, gsize size)
 {
     char *buff;
     SrtSockSockPrivate *priv;
@@ -664,9 +664,24 @@ srtsock_sock_sent_size(SrtSockSock *self, gsize size)
     g_mutex_unlock(&priv->buff_lock);
 }
 
-static void
-srtsock_sock_check_source()
+static gboolean
+srtsock_sock_have_send(SrtSockSock *self)
 {
+    return !!(self->priv->buff_list);
+}
+
+static void
+srtsock_sock_check_source(SrtSockSock *self)
+{
+    g_mutex_lock(&self->priv->buff_lock);
+    if (self->priv->sending && srtsock_sock_have_send(self)) {
+        if (!(self->priv->sending_source) && self->priv->sock) {
+        }
+    } else {
+        if (!(self->priv->sending_source) && self->priv->sock) {
+        }
+    }
+    g_mutex_unlock(&self->priv->buff_lock);
 }
 
 /**
