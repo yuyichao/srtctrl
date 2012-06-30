@@ -1,6 +1,8 @@
+#include <glib.h>
 #include <gwebkitjs_util.h>
 #include <JavaScriptCore/JSValueRef.h>
 #include <JavaScriptCore/JSStringRef.h>
+#include <stdio.h>
 
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
@@ -234,4 +236,46 @@ gwebkitjs_util_set_property(JSContextRef ctx, JSValueRef self,
     JSObjectSetProperty(ctx, jsobject, jsname, prop, prop_attr, &jserror);
     JSStringRelease(jsname);
     gwebkitjs_util_gerror_from_jserror(ctx, jserror, error);
+}
+
+/**
+ * gwebkitjs_util_list_to_obj:
+ * @n:
+ * @array: (allow-none) (transfer none) (array length=n) (element-type utf8):
+ *
+ * Returns: (allow-none) (transfer full):
+ **/
+
+GObject*
+gwebkitjs_util_list_to_obj(int n, gchar **array)
+{
+    int i;
+    GObject *obj;
+    GArray *garray;
+    gchar **carray;
+    obj = g_object_new(G_TYPE_OBJECT, NULL);
+
+    garray = g_array_sized_new(FALSE, TRUE, sizeof(gchar*), n);
+    g_array_set_clear_func(garray, g_free);
+    carray = (gchar**)garray->data;
+    for (i = 0;i < n;i++) {
+        carray[i] = g_strdup(array[i]);
+    }
+    garray->len = n;
+    g_object_set_data_full(obj, "_name_array_", garray,
+                           (GDestroyNotify)g_array_unref);
+    return obj;
+}
+
+/**
+ * gwebkitjs_util_get_name_ary: (skip):
+ **/
+
+GArray*
+gwebkitjs_util_get_name_ary(GObject *obj)
+{
+    gwj_return_val_if_false(obj, NULL);
+    gwj_return_val_if_false(G_IS_OBJECT(obj), NULL);
+
+    return g_object_get_data(obj, "_name_array_");
 }

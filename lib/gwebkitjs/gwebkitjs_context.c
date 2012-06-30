@@ -330,12 +330,15 @@ free:
 GWebKitJSContext*
 gwebkitjs_context_new(GType global)
 {
-    JSClassRef globalclass = NULL;
+    JSClassRef globalclass;
     JSGlobalContextRef jsctx;
     GWebKitJSContext *res;
-    if (g_type_is_a(global, GWEBKITJS_TYPE_BASE)) {
-        // TODO
-    }
+    GWebKitJSBaseClass *baseklass;
+
+    baseklass = g_type_class_ref(global);
+    globalclass = gwebkitjs_base_get_jsclass(baseklass);
+    g_type_class_unref(baseklass);
+
     jsctx = JSGlobalContextCreate(globalclass);
     res = gwebkitjs_context_new_from_context(jsctx);
     JSGlobalContextRelease(jsctx);
@@ -1716,4 +1719,33 @@ gwebkitjs_context_make_regexp(GWebKitJSContext *self, size_t argc,
         jserror = NULL;
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+gboolean
+gwebkitjs_context_is_of_class(GWebKitJSContext *self, GWebKitJSValue *value,
+                              GType type)
+{
+    JSClassRef jsclass;
+    JSContextRef jsctx;
+    JSValueRef jsvalue;
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, FALSE);
+    jsvalue = gwebkitjs_value_get_value(value);
+    gwj_return_val_if_false(jsvalue, FALSE);
+    jsclass = gwebkitjs_base_get_jsclass_from_type(type);
+    gwj_return_val_if_false(jsclass, FALSE);
+    return JSValueIsObjectOfClass(jsctx, jsvalue, jsclass);
+}
+
+/**
+ * gwebkitjs_context_make_object:
+ * @ctx: (allow-none) (transfer none):
+ * @type:
+ *
+ * Returns: (allow-none) (transfer full):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_object(GWebKitJSContext *ctx, GType type)
+{
+    return gwebkitjs_base_new(ctx, type);
 }

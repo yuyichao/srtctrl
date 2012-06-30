@@ -71,6 +71,8 @@ extern "C" {
                                      JSValueRef prop,
                                      GWebKitJSPropertyAttribute prop_attr,
                                      GError **error);
+    GObject *gwebkitjs_util_list_to_obj(int n, gchar **array);
+    GArray *gwebkitjs_util_get_name_ary(GObject *obj);
 #ifdef __cplusplus
 }
 #endif

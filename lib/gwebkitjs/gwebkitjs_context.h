@@ -104,10 +104,9 @@ extern "C" {
                                               GWebKitJSValue *instance,
                                               GWebKitJSValue *construct,
                                               GError **error);
-    //TODO (need base)
     gboolean gwebkitjs_context_is_of_class(GWebKitJSContext *self,
-                                           GWebKitJSValue *instance,
-                                           GType klass, GError **error);
+                                           GWebKitJSValue *value,
+                                           GType type);
 
     GWebKitJSValue *gwebkitjs_context_call_function(GWebKitJSContext *self,
                                                     GWebKitJSValue *func,
@@ -216,6 +215,8 @@ extern "C" {
                                                   size_t argc,
                                                   GWebKitJSValue **argv,
                                                   GError **error);
+    GWebKitJSValue *gwebkitjs_context_make_object(GWebKitJSContext *ctx,
+                                                  GType type);
 
     // JSObjectMakeConstructor (need Base)
     // JSObjectMakeFunctionWithCallback (need Base)

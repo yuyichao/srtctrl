@@ -155,7 +155,6 @@ gwebkitjs_value_finalize(GObject *obj)
     g_rec_mutex_clear(&self->priv->ctx_lock);
 }
 
-
 /**
  * Value Table Functions.
  **/
