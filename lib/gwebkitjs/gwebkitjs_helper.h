@@ -19,6 +19,9 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+#include <gwebkitjs_value.h>
+#include <gwebkitjs_context.h>
+
 #define GWEBKITJS_TYPE_HELPER (gwebkitjs_helper_get_type())
 #define GWEBKITJS_HELPER(obj)                                  \
     (G_TYPE_CHECK_INSTANCE_CAST((obj), GWEBKITJS_TYPE_HELPER,  \
@@ -53,6 +56,8 @@ extern "C" {
     GType gwebkitjs_helper_get_type();
     GWebKitJSHelper *gwebkitjs_helper_new(WebKitWebView *webview);
     WebKitWebView *gwebkitjs_helper_get_view(GWebKitJSHelper *self);
+    GWebKitJSContext *gwebkitjs_helper_get_context(GWebKitJSHelper *self);
+    GWebKitJSValue *gwebkitjs_helper_get_global(GWebKitJSHelper *self);
 #ifdef __cplusplus
 }
 #endif
