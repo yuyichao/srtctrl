@@ -121,7 +121,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * Return Value:
  **/
 /**
- * GWebKitJSBaseClass::confert_to:
+ * GWebKitJSBaseClass::convert_to:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @type:
@@ -215,6 +215,27 @@ gwebkitjs_base_toggle_cb(gpointer data, GObject *self, gboolean is_last)
         gwebkitjs_value_protect_value(GWEBKITJS_VALUE(self));
 }
 
+static gboolean
+gwebkitjs_base_is_derived_class(GType type, JSGlobalContextRef jsctx,
+                                JSObjectRef jsvalue)
+{
+    guint i;
+    guint n;
+    GType *children;
+    JSClassRef jsclass;
+    gboolean res = FALSE;
+    children = g_type_children(type, &n);
+    for (i = 0;i < n;i++) {
+        jsclass = gwebkitjs_base_get_jsclass_from_type(children[i]);
+        if (JSValueIsObjectOfClass(jsctx, jsvalue, jsclass)) {
+            res = TRUE;
+            break;
+        }
+    }
+    g_free(children);
+    return res;
+}
+
 static void
 gwebkitjs_base_init_cb(gpointer ptr, JSGlobalContextRef jsctx,
                        JSObjectRef jsvalue)
@@ -223,6 +244,13 @@ gwebkitjs_base_init_cb(gpointer ptr, JSGlobalContextRef jsctx,
     GWebKitJSContext *ctx;
     GWebKitJSBase *self;
     type = GPOINTER_TO_INT(ptr);
+    /**
+     * So this is the problem trying to relate each jsclass with a gtype.
+     * We only do real work when this is the most derived type we know,
+     * in order to ensure @self has the right type.....
+     **/
+    if (gwebkitjs_base_is_derived_class(type, jsctx, jsvalue))
+        return;
     ctx = gwebkitjs_context_new_from_context(jsctx);
     self = GWEBKITJS_BASE(gwebkitjs_value_new(type, ctx, jsvalue));
     JSObjectSetPrivate(jsvalue, self);
@@ -612,7 +640,7 @@ gwebkitjs_base_convert_to_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                     "Context Not Found.");
         return NULL;
     }
-    res = klass->convert_to(self, ctx, type, NULL);
+    res = klass->convert_to(self, ctx, type + 1, NULL);
     g_object_unref(ctx);
     if (res) {
         JSValueRef jsres = gwebkitjs_value_get_value(res);

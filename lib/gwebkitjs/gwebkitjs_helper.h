@@ -52,6 +52,7 @@ extern "C" {
 #endif
     GType gwebkitjs_helper_get_type();
     GWebKitJSHelper *gwebkitjs_helper_new(WebKitWebView *webview);
+    WebKitWebView *gwebkitjs_helper_get_view(GWebKitJSHelper *self);
 #ifdef __cplusplus
 }
 #endif
