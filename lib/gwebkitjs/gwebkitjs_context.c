@@ -333,11 +333,8 @@ gwebkitjs_context_new(GType global)
     JSClassRef globalclass;
     JSGlobalContextRef jsctx;
     GWebKitJSContext *res;
-    GWebKitJSBaseClass *baseklass;
 
-    baseklass = g_type_class_ref(global);
-    globalclass = gwebkitjs_base_get_jsclass(baseklass);
-    g_type_class_unref(baseklass);
+    globalclass = gwebkitjs_base_get_jsclass_from_type(global);
 
     jsctx = JSGlobalContextCreate(globalclass);
     res = gwebkitjs_context_new_from_context(jsctx);

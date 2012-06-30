@@ -45,6 +45,7 @@ static void gwebkitjs_base_finalize(GObject *obj);
 static GWebKitJSClosureType clsr_type_v_p_p = NULL;
 
 static gboolean gwebkitjs_base_is_valid_name(const gchar *name);
+static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
 
 /**
  * GWebKitJSBaseClass::has_property:
@@ -248,7 +249,7 @@ gwebkitjs_base_finalize_cb(JSObjectRef jsobj)
     JSObjectSetPrivate(jsobj, NULL);
 }
 
-bool
+static bool
 gwebkitjs_base_has_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                JSStringRef jsname)
 {
@@ -275,7 +276,7 @@ gwebkitjs_base_has_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     return res;
 }
 
-JSValueRef
+static JSValueRef
 gwebkitjs_base_get_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                JSStringRef jsname, JSValueRef *jserr)
 {
@@ -321,7 +322,7 @@ gwebkitjs_base_get_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     return NULL;
 }
 
-bool
+static bool
 gwebkitjs_base_set_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                JSStringRef jsname, JSValueRef jsvalue,
                                JSValueRef *jserr)
@@ -365,7 +366,7 @@ out:
     return res;
 }
 
-bool
+static bool
 gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                   JSStringRef jsname, JSValueRef *jserr)
 {
@@ -402,7 +403,7 @@ gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     return res;
 }
 
-void
+static void
 gwebkitjs_base_get_property_names_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                 JSPropertyNameAccumulatorRef jsnames)
 {
@@ -434,7 +435,7 @@ gwebkitjs_base_get_property_names_cb(JSContextRef jsctx, JSObjectRef jsobj,
     g_object_unref(ctx);
 }
 
-JSValueRef
+static JSValueRef
 gwebkitjs_base_call_function_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                 JSObjectRef jsthis, size_t argc,
                                 const JSValueRef *jsargv, JSValueRef *jserr)
@@ -491,7 +492,7 @@ free_argv:
     return jsres;
 }
 
-JSObjectRef
+static JSObjectRef
 gwebkitjs_base_call_construct_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                  size_t argc, const JSValueRef *jsargv,
                                  JSValueRef *jserr)
@@ -543,7 +544,7 @@ free_argv:
     return NULL;
 }
 
-bool
+static bool
 gwebkitjs_base_has_instance_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                JSValueRef jsins, JSValueRef *jserr)
 {
@@ -584,7 +585,7 @@ free_ctx:
     return res;
 }
 
-JSValueRef
+static JSValueRef
 gwebkitjs_base_convert_to_cb(JSContextRef jsctx, JSObjectRef jsobj,
                              JSType type, JSValueRef *jserr)
 {
@@ -676,7 +677,7 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
  *
  * Return Value:
  **/
-JSClassRef
+static JSClassRef
 gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass)
 {
     JSClassDefinition *define;
