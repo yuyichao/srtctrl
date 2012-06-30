@@ -133,18 +133,26 @@ gwebkitjs_helper_window_object_cleared_cb(WebKitWebView *webview,
         g_object_unref(ctx);
         return;
     }
-    g_signal_emit(self, SIGNAL_WINDOW_OBJECT_CLEARED, 0, frame, ctx, value);
+    g_signal_emit(self, signals[SIGNAL_WINDOW_OBJECT_CLEARED], 0,
+                  frame, ctx, value);
 }
 
+/**
+ * gwebkitjs_helper_new:
+ * webview: (allow-none) (transfer none):
+ *
+ * Returns: (allow-none) (transfer full):
+ **/
 GWebKitJSHelper*
 gwebkitjs_helper_new(WebKitWebView *webview)
 {
     GWebKitJSHelper *self;
     gwj_return_val_if_false(WEBKIT_IS_WEB_VIEW(webview), NULL);
     self = g_object_new(GWEBKITJS_TYPE_HELPER, NULL);
-    self->priv->webview = webview;
+    self->priv->webview = g_object_ref(webview);
     self->priv->win_obj_clear_id = g_signal_connect(
         webview, "window-object-cleared",
         G_CALLBACK(gwebkitjs_helper_window_object_cleared_cb), self);
+    printf("connection id: %lu\n", self->priv->win_obj_clear_id);
     return self;
 }
