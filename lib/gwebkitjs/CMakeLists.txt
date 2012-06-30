@@ -18,6 +18,7 @@ set(GWEBKITJS_SOURCES
   gwebkitjs_value.c
   gwebkitjs_base.c
   gwebkitjs_util.c
+  gwebkitjs_helper.c
   )
 
 set(GWEBKITJS_HEADERS
@@ -26,6 +27,7 @@ set(GWEBKITJS_HEADERS
   gwebkitjs_value.h
   gwebkitjs_base.h
   gwebkitjs_util.h
+  gwebkitjs_helper.h
   )
 
 add_library(gwebkitjs SHARED ${GWEBKITJS_SOURCES})
