@@ -59,7 +59,7 @@ extern "C" {
     GType gwebkitjs_context_get_type();
     GWebKitJSContext *gwebkitjs_context_new(GType global);
     GWebKitJSContext *gwebkitjs_context_new_from_context(
-        JSGlobalContextRef jsctx);
+        JSGlobalContextRef jsctx, gboolean isglobal);
     GWebKitJSContext *gwebkitjs_context_new_from_frame(
         WebKitWebFrame *webframe);
     GWebKitJSContext *gwebkitjs_context_new_from_view(WebKitWebView *webview);

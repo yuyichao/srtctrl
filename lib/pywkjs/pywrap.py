@@ -133,6 +133,8 @@ class WKPYObject(_gwkjs.Base):
     def do_call_function(self, ctx, this, args):
         return self.do_call_construct(ctx, args)
     def do_call_construct(self, ctx, args):
+        args = _gwkjs.util_get_argv(args)
+        args = [js2py(ctx, arg) for arg in args]
         try:
             res = self._pyobj(*args)
             return py2js(ctx, res)

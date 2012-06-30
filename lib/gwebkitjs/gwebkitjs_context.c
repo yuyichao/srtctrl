@@ -29,6 +29,8 @@ struct _GWebKitJSContextPrivate {
     GWebKitJSValue *global;
     GWebKitJSValue *object;
     GWebKitJSValue *tostring;
+    gboolean isglobal;
+    gboolean globaladded;
 };
 
 #define GWEBKITJS_CONTEXT_IS_VALID(_ctx)                        \
@@ -52,7 +54,6 @@ static JSValueRef *gwebkitjs_context_make_arg_array(JSContextRef jsctx,
                                                     size_t argc,
                                                     GWebKitJSValue **argv);
 
-
 /**
  * Context Table Related Stuff.
  **/
@@ -63,6 +64,9 @@ static JSValueRef *gwebkitjs_context_make_arg_array(JSContextRef jsctx,
  **/
 static GHashTable *context_table = NULL;
 G_LOCK_DEFINE_STATIC(context_table);
+
+static GHashTable *global_context_table = NULL;
+G_LOCK_DEFINE_STATIC(global_context_table);
 
 /**
  * _gwebkit_context_init_table:
@@ -75,6 +79,62 @@ _gwebkitjs_context_init_table()
     if (G_UNLIKELY(!context_table)) {
         context_table = g_hash_table_new(g_direct_hash, g_direct_equal);
     }
+    if (G_UNLIKELY(!global_context_table)) {
+        global_context_table = g_hash_table_new(g_direct_hash, g_direct_equal);
+    }
+}
+
+static void
+_gwebkitjs_context_add_global_table(JSGlobalContextRef jsctx)
+{
+    JSContextGroupRef jsgroup;
+    GList *list;
+    GList *found;
+    gwj_return_if_false(jsctx);
+    jsgroup = JSContextGetGroup(jsctx);
+    G_LOCK(global_context_table);
+    list = g_hash_table_lookup(global_context_table, jsgroup);
+    found = g_list_find(list, jsctx);
+    if (!found)
+        list = g_list_prepend(list, jsctx);
+    g_hash_table_replace(global_context_table, (gpointer)jsgroup, list);
+    G_UNLOCK(global_context_table);
+}
+static void
+_gwebkitjs_context_remove_global_table(JSGlobalContextRef jsctx)
+{
+    JSContextGroupRef jsgroup;
+    GList *list;
+    gpointer orig;
+    gwj_return_if_false(jsctx);
+    jsgroup = JSContextGetGroup(jsctx);
+    G_LOCK(context_table);
+    orig = g_hash_table_lookup(context_table, jsctx);
+    G_UNLOCK(context_table);
+    if (orig)
+        return;
+    G_LOCK(global_context_table);
+    list = g_hash_table_lookup(global_context_table, jsgroup);
+    list = g_list_remove(list, jsctx);
+    if (list)
+        g_hash_table_replace(global_context_table, (gpointer)jsgroup, list);
+    else
+        g_hash_table_remove(global_context_table, jsgroup);
+    G_UNLOCK(global_context_table);
+}
+static JSGlobalContextRef
+_gwebkitjs_context_get_global_context(JSContextRef jsctx)
+{
+    JSContextGroupRef jsgroup;
+    GList *list;
+    gwj_return_val_if_false(jsctx, NULL);
+    jsgroup = JSContextGetGroup(jsctx);
+    G_LOCK(global_context_table);
+    list = g_hash_table_lookup(global_context_table, jsgroup);
+    G_UNLOCK(global_context_table);
+    if (list)
+        return list->data;
+    return (JSGlobalContextRef)jsctx;
 }
 
 /**
@@ -173,6 +233,7 @@ gwebkitjs_context_init(GWebKitJSContext *self, GWebKitJSContextClass *klass)
                                                     GWEBKITJS_TYPE_CONTEXT,
                                                     GWebKitJSContextPrivate);
     priv->jsctx = NULL;
+    priv->isglobal = FALSE;
 }
 
 static void
@@ -215,7 +276,10 @@ gwebkitjs_context_finalize(GObject *obj)
      **/
     if (priv->jsctx) {
         _gwebkitjs_context_remove_from_table(priv->jsctx, self);
-        JSGlobalContextRelease(priv->jsctx);
+        if (priv->isglobal) {
+            _gwebkitjs_context_remove_global_table(priv->jsctx);
+            JSGlobalContextRelease(priv->jsctx);
+        }
         priv->jsctx = NULL;
     }
 }
@@ -239,6 +303,7 @@ gwebkitjs_context_init_context(GWebKitJSContext *self,
     JSValueRef jsvalue;
     JSObjectRef object;
     JSObjectRef tostring;
+    gboolean isglobal;
     gwj_return_val_if_false(jsctx, NULL);
     if (!GWEBKITJS_IS_CONTEXT(self)) {
         self = NULL;
@@ -250,7 +315,9 @@ gwebkitjs_context_init_context(GWebKitJSContext *self,
     priv->tostring = NULL;
 
     priv->jsctx = jsctx;
-    JSGlobalContextRetain(jsctx);
+    isglobal = priv->isglobal;
+    if (isglobal)
+        JSGlobalContextRetain(jsctx);
 
     object = JSObjectMake(jsctx, NULL, NULL);
     if (!object)
@@ -300,6 +367,11 @@ try_update:
             g_object_unref(self);
         }
     }
+    if (isglobal &&
+        g_atomic_int_compare_and_exchange(&res->priv->isglobal,
+                                          FALSE, TRUE)) {
+        JSGlobalContextRetain(res->priv->jsctx);
+    }
     return res;
 free:
     if (self)
@@ -331,7 +403,7 @@ gwebkitjs_context_new(GType global)
     globalclass = gwebkitjs_base_get_jsclass_from_type(global);
 
     jsctx = JSGlobalContextCreate(globalclass);
-    res = gwebkitjs_context_new_from_context(jsctx);
+    res = gwebkitjs_context_new_from_context(jsctx, TRUE);
     JSGlobalContextRelease(jsctx);
     return res;
 }
@@ -346,13 +418,19 @@ gwebkitjs_context_new(GType global)
  * Return value: the new #GWebKitJSContext
  **/
 GWebKitJSContext*
-gwebkitjs_context_new_from_context(JSGlobalContextRef jsctx)
+gwebkitjs_context_new_from_context(JSGlobalContextRef jsctx,
+                                   gboolean isglobal)
 {
     GWebKitJSContext *self;
     gwj_return_val_if_false(jsctx, NULL);
 
     self = g_object_new(GWEBKITJS_TYPE_CONTEXT, NULL);
     gwj_return_val_if_false(self, NULL);
+    self->priv->isglobal = isglobal;
+    if (isglobal)
+        _gwebkitjs_context_add_global_table(jsctx);
+
+    jsctx = _gwebkitjs_context_get_global_context(jsctx);
 
     return gwebkitjs_context_init_context(self, jsctx);
 }
@@ -370,7 +448,7 @@ gwebkitjs_context_new_from_frame(WebKitWebFrame *webframe)
 {
     JSGlobalContextRef jsctx;
     jsctx = webkit_web_frame_get_global_context(webframe);
-    return gwebkitjs_context_new_from_context(jsctx);
+    return gwebkitjs_context_new_from_context(jsctx, TRUE);
 }
 
 /**

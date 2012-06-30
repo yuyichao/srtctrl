@@ -126,7 +126,7 @@ gwebkitjs_helper_window_object_cleared_cb(WebKitWebView *webview,
 {
     GWebKitJSContext *ctx;
     GWebKitJSValue *value;
-    ctx = gwebkitjs_context_new_from_context(jsctx);
+    ctx = gwebkitjs_context_new_from_context(jsctx, TRUE);
     gwj_return_if_false(ctx);
     value = gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, ctx, jsobj);
     if (G_UNLIKELY(!value)) {
@@ -153,7 +153,6 @@ gwebkitjs_helper_new(WebKitWebView *webview)
     self->priv->win_obj_clear_id = g_signal_connect(
         webview, "window-object-cleared",
         G_CALLBACK(gwebkitjs_helper_window_object_cleared_cb), self);
-    printf("connection id: %lu\n", self->priv->win_obj_clear_id);
     return self;
 }
 
@@ -184,7 +183,7 @@ gwebkitjs_helper_get_context(GWebKitJSHelper *self)
     gwj_return_val_if_false(GWEBKITJS_IS_HELPER(self), NULL);
     frame = webkit_web_view_get_main_frame(self->priv->webview);
     jsctx = webkit_web_frame_get_global_context(frame);
-    return gwebkitjs_context_new_from_context(jsctx);
+    return gwebkitjs_context_new_from_context(jsctx, TRUE);
 }
 
 /**

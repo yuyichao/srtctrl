@@ -5,17 +5,21 @@ from pywkjs import *
 import os, sys
 
 def win_obj_clr_cb(helper, frame, obj):
-    print(helper.get_view(), frame, obj)
     obj.pyobj = "this is a py str"
+    obj.button = button
 
 def load_finished_cb(view, frame):
-    Gtk.main_quit()
+    pass
 
 Gtk.init([])
 
 win = Gtk.Window()
+vbox = Gtk.VBox()
 webview = WebKit.WebView()
-win.add(webview)
+button = Gtk.Button("aaaa")
+vbox.add(webview)
+vbox.add(button)
+win.add(vbox)
 win.show_all()
 win.connect("destroy", Gtk.main_quit)
 

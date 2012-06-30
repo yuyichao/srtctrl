@@ -279,3 +279,52 @@ gwebkitjs_util_get_name_ary(GObject *obj)
 
     return g_object_get_data(obj, "_name_array_");
 }
+
+/**
+ * gwebkitjs_util_argv_to_obj:
+ * @argc:
+ * @argv: (allow-none) (transfer none) (array length=argc):
+ *
+ * Returns: (allow-none) (transfer full):
+ **/
+GObject*
+gwebkitjs_util_argv_to_obj(int argc, GWebKitJSValue **argv)
+{
+    int i;
+    GObject *obj;
+    GArray *garray;
+    GWebKitJSValue **carray;
+    obj = g_object_new(G_TYPE_OBJECT, NULL);
+
+    garray = g_array_sized_new(FALSE, TRUE, sizeof(GWebKitJSValue*), argc);
+    g_array_set_clear_func(garray, g_object_unref);
+    carray = (GWebKitJSValue**)garray->data;
+    for (i = 0;i < argc;i++) {
+        carray[i] = g_object_ref(argv[i]);
+    }
+    garray->len = argc;
+    g_object_set_data_full(obj, "_arguments_", garray,
+                           (GDestroyNotify)g_array_unref);
+    return obj;
+}
+
+/**
+ * gwebkitjs_util_get_argv:
+ * @obj: (allow-none) (transfer none):
+ * @argc: (out) (allow-none):
+ *
+ * Returns: (allow-none) (transfer none) (array length=argc):
+ **/
+GWebKitJSValue**
+gwebkitjs_util_get_argv(GObject *obj, int *argc)
+{
+    GArray *garray;
+    gwj_return_val_if_false(obj, NULL);
+    gwj_return_val_if_false(G_IS_OBJECT(obj), NULL);
+
+    garray = g_object_get_data(obj, "_arguments_");
+    gwj_return_val_if_false(garray, NULL);
+    if (argc)
+        *argc = garray->len;
+    return (GWebKitJSValue**)garray->data;
+}

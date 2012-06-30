@@ -71,10 +71,10 @@ struct _GWebKitJSBaseClass {
     GObject *(*get_property_names)(GWebKitJSBase *self, GWebKitJSContext *ctx);
     GWebKitJSValue *(*call_function)(
         GWebKitJSBase *self, GWebKitJSContext *ctx, GWebKitJSValue *thisobj,
-        size_t argc, GWebKitJSValue **argv, GError **error);
+        GObject *argv, GError **error);
     GWebKitJSValue *(*call_construct)(
         GWebKitJSBase *self, GWebKitJSContext *ctx,
-        size_t argc, GWebKitJSValue **argv, GError **error);
+        GObject *argv, GError **error);
     gboolean (*has_instance)(GWebKitJSBase *self, GWebKitJSContext *ctx,
                              GWebKitJSValue *instance, GError **error);
     GWebKitJSValue *(*convert_to)(GWebKitJSBase *self, GWebKitJSContext *ctx,
