@@ -40,8 +40,8 @@ def win_obj_clr_cb(helper, frame, obj):
 def load_finished_cb(view, frame):
     print(jseval)
     print(jseval("[1, 2, 3, 4]"))
-    print(jseval("function a(){return 5;}; a"))
-    func = jseval("function a() {return 5;}; a");
+    print(jseval("var f = function () {return 5;}"))
+    func = jseval("f");
     print(func())
     print(jseval("null"))
     print(jseval("a = {}"))
