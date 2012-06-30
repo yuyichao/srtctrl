@@ -1,8 +1,13 @@
 from gi.repository import GWebKitJS as _gwkjs
 
-from pywkjs.general import *
+import pywkjs
 
 import math as _math
+
+def js2py(*args, **kwargs):
+    return pywkjs.general.js2py(*args, **kwargs)
+def py2js(*args, **kwargs):
+    return pywkjs.general.py2js(*args, **kwargs)
 
 def _std_key(key):
     try:
@@ -18,25 +23,23 @@ class WKJSObject(object):
         super().__setattr__('_jsthis', jsthis)
     def __getitem__(self, key):
         key = _std_key(key)
-        return js2py(self._jsctx.get_property(self._jsvalue, key),
+        return js2py(self._jsctx, self._jsctx.get_property(self._jsvalue, key),
                      jsthis=self._jsvalue)
     def __setitem__(self, key, value):
         key = _std_key(key)
         value = py2js(self._jsctx, value)
-        res = self._jsctx.set_property(self._jsvalue, key, value)
-        if not res:
-            raise AttributeError(key)
+        self._jsctx.set_property(self._jsvalue, key, value, 0)
     def __delitem__(self, key):
         key = _std_key(key)
         res = self._jsctx.delete_property(self._jsvalue, key)
         if not res:
             raise AttributeError(key)
     def __getattr__(self, key):
-        return self.__getitem__(self, key)
+        return self.__getitem__(key)
     def __setattr__(self, key, value):
-        self.__setitem__(self, key, value)
+        self.__setitem__(key, value)
     def __delattr__(self, key):
-        self.__delitem__(self, key)
+        self.__delitem__(key)
     def __dir__(self):
         return self._jsctx.get_property_names(self._jsvalue)
     def __str__(self):

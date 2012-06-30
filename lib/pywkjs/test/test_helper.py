@@ -3,4 +3,7 @@
 from pywkjs import *
 
 obj = new_js_global(object())
-print(obj)
+
+obj = new_js_global()
+obj.a = [1, 2, 3, 4, 5]
+print(obj.a)

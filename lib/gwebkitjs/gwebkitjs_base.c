@@ -121,7 +121,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * Return Value:
  **/
 /**
- * GWebKitJSBaseClass::confert_to:
+ * GWebKitJSBaseClass::convert_to:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @type:
@@ -640,7 +640,7 @@ gwebkitjs_base_convert_to_cb(JSContextRef jsctx, JSObjectRef jsobj,
                                     "Context Not Found.");
         return NULL;
     }
-    res = klass->convert_to(self, ctx, type, NULL);
+    res = klass->convert_to(self, ctx, type + 1, NULL);
     g_object_unref(ctx);
     if (res) {
         JSValueRef jsres = gwebkitjs_value_get_value(res);

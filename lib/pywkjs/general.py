@@ -1,11 +1,11 @@
 from gi.repository import GWebKitJS as _gwkjs, GLib as _GLib
 
-from pywkjs.pywrap import *
-from pywkjs.jswrap import *
+from pywkjs.pywrap import WKPYObject
+from pywkjs.jswrap import WKJSObject
 
 def _js2array(ctx, jsobj):
     try:
-        n = ctx.get_property("length")
+        n = int(ctx.to_number(ctx.get_property(jsobj, "length")))
     except _GLib.GError:
         return []
     res = [None] * n
@@ -24,11 +24,11 @@ def js2py(ctx, jsobj, jsthis=None):
                   _gwkjs.ValueType.NULL]:
         return None
     elif jstype == _gwkjs.ValueType.BOOLEAN:
-        return ctx.to_boolean(jstype)
+        return ctx.to_boolean(jsobj)
     elif jstype == _gwkjs.ValueType.NUMBER:
-        return ctx.to_number(jstype)
+        return ctx.to_number(jsobj)
     elif jstype == _gwkjs.ValueType.STRING:
-        return ctx.to_string(jstype)
+        return ctx.to_string(jsobj)
     if jstype != _gwkjs.ValueType.OBJECT:
         return None
     if isinstance(jsobj, WKPYObject):
@@ -57,6 +57,4 @@ def py2js(ctx, pyobj):
         return ctx.make_array(jsary)
     if isinstance(pyobj, WKJSObject):
         return pyobj._jsvalue
-    res = WKPYObject()
-    res.set_pyobj(pyobj)
-    return res
+    return WKPYObject.new(ctx, pyobj)

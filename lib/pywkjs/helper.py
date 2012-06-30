@@ -28,5 +28,4 @@ def new_js_global(pyobj=None, name=None):
         tmpclass = None
     ctx = _gwkjs.Context.new(tmpclass)
     obj = ctx.get_global()
-    print(obj)
-    return js2py(ctx, ctx.get_global())
+    return WKJSObject(ctx, obj, jsthis=obj)

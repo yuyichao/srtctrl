@@ -3,19 +3,27 @@ from gi.repository import GWebKitJS as _gwkjs
 from pywkjs.general import *
 
 class WKPYObject(_gwkjs.Base):
+    @classmethod
+    def new(klass, ctx, pyobj):
+        self = ctx.make_object(klass)
+        self.set_pyobj(pyobj)
     def set_pyobj(self, pyobj):
-        print('set')
-        print(self)
         self._pyobj = pyobj
     def do_has_property(self, ctx, name):
-        if name in self._pyobj or hasattr(self._pyobj, name):
-            return True
+        try:
+            if name in self._pyobj or hasattr(self._pyobj, name):
+                return True
+        except TypeError:
+            pass
         try:
             iname = int(name)
         except ValueError:
             return False
-        if iname in self._pyobj or hasattr(self._pyobj, iname):
-            return True
+        try:
+            if iname in self._pyobj or hasattr(self._pyobj, iname):
+                return True
+        except TypeError:
+            pass
         return False
     def do_get_property(self, ctx, name):
         try:
@@ -132,13 +140,13 @@ class WKPYObject(_gwkjs.Base):
     def do_convert_to(self, ctx, jstype):
         if jstype == _gwkjs.ValueType.NUMBER:
             try:
-                return float(self._pyobj)
+                return ctx.make_number(float(self._pyobj))
             except:
                 pass
             return
         if jstype == _gwkjs.ValueType.STRING:
             try:
-                return str(self._pyobj)
+                return ctx.make_string(str(self._pyobj))
             except:
                 pass
             return
