@@ -4,7 +4,7 @@ from pywkjs.general import *
 
 class Helper(GObject.GObject):
     __gsignals__ = {
-        "window-object-cleared": (GObject.SIGNAL_RUN_FIRST,
+        "window-object-cleared": (GObject.SignalFlags.RUN_FIRST,
                                   GObject.TYPE_NONE,
                                   (WebKit.WebFrame, GObject.TYPE_PYOBJECT))
     }
