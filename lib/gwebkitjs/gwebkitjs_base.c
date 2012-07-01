@@ -95,8 +95,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  * @thisobj: (allow-none) (transfer none):
- * @argc:
- * @argv: (array length=argc) (allow-none) (transfer none):
+ * @argv: (allow-none) (transfer none):
  * @error:
  *
  * Return Value: (allow-none) (transfer full):
@@ -105,8 +104,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * GWebKitJSBaseClass::call_construct:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
- * @argc:
- * @argv: (array length=argc) (allow-none) (transfer none):
+ * @argv: (allow-none) (transfer none):
  * @error:
  *
  * Return Value: (allow-none) (transfer full):
@@ -251,7 +249,7 @@ gwebkitjs_base_init_cb(gpointer ptr, JSGlobalContextRef jsctx,
      **/
     if (gwebkitjs_base_is_derived_class(type, jsctx, jsvalue))
         return;
-    ctx = gwebkitjs_context_new_from_context(jsctx);
+    ctx = gwebkitjs_context_new_from_context(jsctx, FALSE);
     self = GWEBKITJS_BASE(gwebkitjs_value_new(type, ctx, jsvalue));
     JSObjectSetPrivate(jsvalue, self);
     if (g_atomic_int_compare_and_exchange(&self->priv->toggle_added,
@@ -260,6 +258,7 @@ gwebkitjs_base_init_cb(gpointer ptr, JSGlobalContextRef jsctx,
                                 NULL);
         g_object_unref(self);
     }
+    g_object_unref(ctx);
 }
 
 static void
@@ -291,7 +290,8 @@ gwebkitjs_base_has_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
     klass = GWEBKITJS_BASE_GET_CLASS(self);
     gwj_return_val_if_false(klass, false);
     gwj_return_val_if_false(klass->has_property, false);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx,
+                                             FALSE);
     gwj_return_val_if_false(ctx, false);
     name = gwebkitjs_util_dup_str(jsname);
     if (G_UNLIKELY(!name)) {
@@ -326,7 +326,7 @@ gwebkitjs_base_get_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return NULL;
     }
     gwj_return_val_if_false(klass->get_property, NULL);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");
@@ -374,7 +374,7 @@ gwebkitjs_base_set_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return false;
     }
     gwj_return_val_if_false(klass->set_property, false);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");
@@ -416,7 +416,7 @@ gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return false;
     }
     gwj_return_val_if_false(klass->delete_property, false);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");
@@ -445,7 +445,7 @@ gwebkitjs_base_get_property_names_cb(JSContextRef jsctx, JSObjectRef jsobj,
     klass = GWEBKITJS_BASE_GET_CLASS(self);
     gwj_return_if_false(klass);
     gwj_return_if_false(klass->get_property_names);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     gwj_return_if_false(ctx);
     obj = klass->get_property_names(self, ctx);
     ary = gwebkitjs_util_get_name_ary(obj);
@@ -476,6 +476,7 @@ gwebkitjs_base_call_function_cb(JSContextRef jsctx, JSObjectRef jsobj,
     GWebKitJSValue *this;
     JSValueRef jsres = NULL;
     GWebKitJSValue *argv[argc];
+    GObject *argvobj;
     self = JSObjectGetPrivate(jsobj);
     if (G_UNLIKELY(!self)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
@@ -489,7 +490,7 @@ gwebkitjs_base_call_function_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return NULL;
     }
     gwj_return_val_if_false(klass->call_function, NULL);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");
@@ -505,7 +506,9 @@ gwebkitjs_base_call_function_cb(JSContextRef jsctx, JSObjectRef jsobj,
         if (!argv[i])
             goto free_argv;
     }
-    res = klass->call_function(self, ctx, this, argc, argv, NULL);
+    argvobj = gwebkitjs_util_argv_to_obj(argc, argv);
+    res = klass->call_function(self, ctx, this, argvobj, NULL);
+    g_object_unref(argvobj);
     if (res) {
         jsres = gwebkitjs_value_get_value(res);
         g_object_unref(res);
@@ -532,6 +535,7 @@ gwebkitjs_base_call_construct_cb(JSContextRef jsctx, JSObjectRef jsobj,
     GWebKitJSValue *res;
     JSValueRef jsres = NULL;
     GWebKitJSValue *argv[argc];
+    GObject *argvobj;
     self = JSObjectGetPrivate(jsobj);
     if (G_UNLIKELY(!self)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
@@ -545,7 +549,7 @@ gwebkitjs_base_call_construct_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return NULL;
     }
     gwj_return_val_if_false(klass->call_construct, NULL);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");
@@ -556,7 +560,9 @@ gwebkitjs_base_call_construct_cb(JSContextRef jsctx, JSObjectRef jsobj,
         if (!argv[i])
             goto free_argv;
     }
-    res = klass->call_construct(self, ctx, argc, argv, NULL);
+    argvobj = gwebkitjs_util_argv_to_obj(argc, argv);
+    res = klass->call_construct(self, ctx, argvobj, NULL);
+    g_object_unref(argvobj);
     if (res) {
         jsres = gwebkitjs_value_get_value(res);
         g_object_unref(res);
@@ -594,7 +600,7 @@ gwebkitjs_base_has_instance_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return false;
     }
     gwj_return_val_if_false(klass->has_instance, false);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");
@@ -634,7 +640,7 @@ gwebkitjs_base_convert_to_cb(JSContextRef jsctx, JSObjectRef jsobj,
         return NULL;
     }
     gwj_return_val_if_false(klass->convert_to, NULL);
-    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx);
+    ctx = gwebkitjs_context_new_from_context((JSGlobalContextRef)jsctx, FALSE);
     if (G_UNLIKELY(!ctx)) {
         gwebkitjs_util_make_jserror(jsctx, jserr, "GWebKitJSError",
                                     "Context Not Found.");

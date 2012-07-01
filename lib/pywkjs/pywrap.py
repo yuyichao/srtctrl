@@ -16,22 +16,33 @@ class WKPYObject(_gwkjs.Base):
     def set_pyobj(self, pyobj):
         self._pyobj = pyobj
     def do_has_property(self, ctx, name):
+        # come on, why do u need to access private field....
+        if name.startswith('_'):
+            return False
         try:
-            if name in self._pyobj or hasattr(self._pyobj, name):
+            if name in self._pyobj:
                 return True
         except TypeError:
             pass
+        if hasattr(self._pyobj, name):
+            return True
+        if name == 'toString':
+            return True
         try:
             iname = int(name)
         except ValueError:
             return False
         try:
-            if iname in self._pyobj or hasattr(self._pyobj, iname):
+            if iname in self._pyobj:
                 return True
         except TypeError:
             pass
+        if hasattr(self._pyobj, iname):
+            return True
         return False
     def do_get_property(self, ctx, name):
+        if name.startswith('_'):
+            return
         try:
             value = self._pyobj[name]
             return py2js(ctx, value)
@@ -42,6 +53,11 @@ class WKPYObject(_gwkjs.Base):
             return py2js(ctx, value)
         except:
             pass
+        if name == 'toString':
+            def tostr(*args):
+                string = str(self._pyobj)
+                return py2js(ctx, string)
+            return py2js(ctx, tostr)
         try:
             iname = int(name)
         except ValueError:
@@ -57,6 +73,8 @@ class WKPYObject(_gwkjs.Base):
         except:
             pass
     def do_set_property(self, ctx, name, value):
+        if name.startswith('_'):
+            return False
         value = js2py(ctx, value, jsthis=self)
         try:
             if name in self._pyobj:
@@ -133,6 +151,8 @@ class WKPYObject(_gwkjs.Base):
     def do_call_function(self, ctx, this, args):
         return self.do_call_construct(ctx, args)
     def do_call_construct(self, ctx, args):
+        args = _gwkjs.util_get_argv(args)
+        args = [js2py(ctx, arg) for arg in args]
         try:
             res = self._pyobj(*args)
             return py2js(ctx, res)

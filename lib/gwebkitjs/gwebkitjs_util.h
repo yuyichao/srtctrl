@@ -20,6 +20,7 @@
  ***************************************************************************/
 
 #include <glib-object.h>
+#include <gwebkitjs_value.h>
 #include <JavaScriptCore/JSObjectRef.h>
 
 typedef enum {
@@ -73,6 +74,8 @@ extern "C" {
                                      GError **error);
     GObject *gwebkitjs_util_list_to_obj(int n, gchar **array);
     GArray *gwebkitjs_util_get_name_ary(GObject *obj);
+    GObject *gwebkitjs_util_argv_to_obj(int argc, GWebKitJSValue **argv);
+    GWebKitJSValue **gwebkitjs_util_get_argv(GObject *obj, int *argc);
 #ifdef __cplusplus
 }
 #endif

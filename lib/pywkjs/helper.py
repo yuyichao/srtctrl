@@ -4,7 +4,7 @@ from pywkjs.general import *
 
 class Helper(GObject.GObject):
     __gsignals__ = {
-        "window-object-cleared": (GObject.SIGNAL_RUN_FIRST,
+        "window-object-cleared": (GObject.SignalFlags.RUN_FIRST,
                                   GObject.TYPE_NONE,
                                   (WebKit.WebFrame, GObject.TYPE_PYOBJECT))
     }
@@ -16,6 +16,10 @@ class Helper(GObject.GObject):
         self.emit("window-object-cleared", frame, js2py(ctx, obj))
     def get_view(self):
         return self._helper.get_view()
+    def get_global(self):
+        ctx = self._helper.get_context()
+        obj = self._helper.get_global()
+        return js2py(ctx, obj)
 
 def new_js_global(pyobj=None, name=None):
     if not pyobj is None:

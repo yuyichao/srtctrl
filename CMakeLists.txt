@@ -6,6 +6,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake
 include(PythonMacros)
 include(CheckAll)
 include(GObjectIntrospection)
+include(AddRun)
 
 option(ENABLE_TEST "Test build" OFF)
 
@@ -26,7 +27,7 @@ if(NOT DEFINED PKGCONF_DIR)
 endif(NOT DEFINED PKGCONF_DIR)
 
 if(NOT DEFINED DATA_INSTALL_DIR)
-  set(DATA_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share")
+  set(DATA_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/srtctl")
 endif(NOT DEFINED DATA_INSTALL_DIR)
 
 if(NOT DEFINED HEADER_INSTALL_DIR)
@@ -43,3 +44,4 @@ set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_SHARED_LINKER_FLAGS}")
 set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_MODULE_LINKER_FLAGS}")
 add_subdirectory(client)
 add_subdirectory(lib)
+add_subdirectory(front)

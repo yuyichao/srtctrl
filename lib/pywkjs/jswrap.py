@@ -49,9 +49,9 @@ class WKJSObject(object):
     def __iter__(self):
         return iter(self.__dir__())
     def __call__(self, *args):
-        return js2py(self._jsctx,
-                     self._jsctx.call_function(self._jsvalue,
-                                               self._jsthis, args))
+        args = [py2js(self._jsctx, arg) for arg in args]
+        jsres = self._jsctx.call_function(self._jsvalue, self._jsthis, args)
+        return js2py(self._jsctx, jsres)
     def __eq__(self, right):
         right = py2js(self._jsctx, right)
         return self._jsctx.is_equal(self._jsvalue, right)
