@@ -13,10 +13,12 @@ endif(NOT DEFINED SRTSOCK_HEADER_INSTALL_DIR)
 
 set(SRTSOCK_SOURCES
   srtsock_sock.c
+  srtsock_buff.c
   )
 
 set(SRTSOCK_HEADERS
   srtsock_sock.h
+  srtsock_buff.h
   )
 
 add_library(srtsock SHARED ${SRTSOCK_SOURCES})
