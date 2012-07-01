@@ -3,6 +3,9 @@ function escapeHTML(str) {
 };
 $(document).ready(function() {
     Back.Source.connect("event::move", function (src, evt, div) {
-        div.text(evt)
+        div.text(evt);
     }, $('#mvevent'));
+    $('#quit').click(function (ev) {
+        Back.Source.quit();
+    });
 });

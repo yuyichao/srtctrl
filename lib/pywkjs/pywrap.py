@@ -16,6 +16,9 @@ class WKPYObject(_gwkjs.Base):
     def set_pyobj(self, pyobj):
         self._pyobj = pyobj
     def do_has_property(self, ctx, name):
+        # come on, why do u need to access private field....
+        if name.startswith('_'):
+            return False
         try:
             if name in self._pyobj:
                 return True
@@ -38,6 +41,8 @@ class WKPYObject(_gwkjs.Base):
             return True
         return False
     def do_get_property(self, ctx, name):
+        if name.startswith('_'):
+            return
         try:
             value = self._pyobj[name]
             return py2js(ctx, value)
@@ -68,6 +73,8 @@ class WKPYObject(_gwkjs.Base):
         except:
             pass
     def do_set_property(self, ctx, name, value):
+        if name.startswith('_'):
+            return False
         value = js2py(ctx, value, jsthis=self)
         try:
             if name in self._pyobj:
