@@ -17,19 +17,25 @@ class WKPYObject(_gwkjs.Base):
         self._pyobj = pyobj
     def do_has_property(self, ctx, name):
         try:
-            if name in self._pyobj or hasattr(self._pyobj, name):
+            if name in self._pyobj:
                 return True
         except TypeError:
             pass
+        if hasattr(self._pyobj, name):
+            return True
+        if name == 'toString':
+            return True
         try:
             iname = int(name)
         except ValueError:
             return False
         try:
-            if iname in self._pyobj or hasattr(self._pyobj, iname):
+            if iname in self._pyobj:
                 return True
         except TypeError:
             pass
+        if hasattr(self._pyobj, iname):
+            return True
         return False
     def do_get_property(self, ctx, name):
         try:
@@ -42,6 +48,11 @@ class WKPYObject(_gwkjs.Base):
             return py2js(ctx, value)
         except:
             pass
+        if name == 'toString':
+            def tostr(*args):
+                string = str(self._pyobj)
+                return py2js(ctx, string)
+            return py2js(ctx, tostr)
         try:
             iname = int(name)
         except ValueError:
