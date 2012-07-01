@@ -1,5 +1,9 @@
 import srt_front, sys
-from gi.repository import GLib, Gtk
+from gi.repository import GLib, Gtk, GObject
+
+class FakeSource(GObject.Object):
+    def __init__(self):
+        pass
 
 def main():
     path = sys.argv[1]

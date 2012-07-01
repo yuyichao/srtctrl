@@ -102,8 +102,10 @@ gwebkitjs_helper_dispose(GObject *obj)
     GWebKitJSHelper *self = GWEBKITJS_HELPER(obj);
     if (self->priv->webview) {
         if (self->priv->win_obj_clear_id) {
-            g_signal_handler_disconnect(self->priv->webview,
-                                        self->priv->win_obj_clear_id);
+            if (g_signal_handler_is_connected(self->priv->webview,
+                                              self->priv->win_obj_clear_id))
+                g_signal_handler_disconnect(self->priv->webview,
+                                            self->priv->win_obj_clear_id);
             self->priv->win_obj_clear_id = 0;
         }
         g_object_unref(self->priv->webview);
