@@ -447,6 +447,8 @@ srtsock_sock_close(SrtSockSock *self, GError **error)
         return TRUE;
     res = g_socket_close(self->priv->sock, error);
     self->priv->sending = FALSE;
+    srtsock_sock_free_connection(self);
+    srtsock_sock_free_listener(self);
     g_signal_emit(self, sock_signals[SIGNAL_DISCONN], 0);
     return res;
 }
@@ -755,11 +757,11 @@ srtsock_sock_shutdown(SrtSockSock *self, gboolean read, gboolean write,
                       GError **error)
 {
     gboolean res;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), TRUE);
-    if (!self->priv->sock)
-        return TRUE;
-    res = g_socket_close(self->priv->sock, error);
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), TRUE);
+    res = g_socket_shutdown(self->priv->sock, read, write, error);
     self->priv->sending = FALSE;
+    srtsock_sock_free_connection(self);
+    srtsock_sock_free_listener(self);
     g_signal_emit(self, sock_signals[SIGNAL_DISCONN], 0);
     return res;
 }
