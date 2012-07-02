@@ -29,8 +29,9 @@ extern "C" {
 
     SrtSockBuff *srtsock_buff_new();
     void srtsock_buff_push(SrtSockBuff *self, const gchar *buff, guint len);
-    gchar *srtsock_buff_get(SrtSockBuff *self, gint *len);
+    gchar *srtsock_buff_get(SrtSockBuff *self, guint *len);
     void srtsock_buff_pop(SrtSockBuff *self, guint len);
+    gboolean srtsock_buff_empty(SrtSockBuff *self);
     void srtsock_buff_free(SrtSockBuff *self);
 
 #ifdef __cplusplus

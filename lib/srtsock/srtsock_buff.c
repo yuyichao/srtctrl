@@ -29,7 +29,6 @@ struct _SrtSockBuff {
     gchar *buff1;
     gchar *buff2;
     GMutex push_lock;
-    gboolean sending;
 };
 
 /**
@@ -101,19 +100,15 @@ srtsock_buff_update(SrtSockBuff *self)
  * srtsock_buff_get: (skip)
  **/
 gchar*
-srtsock_buff_get(SrtSockBuff *self, gint *len)
+srtsock_buff_get(SrtSockBuff *self, guint *len)
 {
     if (G_UNLIKELY(!self || !len))
         return NULL;
-    if (g_atomic_int_compare_and_exchange(&self->sending, FALSE, TRUE)) {
-        g_mutex_lock(&self->push_lock);
-        srtsock_buff_update(self);
-        g_mutex_unlock(&self->push_lock);
-        *len = self->len1;
-        return self->buff1;
-    }
-    *len = -1;
-    return NULL;
+    g_mutex_lock(&self->push_lock);
+    srtsock_buff_update(self);
+    *len = self->len1;
+    g_mutex_unlock(&self->push_lock);
+    return self->buff1;
 }
 
 /**
@@ -124,12 +119,10 @@ srtsock_buff_pop(SrtSockBuff *self, guint len)
 {
     if (G_UNLIKELY(!self))
         return;
-    if (g_atomic_int_compare_and_exchange(&self->sending, TRUE, FALSE)) {
-        self->offset += len;
-        g_mutex_lock(&self->push_lock);
-        srtsock_buff_update(self);
-        g_mutex_unlock(&self->push_lock);
-    }
+    g_mutex_lock(&self->push_lock);
+    self->offset += len;
+    srtsock_buff_update(self);
+    g_mutex_unlock(&self->push_lock);
 }
 
 /**
@@ -144,4 +137,22 @@ srtsock_buff_free(SrtSockBuff *self)
     g_free(self->buff2);
     g_mutex_clear(&self->push_lock);
     g_free(self);
+}
+
+/**
+ * srtsock_buff_free: (skip)
+ **/
+gboolean
+srtsock_buff_empty(SrtSockBuff *self)
+{
+    gboolean res = FALSE;
+    if (G_UNLIKELY(!self))
+        return FALSE;
+    g_mutex_lock(&self->push_lock);
+    srtsock_buff_update(self);
+    if ((!self->buff1 || self->offset >= self->len1) &&
+        (!self->buff2 || !self->len2))
+        res = TRUE;
+    g_mutex_unlock(&self->push_lock);
+    return res;
 }

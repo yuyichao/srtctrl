@@ -88,7 +88,7 @@ extern "C" {
 
     gboolean srtsock_sock_close(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_shutdown(SrtSockSock *self, gboolean read,
-                                   gboolean write, GError *error);
+                                   gboolean write, GError **error);
 #ifdef __cplusplus
 }
 #endif
