@@ -1,4 +1,5 @@
 #include <srtsock_buff.h>
+#include <stdio.h>
 #include <string.h>
 
 /***************************************************************************
@@ -39,7 +40,7 @@ srtsock_buff_new()
 {
     SrtSockBuff *self;
     self = g_new0(SrtSockBuff, 1);
-    if (G_UNLIKELY(self))
+    if (G_UNLIKELY(!self))
         return NULL;
     g_mutex_init(&self->push_lock);
     return self;
@@ -56,7 +57,7 @@ srtsock_buff_push(SrtSockBuff *self, const gchar *buff, guint len)
     g_mutex_lock(&self->push_lock);
     self->buff2 = g_realloc(self->buff2, self->len2 + len);
     memcpy(self->buff2 + self->len2, buff, len);
-    self->buff2 += len;
+    self->len2 += len;
     g_mutex_unlock(&self->push_lock);
 }
 
@@ -102,13 +103,15 @@ srtsock_buff_update(SrtSockBuff *self)
 gchar*
 srtsock_buff_get(SrtSockBuff *self, guint *len)
 {
+    gchar *res;
     if (G_UNLIKELY(!self || !len))
         return NULL;
     g_mutex_lock(&self->push_lock);
     srtsock_buff_update(self);
-    *len = self->len1;
+    *len = self->len1 - self->offset;
+    res = self->buff1 + self->offset;
     g_mutex_unlock(&self->push_lock);
-    return self->buff1;
+    return res;
 }
 
 /**

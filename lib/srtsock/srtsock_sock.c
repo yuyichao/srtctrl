@@ -22,6 +22,7 @@
 
 struct _SrtSockSockPrivate {
     GSocket *sock;
+
     GSocketConnection *conn;
     GSocketListener *listener;
     GSource *send_src;
@@ -29,6 +30,7 @@ struct _SrtSockSockPrivate {
     GMutex send_lock;
     GMutex src_lock;
     gboolean sending :1;
+    gboolean listening :1;
 };
 
 #define SRTSOCK_SOCK_IS_VALID(_ctx)                     \
