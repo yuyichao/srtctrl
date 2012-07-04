@@ -1,3 +1,3 @@
-add_test(NAME testjsonstm
+add_run(testjsonstm
   COMMAND env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/../..
   ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_jsonstm.py)
