@@ -24,13 +24,18 @@ struct _SrtSockSockPrivate {
     GSocket *sock;
 
     GSocketConnection *conn;
-    GSocketListener *listener;
-    GSource *send_src;
+
+    GSource *out_src;
+    GMutex out_src_lock;
+    GSource *in_src;
+    GMutex in_src_lock;
+
     SrtSockBuff *send_buff;
     GMutex send_lock;
-    GMutex src_lock;
+
     gboolean sending :1;
     gboolean listening :1;
+    gboolean receiving :1;
 };
 
 #define SRTSOCK_SOCK_IS_VALID(_ctx)                     \
@@ -57,8 +62,6 @@ static void srtsock_sock_class_init(SrtSockSockClass *klass,
                                     gpointer data);
 static void srtsock_sock_dispose(GObject *obj);
 static void srtsock_sock_finalize(GObject *obj);
-static void srtsock_sock_free_connection(SrtSockSock *self);
-static void srtsock_sock_free_listener(SrtSockSock *self);
 static inline void
 srtsock_clear_error(GError **error)
 {
@@ -102,11 +105,15 @@ srtsock_sock_init(SrtSockSock *self, SrtSockSockClass *klass)
                                                     SrtSockSockPrivate);
     priv->sock = NULL;
     priv->conn = NULL;
-    priv->listener = NULL;
+    priv->out_src = NULL;
+    priv->in_src = NULL;
     priv->send_buff = srtsock_buff_new();
     g_mutex_init(&priv->send_lock);
-    g_mutex_init(&priv->src_lock);
+    g_mutex_init(&priv->in_src_lock);
+    g_mutex_init(&priv->out_src_lock);
     priv->sending = FALSE;
+    priv->listening = FALSE;
+    priv->receiving = FALSE;
 }
 
 static gboolean
@@ -183,8 +190,18 @@ srtsock_sock_dispose(GObject *obj)
         g_object_unref(priv->sock);
         priv->sock = NULL;
     }
-    srtsock_sock_free_connection(self);
-    srtsock_sock_free_listener(self);
+    if (priv->conn) {
+        g_object_unref(priv->conn);
+        priv->conn = NULL;
+    }
+    if (priv->out_src) {
+        g_source_unref(priv->out_src);
+        priv->out_src = NULL;
+    }
+    if (priv->in_src) {
+        g_source_unref(priv->in_src);
+        priv->in_src = NULL;
+    }
     if (priv->send_buff) {
         srtsock_buff_free(priv->send_buff);
         priv->send_buff = NULL;
@@ -196,7 +213,8 @@ srtsock_sock_finalize(GObject *obj)
 {
     SrtSockSock *self = SRTSOCK_SOCK(obj);
     g_mutex_clear(&self->priv->send_lock);
-    g_mutex_clear(&self->priv->src_lock);
+    g_mutex_clear(&self->priv->in_src_lock);
+    g_mutex_clear(&self->priv->out_src_lock);
 }
 
 /**
@@ -296,15 +314,6 @@ srtsock_sock_get_connection(SrtSockSock *self)
     return priv->conn;
 }
 
-static void
-srtsock_sock_free_connection(SrtSockSock *self)
-{
-    if (self->priv->conn) {
-        g_object_unref(self->priv->conn);
-        self->priv->conn = NULL;
-    }
-}
-
 static gboolean
 srtsock_sock_check_connect(SrtSockSock *self)
 {
@@ -316,103 +325,160 @@ srtsock_sock_check_connect(SrtSockSock *self)
     return TRUE;
 }
 
-static GSocketListener*
-srtsock_sock_get_listener(SrtSockSock *self)
+static void
+srtsock_sock_on_poll_err(SrtSockSock *self, gboolean in)
 {
-    SrtSockSockPrivate *priv;
-    gboolean res;
-    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), NULL);
-    priv = self->priv;
-    if (priv->listener)
-        return priv->listener;
-    priv->listener = g_socket_listener_new();
-    if (!priv->listener)
-        return NULL;
-    res = g_socket_listener_add_socket(priv->listener, priv->sock,
-                                       G_OBJECT(self), NULL);
-    if (!res)
-        srtsock_sock_free_listener(self);
-    return priv->listener;
+
 }
 
-static void
-srtsock_sock_free_listener(SrtSockSock *self)
+static gboolean
+srtsock_sock_in_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
 {
-    SrtSockSockPrivate *priv = self->priv;
-    if (priv->listener) {
-        g_object_unref(priv->listener);
-        priv->listener = NULL;
+    return FALSE;
+}
+
+static gboolean
+_srtsock_sock_update_in_src(SrtSockSock *self, gboolean on)
+{
+    SrtSockSockPrivate *priv;
+
+    priv = self->priv;
+    if (on) {
+        if (priv->in_src)
+            return TRUE;
+        priv->in_src = g_socket_create_source(priv->sock, G_IO_IN, NULL);
+        if (!priv->in_src)
+            return FALSE;
+        g_source_set_callback(priv->in_src,
+                              (GSourceFunc)srtsock_sock_in_cb,
+                              g_object_ref(self), g_object_unref);
+        g_source_attach(priv->in_src, g_main_context_get_thread_default());
+        g_source_unref(priv->in_src);
+    } else {
+        GSource *old_src;
+        if (!priv->in_src)
+            return TRUE;
+        old_src = priv->in_src;
+        priv->in_src = NULL;
+        g_source_destroy(old_src);
     }
+    return TRUE;
+}
+
+static gboolean
+srtsock_sock_update_in_src(SrtSockSock *self)
+{
+    gboolean res;
+    g_mutex_lock(&self->priv->in_src_lock);
+    res = _srtsock_sock_update_in_src(self, self->priv->listening ||
+                                      self->priv->receiving);
+    g_mutex_unlock(&self->priv->in_src_lock);
+    return res;
+}
+
+static gboolean
+srtsock_sock_out_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
+{
+    return FALSE;
+}
+
+static gboolean
+_srtsock_sock_update_out_src(SrtSockSock *self, gboolean on)
+{
+    SrtSockSockPrivate *priv;
+
+    priv = self->priv;
+    if (on) {
+        if (priv->out_src)
+            return TRUE;
+        priv->out_src = g_socket_create_source(priv->sock, G_IO_OUT, NULL);
+        if (!priv->out_src)
+            return FALSE;
+        g_source_set_callback(priv->out_src,
+                              (GSourceFunc)srtsock_sock_out_cb,
+                              g_object_ref(self), g_object_unref);
+        g_source_attach(priv->out_src, g_main_context_get_thread_default());
+        g_source_unref(priv->out_src);
+    } else {
+        GSource *old_src;
+        if (!priv->out_src)
+            return TRUE;
+        old_src = priv->out_src;
+        priv->out_src = NULL;
+        g_source_destroy(old_src);
+    }
+    return TRUE;
+}
+
+static gboolean
+srtsock_sock_update_out_src(SrtSockSock *self)
+{
+    gboolean res;
+    g_mutex_lock(&self->priv->out_src_lock);
+    res = _srtsock_sock_update_out_src(self, self->priv->sending);
+    g_mutex_unlock(&self->priv->out_src_lock);
+    return res;
 }
 
 /**
  * srtsock_sock_accept:
  * @self: (transfer none) (allow-none):
+ * @backlog:
  * @error: (allow-none):
  *
  * Return Value: (allow-none) (transfer full):
  **/
 SrtSockSock*
-srtsock_sock_accept(SrtSockSock *self, GError **error)
+srtsock_sock_accept(SrtSockSock *self, gint backlog, GError **error)
 {
-    GSocketConnection *nconn;
     SrtSockSock *nsock;
-    GSocketListener *listener;
+    SrtSockSockPrivate *priv;
+    GSocket *ngsock;
+
     g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), NULL);
-    listener = srtsock_sock_get_listener(self);
-    if (!listener)
+    priv = self->priv;
+    if (!g_socket_listen(priv->sock, error)) {
+        srtsock_sock_check_connect(self);
         return NULL;
-    nconn = g_socket_listener_accept(listener, NULL, NULL, error);
-    if (!nconn) {
+    }
+    g_socket_set_listen_backlog(priv->sock, backlog);
+    g_socket_set_blocking(priv->sock, TRUE);
+    ngsock = g_socket_accept(priv->sock, NULL, error);
+    if (!ngsock) {
         srtsock_sock_check_connect(self);
         return NULL;
     }
     srtsock_clear_error(error);
-    nsock = srtsock_sock_new_from_conn(nconn);
-    g_object_unref(nconn);
+    nsock = srtsock_sock_new_from_sock(ngsock);
+    g_object_unref(ngsock);
     return nsock;
-}
-
-static void
-srtsock_sock_accept_cb(GSocketListener *listener, GAsyncResult *async_res,
-                       gpointer p)
-{
-    GSocketConnection *conn;
-    SrtSockSock *self;
-    SrtSockSock *nsock;
-    GError *error;
-    gboolean res;
-    conn = g_socket_listener_accept_finish(listener, async_res,
-                                           (GObject**)&self, &error);
-    if (!conn) {
-        srtsock_sock_check_connect(self);
-        if (error)
-            g_error_free(error);
-        return;
-    }
-    nsock = srtsock_sock_new_from_conn(conn);
-    g_object_unref(conn);
-    g_signal_emit(self, sock_signals[SIGNAL_ACCEPT], 0, nsock, &res);
-    g_object_unref(nsock);
-    srtsock_sock_start_accept(self);
 }
 
 /** srtsock_sock_start_accept:
  * @self: (transfer none) (allow-none):
+ * @backlog:
+ *
+ * Returns:
  **/
 gboolean
-srtsock_sock_start_accept(SrtSockSock *self)
+srtsock_sock_start_accept(SrtSockSock *self, gint backlog)
 {
-    GSocketListener *listener;
-    listener = srtsock_sock_get_listener(self);
-    if (!listener) {
-        srtsock_sock_check_connect(self);
-        return FALSE;
-    }
-    g_socket_listener_accept_async(listener, NULL,
-                                   (GAsyncReadyCallback)srtsock_sock_accept_cb,
-                                   NULL);
-    return TRUE;
+    gboolean res;
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), FALSE);
+    self->priv->listening = TRUE;
+    res = srtsock_sock_update_in_src(self);
+    return res;
+}
+
+/** srtsock_sock_stop_accept:
+ * @self: (transfer none) (allow-none):
+ **/
+void
+srtsock_sock_stop_accept(SrtSockSock *self)
+{
+    g_return_if_fail(SRTSOCK_SOCK_IS_VALID(self));
+    self->priv->listening = FALSE;
+    srtsock_sock_update_in_src(self);
 }
 
 /**
@@ -426,10 +492,8 @@ srtsock_sock_bind(SrtSockSock *self, GSocketAddress *addr,
                   gboolean allow_reuse, GError **error)
 {
     SrtSockSockPrivate *priv;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), FALSE);
     priv = self->priv;
-    if (!priv->sock)
-        return FALSE;
     return g_socket_bind(priv->sock, addr, allow_reuse, error);
 }
 
@@ -444,13 +508,19 @@ gboolean
 srtsock_sock_close(SrtSockSock *self, GError **error)
 {
     gboolean res;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), TRUE);
-    if (!self->priv->sock)
-        return TRUE;
-    res = g_socket_close(self->priv->sock, error);
-    self->priv->sending = FALSE;
-    srtsock_sock_free_connection(self);
-    srtsock_sock_free_listener(self);
+    SrtSockSockPrivate *priv;
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), TRUE);
+    priv = self->priv;
+    priv->listening = FALSE;
+    priv->sending = FALSE;
+    priv->receiving = FALSE;
+    srtsock_sock_update_in_src(self);
+    srtsock_sock_update_out_src(self);
+    if (priv->send_buff) {
+        srtsock_buff_free(priv->send_buff);
+        priv->send_buff = NULL;
+    }
+    res = g_socket_close(priv->sock, error);
     g_signal_emit(self, sock_signals[SIGNAL_DISCONN], 0);
     return res;
 }
@@ -526,13 +596,8 @@ srtsock_sock_connect_finish(SrtSockSock *self, GAsyncResult *result,
 GSocketAddress*
 srtsock_sock_get_local_address(SrtSockSock *self, GError **error)
 {
-    GSocket *sock;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), NULL);
-
-    sock = self->priv->sock;
-    if (G_UNLIKELY(!sock))
-        return NULL;
-    return g_socket_get_local_address(sock, error);
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), NULL);
+    return g_socket_get_local_address(self->priv->sock, error);
 }
 
 /**
@@ -545,13 +610,8 @@ srtsock_sock_get_local_address(SrtSockSock *self, GError **error)
 GSocketAddress*
 srtsock_sock_get_remote_address(SrtSockSock *self, GError **error)
 {
-    GSocket *sock;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), NULL);
-
-    sock = self->priv->sock;
-    if (G_UNLIKELY(!sock))
-        return NULL;
-    return g_socket_get_remote_address(sock, error);
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), NULL);
+    return g_socket_get_remote_address(self->priv->sock, error);
 }
 
 /**
@@ -566,19 +626,12 @@ srtsock_sock_get_remote_address(SrtSockSock *self, GError **error)
 gchar*
 srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize, GError **error)
 {
-    GSocketConnection *conn;
-    GInputStream *istm;
     gchar *buff;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), NULL);
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), NULL);
     g_return_val_if_fail(rsize, NULL);
-
-    conn = srtsock_sock_get_connection(self);
-    if (G_UNLIKELY(!conn))
-        return NULL;
-    istm = g_io_stream_get_input_stream(G_IO_STREAM(conn));
-
     buff = g_malloc0(size);
-    *rsize = g_input_stream_read(istm, buff, size, NULL, error);
+    *rsize = g_socket_receive_with_blocking(self->priv->sock, buff, size,
+                                            TRUE, NULL, error);
     if (*rsize < 0) {
         g_free(buff);
         srtsock_sock_check_connect(self);
@@ -589,12 +642,22 @@ srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize, GError **error)
 }
 
 gboolean
-srtsock_sock_start_recv(SrtSockSock *self, GError **error)
+srtsock_sock_start_recv(SrtSockSock *self)
 {
-    /* TODO */
+    gboolean res;
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), FALSE);
+    self->priv->receiving = TRUE;
+    res = srtsock_sock_update_in_src(self);
+    return res;
 }
 
-static void srtsock_sock_check_source(SrtSockSock *self);
+void
+srtsock_sock_stop_recv(SrtSockSock *self)
+{
+    g_return_if_fail(SRTSOCK_SOCK_IS_VALID(self));
+    self->priv->receiving = FALSE;
+    srtsock_sock_update_in_src(self);
+}
 
 static gboolean
 srtsock_sock_send_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
@@ -635,35 +698,6 @@ srtsock_sock_send_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
     return FALSE;
 }
 
-static void
-srtsock_sock_check_source(SrtSockSock *self)
-{
-    SrtSockSockPrivate *priv;
-    priv = self->priv;
-    if (!priv->sock)
-        return;
-    g_mutex_lock(&priv->src_lock);
-    if (priv->sending && !srtsock_buff_empty(priv->send_buff)) {
-        if (!priv->send_src) {
-            priv->send_src = g_socket_create_source(priv->sock,
-                                                    G_IO_OUT, NULL);
-            g_source_set_callback(priv->send_src,
-                                  (GSourceFunc)srtsock_sock_send_cb,
-                                  g_object_ref(self), g_object_unref);
-            g_source_attach(priv->send_src, NULL);
-            g_source_unref(priv->send_src);
-        }
-    } else {
-        if (priv->send_src) {
-            GSource *old_src;
-            old_src = priv->send_src;
-            priv->send_src = NULL;
-            g_source_destroy(old_src);
-        }
-    }
-    g_mutex_unlock(&self->priv->src_lock);
-}
-
 /**
  * srtsock_sock_send:
  * @self: (transfer none) (allow-none):
@@ -681,12 +715,13 @@ srtsock_sock_send(SrtSockSock *self, const gchar *buff, gsize size)
  * srtsock_sock_start_send:
  * @self: (transfer none) (allow-none):
  **/
-void
+gboolean
 srtsock_sock_start_send(SrtSockSock *self)
 {
-    g_return_if_fail(SRTSOCK_IS_SOCK(self));
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), FALSE);
     self->priv->sending = TRUE;
-    srtsock_sock_check_source(self);
+    srtsock_sock_update_out_src(self);
+    return TRUE;
 }
 
 /**
@@ -696,9 +731,9 @@ srtsock_sock_start_send(SrtSockSock *self)
 void
 srtsock_sock_stop_send(SrtSockSock *self)
 {
-    g_return_if_fail(SRTSOCK_IS_SOCK(self));
+    g_return_if_fail(SRTSOCK_SOCK_IS_VALID(self));
     self->priv->sending = FALSE;
-    srtsock_sock_check_source(self);
+    srtsock_sock_update_out_src(self);
 }
 
 /**
@@ -708,40 +743,41 @@ srtsock_sock_stop_send(SrtSockSock *self)
  * Return Value:
  **/
 gboolean
-srtsock_sock_wait_send(SrtSockSock *self)
+srtsock_sock_wait_send(SrtSockSock *self, GError **error)
 {
     gssize rsize;
     guint size = 0;
     gchar *buff = NULL;
-    GError *error = NULL;
     gboolean res = TRUE;
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
-    if (G_UNLIKELY(!self->priv->sock))
-        return FALSE;
-    g_mutex_lock(&self->priv->send_lock);
+    gboolean was_sending;
+    SrtSockSockPrivate *priv;
+
+    g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), FALSE);
+
+    priv = self->priv;
+    was_sending = priv->sending;
+    priv->sending = FALSE;
+    srtsock_sock_update_out_src(self);
+    g_mutex_lock(&priv->send_lock);
     do {
-        buff = srtsock_buff_get(self->priv->send_buff, &size);
+        buff = srtsock_buff_get(priv->send_buff, &size);
         if (!buff) {
             res = TRUE;
             break;
         }
-        g_socket_set_blocking(self->priv->sock, TRUE);
-        rsize = g_socket_send(self->priv->sock, buff, size, NULL, &error);
+        g_socket_set_blocking(priv->sock, TRUE);
+        rsize = g_socket_send(priv->sock, buff, size, NULL, error);
         if (rsize >= 0) {
-            srtsock_buff_pop(self->priv->send_buff, rsize);
+            srtsock_buff_pop(priv->send_buff, rsize);
         } else {
-            srtsock_buff_pop(self->priv->send_buff, 0);
-            if (error) {
-                g_error_free(error);
-            }
-        }
-        if (!srtsock_sock_check_connect(self)) {
+            srtsock_buff_pop(priv->send_buff, 0);
             res = FALSE;
             break;
         }
     } while (1);
     g_mutex_unlock(&self->priv->send_lock);
-    srtsock_sock_check_source(self);
+    priv->sending = was_sending;
+    srtsock_sock_update_out_src(self);
     return res;
 }
 
@@ -759,11 +795,19 @@ srtsock_sock_shutdown(SrtSockSock *self, gboolean read, gboolean write,
                       GError **error)
 {
     gboolean res;
+    SrtSockSockPrivate *priv;
     g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), TRUE);
-    res = g_socket_shutdown(self->priv->sock, read, write, error);
-    self->priv->sending = FALSE;
-    srtsock_sock_free_connection(self);
-    srtsock_sock_free_listener(self);
+    priv = self->priv;
+    priv->listening = FALSE;
+    priv->sending = FALSE;
+    priv->receiving = FALSE;
+    srtsock_sock_update_in_src(self);
+    srtsock_sock_update_out_src(self);
+    if (priv->send_buff) {
+        srtsock_buff_free(priv->send_buff);
+        priv->send_buff = NULL;
+    }
+    res = g_socket_shutdown(priv->sock, read, write, error);
     g_signal_emit(self, sock_signals[SIGNAL_DISCONN], 0);
     return res;
 }

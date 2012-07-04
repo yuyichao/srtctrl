@@ -60,8 +60,10 @@ extern "C" {
     SrtSockSock *srtsock_sock_new_from_sock(GSocket *sock);
     SrtSockSock *srtsock_sock_new_from_conn(GSocketConnection *conn);
 
-    SrtSockSock *srtsock_sock_accept(SrtSockSock *self, GError **error);
-    gboolean srtsock_sock_start_accept(SrtSockSock *self);
+    SrtSockSock *srtsock_sock_accept(SrtSockSock *self, gint backlog,
+                                     GError **error);
+    gboolean srtsock_sock_start_accept(SrtSockSock *self, gint backlog);
+    void srtsock_sock_stop_accept(SrtSockSock *self);
     gboolean srtsock_sock_bind(SrtSockSock *self, GSocketAddress *addr,
                                gboolean allow_reuse, GError **error);
 
@@ -78,13 +80,14 @@ extern "C" {
     GSocketAddress *srtsock_sock_get_remote_address(SrtSockSock *self,
                                                     GError **error);
 
-    gboolean srtsock_sock_start_recv(SrtSockSock *self, GError **error);
+    gboolean srtsock_sock_start_recv(SrtSockSock *self);
+    void srtsock_sock_stop_recv(SrtSockSock *self);
     gchar *srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize,
                              GError **error);
     void srtsock_sock_send(SrtSockSock *self, const gchar *buff, gsize size);
-    void srtsock_sock_start_send(SrtSockSock *self);
+    gboolean srtsock_sock_start_send(SrtSockSock *self);
     void srtsock_sock_stop_send(SrtSockSock *self);
-    gboolean srtsock_sock_wait_send(SrtSockSock *self);
+    gboolean srtsock_sock_wait_send(SrtSockSock *self, GError **error);
 
     gboolean srtsock_sock_close(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_shutdown(SrtSockSock *self, gboolean read,
