@@ -651,7 +651,7 @@ srtsock_sock_conn(SrtSockSock *self, GSocketAddress *addr, GError **error)
  **/
 gboolean
 srtsock_sock_conn_async(SrtSockSock *self, GSocketAddress *addr,
-                           GAsyncReadyCallback cb, gpointer p)
+                        GAsyncReadyCallback cb, gpointer p)
 {
     GSocketConnection *conn;
     g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
@@ -672,7 +672,7 @@ srtsock_sock_conn_async(SrtSockSock *self, GSocketAddress *addr,
  **/
 gboolean
 srtsock_sock_conn_finish(SrtSockSock *self, GAsyncResult *result,
-                            GError **error)
+                         GError **error)
 {
     GSocketConnection *conn;
     g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
