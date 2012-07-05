@@ -326,7 +326,7 @@ srtsock_sock_check_conn(SrtSockSock *self)
 }
 
 static void
-srtsock_sock_on_poll_err(SrtSockSock *self, gboolean in)
+srtsock_sock_on_poll_err(SrtSockSock *self, GIOCondition cond, gboolean in)
 {
 }
 
@@ -334,7 +334,7 @@ static gboolean
 srtsock_sock_in_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
 {
     if (cond & (G_IO_ERR | G_IO_HUP | G_IO_NVAL)) {
-        srtsock_sock_on_poll_err(self, TRUE);
+        srtsock_sock_on_poll_err(self, cond, TRUE);
         return TRUE;
     } else if (cond & (G_IO_IN | G_IO_PRI)) {
         if (self->priv->listening) {
@@ -434,7 +434,7 @@ static gboolean
 srtsock_sock_out_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
 {
     if (cond & (G_IO_ERR | G_IO_HUP | G_IO_NVAL)) {
-        srtsock_sock_on_poll_err(self, FALSE);
+        srtsock_sock_on_poll_err(self, cond, FALSE);
         return TRUE;
     } else if (cond & (G_IO_OUT)) {
         if (!g_mutex_trylock(&self->priv->send_lock)) {
