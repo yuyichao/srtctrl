@@ -7,9 +7,11 @@ if os.fork():
 
 (port, i) = sys.argv[1:]
 port = int(port)
-i = int(i)
+_id = int(i)
 
 from gi.repository import SrtSock, Gio, GLib
+
+mainloop = GLib.MainLoop()
 
 def find_addr():
     rslvr = Gio.Resolver.get_default()
@@ -28,6 +30,26 @@ sock.send(b'asdf\n')
 sock.send(b'asdf\n')
 sock.send(b'asdf\n')
 sock.send(b'EXIT')
-print('sent')
-sock.wait_send()
+
+def timeout_cb(sock):
+    print('timeout')
+    sock.send(b'EXIT')
+    return True
+
+def disconn_cb(sock):
+    print(sock, " Disconnected (child)")
+    mainloop.quit()
+
+def do_send(sock, i):
+    if False:
+        print('sync')
+        sock.wait_send()
+    else:
+        print('async')
+        sock.start_send()
+        sock.connect('disconn', disconn_cb)
+        GLib.timeout_add_seconds(2, timeout_cb, sock)
+        mainloop.run()
+
+do_send(sock, _id)
 sock.close()

@@ -23,7 +23,7 @@ def start_children():
         os.system("python test_srtchild.py %d %d &" % (port, i))
 
 def disconn_cb(sock):
-    print(sock, " Disconnected")
+    print(sock, " Disconnected (parent)")
     if not id(sock) in disconnected:
         disconnected[id(sock)] = sock
         global childrenleft
@@ -36,6 +36,7 @@ def recv_cb(self, obj, buff):
     print(buff['buff'])
     if b'EXIT' in buff['buff']:
         print('exit')
+        disconn_cb(self)
 
 def accept_cb(sock, nsock):
     nsock.connect('receive', recv_cb, {'buff': b''})

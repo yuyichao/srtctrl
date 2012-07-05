@@ -325,16 +325,23 @@ srtsock_sock_check_conn(SrtSockSock *self)
     return TRUE;
 }
 
+typedef enum {
+    _POLL_IN,
+    _POLL_OUT,
+    _POLL_ERR,
+} PollErrSrc;
+
 static void
-srtsock_sock_on_poll_err(SrtSockSock *self, GIOCondition cond, gboolean in)
+srtsock_sock_on_poll_err(SrtSockSock *self, GIOCondition cond, PollErrSrc src)
 {
+    srtsock_sock_close(self, NULL);
 }
 
 static gboolean
 srtsock_sock_in_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
 {
     if (cond & (G_IO_ERR | G_IO_HUP | G_IO_NVAL)) {
-        srtsock_sock_on_poll_err(self, cond, TRUE);
+        srtsock_sock_on_poll_err(self, cond, _POLL_IN);
         return TRUE;
     } else if (cond & (G_IO_IN | G_IO_PRI)) {
         if (self->priv->listening) {
@@ -434,7 +441,7 @@ static gboolean
 srtsock_sock_out_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
 {
     if (cond & (G_IO_ERR | G_IO_HUP | G_IO_NVAL)) {
-        srtsock_sock_on_poll_err(self, cond, FALSE);
+        srtsock_sock_on_poll_err(self, cond, _POLL_OUT);
         return TRUE;
     } else if (cond & (G_IO_OUT)) {
         if (!g_mutex_trylock(&self->priv->send_lock)) {
@@ -452,6 +459,8 @@ srtsock_sock_out_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
             srtsock_buff_pop(self->priv->send_buff, rsize);
         } else {
             srtsock_buff_pop(self->priv->send_buff, 0);
+            if (buff)
+                srtsock_sock_close(self, NULL);
             if (error) {
                 g_error_free(error);
             }
@@ -498,10 +507,13 @@ static gboolean
 srtsock_sock_update_out_src(SrtSockSock *self)
 {
     gboolean res;
-    g_mutex_lock(&self->priv->out_src_lock);
-    res = _srtsock_sock_update_out_src(self, self->priv->sending &&
-                                       !self->priv->sync_sending);
-    g_mutex_unlock(&self->priv->out_src_lock);
+    SrtSockSockPrivate *priv;
+    priv = self->priv;
+    g_mutex_lock(&priv->out_src_lock);
+    res = _srtsock_sock_update_out_src(self, priv->sending &&
+                                       !priv->sync_sending &&
+                                       !srtsock_buff_empty(priv->send_buff));
+    g_mutex_unlock(&priv->out_src_lock);
     return res;
 }
 
@@ -755,6 +767,7 @@ srtsock_sock_send(SrtSockSock *self, const gchar *buff, gsize size)
 {
     g_return_if_fail(SRTSOCK_IS_SOCK(self));
     srtsock_buff_push(self->priv->send_buff, buff, size);
+    srtsock_sock_update_out_src(self);
 }
 
 /**
