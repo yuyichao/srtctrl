@@ -295,6 +295,7 @@ gwebkitjs_util_argv_to_obj(int argc, GWebKitJSValue **argv)
     GArray *garray;
     GWebKitJSValue **carray;
     obj = g_object_new(G_TYPE_OBJECT, NULL);
+    gwj_return_val_if_false(obj, NULL);
 
     garray = g_array_sized_new(FALSE, TRUE, sizeof(GWebKitJSValue*), argc);
     g_array_set_clear_func(garray, g_object_unref);

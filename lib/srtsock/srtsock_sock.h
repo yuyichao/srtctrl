@@ -60,9 +60,8 @@ extern "C" {
     SrtSockSock *srtsock_sock_new_from_sock(GSocket *sock);
     SrtSockSock *srtsock_sock_new_from_conn(GSocketConnection *conn);
 
-    SrtSockSock *srtsock_sock_accept(SrtSockSock *self, gint backlog,
-                                     GError **error);
-    gboolean srtsock_sock_start_accept(SrtSockSock *self, gint backlog);
+    SrtSockSock *srtsock_sock_accept(SrtSockSock *self, GError **error);
+    gboolean srtsock_sock_start_accept(SrtSockSock *self);
     void srtsock_sock_stop_accept(SrtSockSock *self);
     gboolean srtsock_sock_bind(SrtSockSock *self, GSocketAddress *addr,
                                gboolean allow_reuse, GError **error);
@@ -92,6 +91,8 @@ extern "C" {
     gboolean srtsock_sock_close(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_shutdown(SrtSockSock *self, gboolean read,
                                    gboolean write, GError **error);
+    gchar *srtsock_buff_from_obj(GObject *obj, guint *len);
+    GObject *srtsock_obj_from_buff(guint len, gchar *buff);
 #ifdef __cplusplus
 }
 #endif
