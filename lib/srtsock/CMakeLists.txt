@@ -28,17 +28,17 @@ target_link_libraries(srtsock ${SRTSOCK_LINK})
 install(TARGETS srtsock LIBRARY DESTINATION ${LIB_INSTALL_DIR})
 
 gobject_introspection(
-    FILENAME SrtSock-0.1.gir
-    NSVERSION 0.1
-    INCLUDE GObject-2.0 GLib-2.0 Gio-2.0
-    PACKAGE_EXPORT srtsock
-    LIBRARY srtsock
-    SCANNER_ARGS --warn-all --add-include-path=${CMAKE_CURRENT_SOURCE_DIR}
-    COMPILER_ARGS "--includedir=${CMAKE_CURRENT_SOURCE_DIR}"
-    SYMBOL_PREFIXES srtsock
-    SOURCES ${SRTSOCK_SOURCES} ${SRTSOCK_HEADERS}
-    QUIET
-)
+  FILENAME SrtSock-0.1.gir
+  NSVERSION 0.1
+  INCLUDE GObject-2.0 GLib-2.0 Gio-2.0
+  PACKAGE_EXPORT srtsock
+  LIBRARY srtsock
+  SCANNER_ARGS --warn-all --add-include-path=${CMAKE_CURRENT_SOURCE_DIR}
+  COMPILER_ARGS "--includedir=${CMAKE_CURRENT_SOURCE_DIR}"
+  SYMBOL_PREFIXES srtsock
+  SOURCES ${SRTSOCK_SOURCES} ${SRTSOCK_HEADERS}
+  QUIET
+  )
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/SrtSock-0.1.gir
   DESTINATION ${GOBJECT_INTROSPECTION_GIRDIR})

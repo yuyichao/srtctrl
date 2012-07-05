@@ -66,13 +66,13 @@ extern "C" {
     gboolean srtsock_sock_bind(SrtSockSock *self, GSocketAddress *addr,
                                gboolean allow_reuse, GError **error);
 
-    gboolean srtsock_sock_connect(SrtSockSock *self, GSocketAddress *addr,
-                                  GError **error);
-    gboolean srtsock_sock_connect_async(SrtSockSock *self,
-                                        GSocketAddress *addr,
-                                        GAsyncReadyCallback cb, gpointer p);
-    gboolean srtsock_sock_connect_finish(SrtSockSock *self,
-                                         GAsyncResult *result, GError **error);
+    gboolean srtsock_sock_conn(SrtSockSock *self, GSocketAddress *addr,
+                               GError **error);
+    gboolean srtsock_sock_conn_async(SrtSockSock *self,
+                                     GSocketAddress *addr,
+                                     GAsyncReadyCallback cb, gpointer p);
+    gboolean srtsock_sock_conn_finish(SrtSockSock *self,
+                                      GAsyncResult *result, GError **error);
 
     GSocketAddress *srtsock_sock_get_local_address(SrtSockSock *self,
                                                    GError **error);
