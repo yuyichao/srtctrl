@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from gi.repository import SrtSock as _sock, Gio, GLib
+from gi.repository import SrtSock as _sock, Gio, GLib, GObject
 from srt_comm.srtaddr import *
 
 class SrtConn(_sock.Sock):

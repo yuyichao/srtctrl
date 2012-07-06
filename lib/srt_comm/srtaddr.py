@@ -42,7 +42,7 @@ def _inet_sock_addrs(addr, family):
 
 def _inet_sock_addrs_cb(resolver, res, args):
     # .... so I droped python2 support here...
-    (port, cb, args) = args
+    (port, family, cb, args) = args
     try:
         addrs = resolver.lookup_by_name_finish(res)
     except GLib.GError:
@@ -57,19 +57,19 @@ def _inet_sock_addrs_async(addr, family, cb, *args):
     host, port = _std_inet_addr(addr)
     resolver = Gio.Resolver.get_default()
     resolver.lookup_by_name_async(host, None,
-                                  _inet_sock_addrs_cb, (port, cb, args))
+                                  _inet_sock_addrs_cb, (port, family, cb, args))
 
 def get_sock_addrs(addr, family):
     if family == Gio.SocketFamily.UNIX:
         return [_unix_sock_addr(addr)]
-    elif family in [Gio.SocketFamily.INET, Gio.SocketFamily.INET6]:
+    elif family in [Gio.SocketFamily.IPV4, Gio.SocketFamily.IPV6]:
         return _inet_sock_addrs(addr, family)
     return []
 
 def get_sock_addrs_async(addr, family, cb, *args):
     if family == Gio.SocketFamily.UNIX:
         _unix_sock_addr_async(addr, cb, *args)
-    elif family in [Gio.SocketFamily.INET, Gio.SocketFamily.INET6]:
+    elif family in [Gio.SocketFamily.IPV4, Gio.SocketFamily.IPV6]:
         _inet_sock_addrs_async(addr, family, cb, *args)
     else:
         GLib.idle_add(cb, [], *args)
