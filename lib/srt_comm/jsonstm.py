@@ -1,148 +1,67 @@
 # coding=utf-8
 
-_J_RES_OPEN = -1
-_J_RES_BLK = -2
+def _j_to_str_end(jstr, start):
+    l = len(jstr)
+    _pass = False
+    for i in range(start, l):
+        if _pass:
+            _pass = False
+            continue
+        c = jstr[i]
+        if c == '"':
+            return i + 1
+        elif c == '\\':
+            _pass = True
+    return 0
 
-def _j_none_blk(jstr, start=0, char=None):
+def _j_find_start(jstr, start):
+    l = len(jstr)
     i = start
-    l = len(jstr)
     while i < l:
-        if not jstr[i] in _j_blk_chars:
-            if not char is None and not jstr[i] in char:
-                return
+        c = jstr[i]
+        if c == '"':
+            i = _j_to_str_end(jstr, i + 1)
+            if i == 0:
+                return l
+            continue
+        elif c in '{}[]':
             return i
         i += 1
-    return _J_RES_BLK
+    return l
 
-def _j_to_str_end(jstr, start=0):
+def _j_find_pair(jstr, start=0):
     l = len(jstr)
-    i = _j_none_blk(jstr, start=start, char='"')
-    if i is None:
-        return
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    while i < l - 1:
-        i += 1
-        if jstr[i] == '"':
-            return i
-        elif jstr[i] == '\\':
-            i += 1
-            if i >= l:
-                break
-            if jstr[i] == 'u':
-                i += 4
+    start = _j_find_start(jstr, start)
+    i = start
+    count = {'{}': 0,
+             '[]': 0}
+    found = False
+    while i < l:
+        c = jstr[i]
+        if c == '"':
+            i = _j_to_str_end(jstr, i + 1)
+            if i == 0:
+                return (start, start)
             continue
+        elif c == '{':
+            count['{}'] += 1
+        elif c == '}':
+            count['{}'] -= 1
+        elif c == '[':
+            count['[]'] += 1
+        elif c == ']':
+            count['[]'] -= 1
+        i += 1
+        if count['{}'] or count['[]']:
+            found = True
+            if count['{}'] < 0 or count['[]'] < 0:
+                return start, i
         else:
-            pass
-    return _J_RES_OPEN
-
-def _j_to_obj_end(jstr, start=0):
-    l = len(jstr)
-    i = _j_none_blk(jstr, start=start, char='{')
-    if i is None:
-        return
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    while True:
-        i += 1
-        ni = _j_none_blk(jstr, start=i, char=':,}')
-        if ni is None:
-            pass
-        elif ni == _J_RES_BLK:
-            return _J_RES_OPEN
-        else:
-            if jstr[ni] == '}':
-                return ni
-            i = ni
-            continue
-        i = _j_to_all_end(jstr, start=i)
-        if i is None:
-            return
-        if i in (_J_RES_BLK, _J_RES_OPEN):
-            return _J_RES_OPEN
-
-def _j_to_arr_end(jstr, start=0):
-    l = len(jstr)
-    i = _j_none_blk(jstr, start=start, char='[')
-    if i is None:
-        return
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    while True:
-        i += 1
-        ni = _j_none_blk(jstr, start=i, char=',]')
-        if ni is None:
-            pass
-        elif ni == _J_RES_BLK:
-            return _J_RES_OPEN
-        else:
-            if jstr[ni] == ']':
-                return ni
-            i = ni
-            continue
-        i = _j_to_all_end(jstr, start=i)
-        if i is None:
-            return
-        if i in (_J_RES_BLK, _J_RES_OPEN):
-            return _J_RES_OPEN
-
-_j_num_possible = '-0123456789.eE+'
-
-# it is hard to tell if a number is finished
-def _j_to_num_end(jstr, start=0):
-    l = len(jstr)
-    i = _j_none_blk(jstr, start=start, char=_j_num_possible)
-    if i is None:
-        return
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    while i < l - 1:
-        i += 1
-        if not jstr[i] in _j_num_possible:
-            return i - 1
-    return i
-
-_j_specials = ['true',
-               'false',
-               'null']
-def _j_to_spe_end(jstr, start=0):
-    l = len(jstr)
-    i = _j_none_blk(jstr, start=start)
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    for spe in _j_specials:
-        if jstr[i:].lower().startswith(spe):
-            i += len(spe)
-            if i >= l or jstr[i] in _j_blk_chars:
-                return i - 1
-            return
-    return
-
-_j_to_ends = [_j_to_str_end,
-              _j_to_obj_end,
-              _j_to_arr_end,
-              _j_to_num_end,
-              _j_to_spe_end]
-
-_j_blk_chars = ' \t\n\r'
-
-def _j_to_all_end(jstr, start=0):
-    i = _j_none_blk(jstr, start=start)
-    if i == _J_RES_BLK:
-        return _J_RES_BLK
-    for _j_to_end in _j_to_ends:
-        res = _j_to_end(jstr, start=i)
-        # illegal
-        if res is None:
-            continue
-        return res
-    return
+            if found:
+                return start, i
+    return start, start
 
 def get_json(jstr, start=0):
-    res = _j_to_all_end(jstr, start=start)
-    if res is None:
-        return (None, jstr)
-    if res == _J_RES_BLK:
-        return ('', '')
-    i = res + 1
-    return (jstr[:i], jstr[i:])
+    start = start % len(jstr)
+    (start1, i) = _j_find_pair(jstr, start=start)
+    return (jstr[start:start1], jstr[start1:i], jstr[i:])
