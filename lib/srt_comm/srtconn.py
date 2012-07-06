@@ -1,6 +1,16 @@
 # coding=utf-8
 
-from gi.repository import SrtSock as _sock
+from gi.repository import SrtSock as _sock, Gio
+
+def _unix_sock_addr(addr):
+    if addr.startswith('\0'):
+        addr = addr[1:].encode('utf-8')
+        addr = Gio.UnixSocketAddress.new_with_type(
+            addr, Gio.UnixSocketAddressType.ABSTRACT)
+        return addr
+    else:
+        addr = Gio.UnixSocketAddress.new(addr)
+        return addr
 
 class SrtConn(_sock.Sock):
     __gsignals__ = {
@@ -11,15 +21,19 @@ class SrtConn(_sock.Sock):
     def __init__(self, sfamily=None, stype=None, sprotocol=None, fd=None):
         super().__init__()
         if not fd is None:
-            super().init_from_fd(fd)
-            return
-        if sfamily is None:
-            sfamily = Gio.SocketFamily.IPV4
-        if stype is None:
-            stype = Gio.SocketType.STREAM
-        if sprotocol is None:
-            sprotocol = Gio.SocketProtocol.DEFAULT
-        super().init(sfamily, stype, sprotocol)
+            res = super().init_from_fd(fd)
+            if not res:
+                raise IOError
+        else:
+            if sfamily is None:
+                sfamily = Gio.SocketFamily.IPV4
+            if stype is None:
+                stype = Gio.SocketType.STREAM
+            if sprotocol is None:
+                sprotocol = Gio.SocketProtocol.DEFAULT
+            res = super().init(sfamily, stype, sprotocol)
+            if not res:
+                raise IOError
         self._buffer = b''
         self.connect('receive', self._receive_cb)
     def _receive_cb(self, obj):
@@ -27,6 +41,7 @@ class SrtConn(_sock.Sock):
         package, self._buffer = self._do_dispatch(self._buffer)
         self.emit('package', package)
     def _do_dispatch(self, buff):
+        # To be overloaded
         return (buff, '')
     def recv(self):
         while True:
@@ -34,3 +49,21 @@ class SrtConn(_sock.Sock):
             package, self._buffer = self._do_dispatch(self._buffer)
             if len(package):
                 return package
+    def _conn_unix(self, addr):
+        addr = _unix_sock_ddr(addr)
+        super().conn(addr)
+    def _conn_inet(self):
+        pass
+    def conn(self, addr):
+        family = self.get_family()
+        if family == Gio.SocketFamily.UNIX:
+            self._conn_unix(addr)
+            return True
+        elif family in [Gio.SocketFamily.INET, Gio.SocketFamily.INET6]:
+            self._conn_inet(addr)
+            return True
+        return False
+    def conn_async(self):
+        pass
+    def conn_and_recv(self):
+        pass
