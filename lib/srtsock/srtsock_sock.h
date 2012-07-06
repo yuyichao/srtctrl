@@ -62,33 +62,37 @@ extern "C" {
 
     SrtSockSock *srtsock_sock_accept(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_start_accept(SrtSockSock *self);
+    void srtsock_sock_stop_accept(SrtSockSock *self);
     gboolean srtsock_sock_bind(SrtSockSock *self, GSocketAddress *addr,
                                gboolean allow_reuse, GError **error);
 
-    gboolean srtsock_sock_connect(SrtSockSock *self, GSocketAddress *addr,
-                                  GError **error);
-    gboolean srtsock_sock_connect_async(SrtSockSock *self,
-                                        GSocketAddress *addr,
-                                        GAsyncReadyCallback cb, gpointer p);
-    gboolean srtsock_sock_connect_finish(SrtSockSock *self,
-                                         GAsyncResult *result, GError **error);
+    gboolean srtsock_sock_conn(SrtSockSock *self, GSocketAddress *addr,
+                               GError **error);
+    gboolean srtsock_sock_conn_async(SrtSockSock *self,
+                                     GSocketAddress *addr,
+                                     GAsyncReadyCallback cb, gpointer p);
+    gboolean srtsock_sock_conn_finish(SrtSockSock *self,
+                                      GAsyncResult *result, GError **error);
 
     GSocketAddress *srtsock_sock_get_local_address(SrtSockSock *self,
                                                    GError **error);
     GSocketAddress *srtsock_sock_get_remote_address(SrtSockSock *self,
                                                     GError **error);
 
-    gboolean srtsock_sock_start_recv(SrtSockSock *self, GError **error);
+    gboolean srtsock_sock_start_recv(SrtSockSock *self);
+    void srtsock_sock_stop_recv(SrtSockSock *self);
     gchar *srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize,
                              GError **error);
     void srtsock_sock_send(SrtSockSock *self, const gchar *buff, gsize size);
-    void srtsock_sock_start_send(SrtSockSock *self);
+    gboolean srtsock_sock_start_send(SrtSockSock *self);
     void srtsock_sock_stop_send(SrtSockSock *self);
-    gboolean srtsock_sock_wait_send(SrtSockSock *self);
+    gboolean srtsock_sock_wait_send(SrtSockSock *self, GError **error);
 
     gboolean srtsock_sock_close(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_shutdown(SrtSockSock *self, gboolean read,
-                                   gboolean write, GError *error);
+                                   gboolean write, GError **error);
+    gchar *srtsock_buff_from_obj(GObject *obj, guint *len);
+    GObject *srtsock_obj_from_buff(guint len, gchar *buff);
 #ifdef __cplusplus
 }
 #endif
