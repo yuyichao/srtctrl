@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from srt_comm.jsonstm import *
+from srt_comm import get_json
 
 def __test_get_json():
     jstrs = ['     []',
