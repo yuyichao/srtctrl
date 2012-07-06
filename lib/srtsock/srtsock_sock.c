@@ -54,6 +54,25 @@ enum {
     SIGNAL_LAST,
 };
 
+enum
+{
+  PROP_0,
+  PROP_FAMILY,
+  PROP_TYPE,
+  PROP_PROTOCOL,
+  PROP_FD,
+  /* PROP_BLOCKING, */
+  /* PROP_LISTEN_BACKLOG, */
+  /* PROP_KEEPALIVE, */
+  /* PROP_LOCAL_ADDRESS, */
+  /* PROP_REMOTE_ADDRESS, */
+  /* PROP_TIMEOUT, */
+  /* PROP_TTL, */
+  /* PROP_BROADCAST, */
+  /* PROP_MULTICAST_LOOPBACK, */
+  /* PROP_MULTICAST_TTL */
+};
+
 static guint sock_signals[SIGNAL_LAST] = { 0 };
 
 /**
@@ -223,16 +242,6 @@ srtsock_sock_finalize(GObject *obj)
 }
 
 /**
- * _srtsock_sock_new:
- * Returns: (transfer full):
- **/
-static SrtSockSock*
-_srtsock_sock_new()
-{
-    return g_object_new(SRTSOCK_TYPE_SOCK, NULL);
-}
-
-/**
  * srtsock_sock_new:
  * @family:
  * @type:
@@ -252,30 +261,6 @@ srtsock_sock_new(GSocketFamily family, GSocketType type,
     self = srtsock_sock_new_from_sock(sock);
     g_object_unref(sock);
     return self;
-}
-
-/**
- * srtsock_sock_init:
- * @self: (transfer none) (allow-none):
- * @family:
- * @type:
- * @protocol:
- * @error:
- *
- * Returns:
- **/
-gboolean
-srtsock_sock_init(SrtSockSock *self, GSocketFamily family, GSocketType type,
-                  GSocketProtocol protocol, GError **error)
-{
-    GSocket *sock;
-    gboolean res;
-    sock = g_socket_new(family, type, protocol, error);
-    if (!sock)
-        return FALSE;
-    res = srtsock_sock_init_from_sock(self, sock);
-    g_object_unref(sock);
-    return res;
 }
 
 /**
@@ -299,24 +284,23 @@ srtsock_sock_new_from_fd(int fd, GError **error)
 }
 
 /**
- * srtsock_sock_init_from_fd:
+ * srtsock_sock_init_from_sock:
  * @self: (transfer none) (allow-none):
- * @fd:
- * @error:
+ * @sock: (transfer none) (allow-none):
  *
  * Returns:
  **/
-gboolean
-srtsock_sock_init_from_fd(SrtSockSock *self, int fd, GError **error)
+static gboolean
+srtsock_sock_init_from_sock(SrtSockSock *self, GSocket *sock)
 {
-    gboolean res;
-    GSocket *sock = g_socket_new_from_fd(fd, error);
-    if (G_UNLIKELY(!sock))
-        return FALSE;
-    res = srtsock_sock_init_from_sock(self, sock);
-    srtsock_sock_add_err_src(self, TRUE);
-    g_object_unref(sock);
-    return res;
+    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
+    g_return_val_if_fail(G_IS_SOCKET(sock), FALSE);
+    g_return_val_if_fail(!self->priv->sock, FALSE);
+    g_object_ref(sock);
+    self->priv->sock = sock;
+    if (g_socket_is_connected(sock))
+        srtsock_sock_add_err_src(self, TRUE);
+    return TRUE;
 }
 
 /**
@@ -331,71 +315,13 @@ srtsock_sock_new_from_sock(GSocket *sock)
     SrtSockSock *self;
     gboolean res;
     g_return_val_if_fail(G_IS_SOCKET(sock), NULL);
-    self = _srtsock_sock_new();
+    self = g_object_new(SRTSOCK_TYPE_SOCK, NULL);
     res = srtsock_sock_init_from_sock(self, sock);
     if (!res) {
         g_object_unref(self);
         return NULL;
     }
     return self;
-}
-
-/**
- * srtsock_sock_init_from_sock:
- * @self: (transfer none) (allow-none):
- * @sock: (transfer none) (allow-none):
- *
- * Returns:
- **/
-gboolean
-srtsock_sock_init_from_sock(SrtSockSock *self, GSocket *sock)
-{
-    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
-    g_return_val_if_fail(G_IS_SOCKET(sock), FALSE);
-    g_return_val_if_fail(!self->priv->sock, FALSE);
-    g_object_ref(sock);
-    self->priv->sock = sock;
-    if (g_socket_is_connected(sock))
-        srtsock_sock_add_err_src(self, TRUE);
-    return TRUE;
-}
-
-/**
- * srtsock_sock_new_from_conn:
- * @conn: (transfer none) (allow-none):
- *
- * Returns: (transfer full) (allow-none):
- **/
-SrtSockSock*
-srtsock_sock_new_from_conn(GSocketConnection *conn)
-{
-    SrtSockSock *self;
-    g_return_val_if_fail(G_IS_SOCKET_CONNECTION(conn), NULL);
-    GSocket *sock = g_socket_connection_get_socket(conn);
-    self = srtsock_sock_new_from_sock(sock);
-    self->priv->conn = g_object_ref(conn);
-    return self;
-}
-
-/**
- * srtsock_sock_init_from_conn:
- * @self: (transfer none) (allow-none):
- * @conn: (transfer none) (allow-none):
- *
- * Returns:
- **/
-gboolean
-srtsock_sock_init_from_conn(SrtSockSock *self, GSocketConnection *conn)
-{
-    GSocket *sock;
-    gboolean res;
-    g_return_val_if_fail(G_IS_SOCKET_CONNECTION(conn), FALSE);
-    g_return_val_if_fail(!self->priv->conn, FALSE);
-    sock = g_socket_connection_get_socket(conn);
-    res = srtsock_sock_init_from_sock(self, sock);
-    if (res)
-        self->priv->conn = g_object_ref(conn);
-    return res;
 }
 
 static GSocketConnection*

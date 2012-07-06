@@ -36,7 +36,10 @@ class SrtConn(_sock.Sock):
         return (buff, '')
     def recv(self):
         while True:
-            self._buffer += super().recv(65536)
+            newbuf = super().recv(65536)
+            if newbuf is None:
+                return
+            self._buffer += newbuf
             package, self._buffer = self._do_dispatch(self._buffer)
             if len(package):
                 return package
@@ -53,17 +56,43 @@ class SrtConn(_sock.Sock):
         if not err is None:
             raise err
         return False
-    def _conn_cb(self):
-        pass
+    def _conn_cb(self, res, args):
+        (addrs, cb, args) = args
+        try:
+            res = self.conn_finish(res)
+        except GLib.GError:
+            res = False
+        if res:
+            cb(True, *args)
+            return
+        self._conn_get_addrs_cb(addrs, cb, args)
     def _conn_get_addrs_cb(self, addrs, cb, *args):
-        pass
+        try:
+            if len(addr) == 0:
+                cb(False, *args)
+        except TypeError:
+            cb(False, *args)
+        if super().conn_async(addrs[0], self._conn_cb, (addrs[1:], cb, args)):
+            return
+        self._conn_get_addrs_cb(addrs[1:], cb, *args)
     def conn_async(self, addr, cb, *args):
         get_sock_addrs_async(addr, self.get_family(), self._conn_get_addrs_cb,
                              cb, *args)
     def conn_and_recv(self):
         pass
-    def bind(self):
-        pass
+    def bind(self, addr):
+        family = self.get_family()
+        addrs = get_sock_addrs(addr, family)
+        err = None
+        for addr in addrs:
+            try:
+                if super().bind(addr, True):
+                    return True
+            except GLib.GError as err:
+                pass
+        if not err is None:
+            raise err
+        return False
     def bind_async(self):
         pass
     def bind_accept(self):
