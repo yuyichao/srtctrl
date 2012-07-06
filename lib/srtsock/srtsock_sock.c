@@ -146,7 +146,7 @@ srtsock_sock_class_init(SrtSockSockClass *klass, gpointer data)
      * @sock: (transfer none) (allow-none):
      * @conn: (transfer none) (allow-none):
      *
-     * Return Value:
+     * Returns:
      **/
     sock_signals[SIGNAL_ACCEPT] = g_signal_new("accept", SRTSOCK_TYPE_SOCK,
                                                G_SIGNAL_RUN_LAST, 0,
@@ -159,7 +159,7 @@ srtsock_sock_class_init(SrtSockSockClass *klass, gpointer data)
      * @sock: (transfer none) (allow-none):
      * @data: (transfer none) (allow-none):
      *
-     * Return Value:
+     * Returns:
      **/
     sock_signals[SIGNAL_RECEIVE] = g_signal_new("receive", SRTSOCK_TYPE_SOCK,
                                                 G_SIGNAL_RUN_LAST, 0,
@@ -172,7 +172,7 @@ srtsock_sock_class_init(SrtSockSockClass *klass, gpointer data)
      * SrtSockSock::disconn:
      * @sock: (transfer none) (allow-none):
      *
-     * Return Value:
+     * Returns:
      **/
     sock_signals[SIGNAL_DISCONN] = g_signal_new("disconn", SRTSOCK_TYPE_SOCK,
                                                 G_SIGNAL_RUN_LAST, 0,
@@ -223,7 +223,7 @@ srtsock_sock_finalize(GObject *obj)
 
 /**
  * _srtsock_sock_new:
- * Return Value: (transfer full):
+ * Returns: (transfer full):
  **/
 static SrtSockSock*
 _srtsock_sock_new()
@@ -238,7 +238,7 @@ _srtsock_sock_new()
  * @protocol:
  * @error:
  *
- * Return Value: (transfer full) (allow-none):
+ * Returns: (transfer full) (allow-none):
  **/
 SrtSockSock*
 srtsock_sock_new(GSocketFamily family, GSocketType type,
@@ -258,7 +258,7 @@ srtsock_sock_new(GSocketFamily family, GSocketType type,
  * @fd:
  * @error:
  *
- * Return Value: (transfer full):
+ * Returns: (transfer full):
  **/
 SrtSockSock*
 srtsock_sock_new_from_fd(int fd, GError **error)
@@ -277,7 +277,7 @@ srtsock_sock_new_from_fd(int fd, GError **error)
  * srtsock_sock_new_from_sock:
  * @sock: (transfer none):
  *
- * Return Value: (transfer full):
+ * Returns: (transfer full):
  **/
 SrtSockSock*
 srtsock_sock_new_from_sock(GSocket *sock)
@@ -296,7 +296,7 @@ srtsock_sock_new_from_sock(GSocket *sock)
  * srtsock_sock_new_from_conn:
  * @conn: (transfer none):
  *
- * Return Value: (transfer full):
+ * Returns: (transfer full):
  **/
 SrtSockSock*
 srtsock_sock_new_from_conn(GSocketConnection *conn)
@@ -564,7 +564,7 @@ srtsock_sock_update_out_src(SrtSockSock *self)
  * @self: (transfer none) (allow-none):
  * @error: (allow-none):
  *
- * Return Value: (allow-none) (transfer full):
+ * Returns: (allow-none) (transfer full):
  **/
 SrtSockSock*
 srtsock_sock_accept(SrtSockSock *self, GError **error)
@@ -664,7 +664,7 @@ srtsock_sock_bind(SrtSockSock *self, GSocketAddress *addr,
  * @self: (transfer none) (allow-none):
  * @error:
  *
- * Return Value:
+ * Returns:
  **/
 gboolean
 srtsock_sock_close(SrtSockSock *self, GError **error)
@@ -694,7 +694,7 @@ srtsock_sock_close(SrtSockSock *self, GError **error)
  * @addr: (transfer none) (allow-none):
  * @error: (allow-none):
  *
- * Return Value:
+ * Returns:
  **/
 gboolean
 srtsock_sock_conn(SrtSockSock *self, GSocketAddress *addr, GError **error)
@@ -737,7 +737,7 @@ srtsock_sock_conn_async(SrtSockSock *self, GSocketAddress *addr,
  * @result: (transfer none) (allow-none):
  * @error:
  *
- * Return Value:
+ * Returns:
  **/
 gboolean
 srtsock_sock_conn_finish(SrtSockSock *self, GAsyncResult *result,
@@ -760,7 +760,7 @@ srtsock_sock_conn_finish(SrtSockSock *self, GAsyncResult *result,
  * @self: (transfer none) (allow-none):
  * @error:
  *
- * Return Value: (transfer full) (allow-none):
+ * Returns: (transfer full) (allow-none):
  **/
 GSocketAddress*
 srtsock_sock_get_local_address(SrtSockSock *self, GError **error)
@@ -774,7 +774,7 @@ srtsock_sock_get_local_address(SrtSockSock *self, GError **error)
  * @self: (transfer none) (allow-none):
  * @error:
  *
- * Return Value: (transfer full) (allow-none):
+ * Returns: (transfer full) (allow-none):
  **/
 GSocketAddress*
 srtsock_sock_get_remote_address(SrtSockSock *self, GError **error)
@@ -790,7 +790,7 @@ srtsock_sock_get_remote_address(SrtSockSock *self, GError **error)
  * @rsize: (out) (allow-none):
  * @error:
  *
- * Return Value: (array length=rsize) (element-type guint8) (allow-none) (transfer full):
+ * Returns: (array length=rsize) (element-type guint8) (allow-none) (transfer full):
  **/
 gchar*
 srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize, GError **error)
@@ -872,7 +872,7 @@ srtsock_sock_stop_send(SrtSockSock *self)
  * srtsock_sock_wait_send:
  * @self: (transfer none) (allow-none):
  *
- * Return Value:
+ * Returns:
  **/
 gboolean
 srtsock_sock_wait_send(SrtSockSock *self, GError **error)
@@ -918,7 +918,7 @@ srtsock_sock_wait_send(SrtSockSock *self, GError **error)
  * @write:
  * @error:
  *
- * Return Value:
+ * Returns:
  **/
 gboolean
 srtsock_sock_shutdown(SrtSockSock *self, gboolean read, gboolean write,
