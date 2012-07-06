@@ -1,16 +1,7 @@
 # coding=utf-8
 
-from gi.repository import SrtSock as _sock, Gio
-
-def _unix_sock_addr(addr):
-    if addr.startswith('\0'):
-        addr = addr[1:].encode('utf-8')
-        addr = Gio.UnixSocketAddress.new_with_type(
-            addr, Gio.UnixSocketAddressType.ABSTRACT)
-        return addr
-    else:
-        addr = Gio.UnixSocketAddress.new(addr)
-        return addr
+from gi.repository import SrtSock as _sock, Gio, GLib
+from srt_comm.srtaddr import *
 
 class SrtConn(_sock.Sock):
     __gsignals__ = {
@@ -49,21 +40,31 @@ class SrtConn(_sock.Sock):
             package, self._buffer = self._do_dispatch(self._buffer)
             if len(package):
                 return package
-    def _conn_unix(self, addr):
-        addr = _unix_sock_ddr(addr)
-        super().conn(addr)
-    def _conn_inet(self):
-        pass
     def conn(self, addr):
         family = self.get_family()
-        if family == Gio.SocketFamily.UNIX:
-            self._conn_unix(addr)
-            return True
-        elif family in [Gio.SocketFamily.INET, Gio.SocketFamily.INET6]:
-            self._conn_inet(addr)
-            return True
+        addrs = get_sock_addrs(addr, family)
+        err = None
+        for addr in addrs:
+            try:
+                if super().conn(addr):
+                    return True
+            except GLib.GError as err:
+                pass
+        if not err is None:
+            raise err
         return False
-    def conn_async(self):
+    def _conn_cb(self):
         pass
+    def _conn_get_addrs_cb(self, addrs, cb, *args):
+        pass
+    def conn_async(self, addr, cb, *args):
+        get_sock_addrs_async(addr, self.get_family(), self._conn_get_addrs_cb,
+                             cb, *args)
     def conn_and_recv(self):
+        pass
+    def bind(self):
+        pass
+    def bind_async(self):
+        pass
+    def bind_accept(self):
         pass

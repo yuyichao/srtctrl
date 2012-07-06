@@ -2,13 +2,6 @@
 
 import os
 from gi.repository import SrtSock, Gio, GLib
-from gi.overrides import override
-
-class Sock(SrtSock.Sock):
-    def __init__(self, sfamily, stype, sprotocol):
-        SrtSock.Sock.__init__(self, sfamily, stype, sprotocol)
-
-        #Sock = override(Sock)
 
 n_children = 5
 port = 15000
