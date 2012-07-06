@@ -53,7 +53,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @ctx: (allow-none) (transfer none):
  * @name: (allow-none) (transfer none):
  *
- * Return Value:
+ * Returns:
  **/
 /**
  * GWebKitJSBaseClass::get_property:
@@ -62,7 +62,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @name: (allow-none) (transfer none):
  * @error:
  *
- * Return Value: (allow-none) (transfer full):
+ * Returns: (allow-none) (transfer full):
  **/
 /**
  * GWebKitJSBaseClass::set_property:
@@ -72,7 +72,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @value: (allow-none) (transfer none):
  * @error:
  *
- * Return Value:
+ * Returns:
  **/
 /**
  * GWebKitJSBaseClass::delete_property:
@@ -81,14 +81,14 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @name: (allow-none) (transfer none):
  * @error:
  *
- * Return Value:
+ * Returns:
  **/
 /**
  * GWebKitJSBaseClass::get_property_names:
  * @self: (allow-none) (transfer none):
  * @ctx: (allow-none) (transfer none):
  *
- * Return Value: (allow-none) (transfer full):
+ * Returns: (allow-none) (transfer full):
  **/
 /**
  * GWebKitJSBaseClass::call_function:
@@ -98,7 +98,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @argv: (allow-none) (transfer none):
  * @error:
  *
- * Return Value: (allow-none) (transfer full):
+ * Returns: (allow-none) (transfer full):
  **/
 /**
  * GWebKitJSBaseClass::call_construct:
@@ -107,7 +107,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @argv: (allow-none) (transfer none):
  * @error:
  *
- * Return Value: (allow-none) (transfer full):
+ * Returns: (allow-none) (transfer full):
  **/
 /**
  * GWebKitJSBaseClass::has_instance:
@@ -116,7 +116,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @instance: (allow-none) (transfer none):
  * @error:
  *
- * Return Value:
+ * Returns:
  **/
 /**
  * GWebKitJSBaseClass::convert_to:
@@ -125,7 +125,7 @@ static JSClassRef gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass);
  * @type:
  * @error:
  *
- * Return Value: (allow-none) (transfer full):
+ * Returns: (allow-none) (transfer full):
  **/
 
 static void
@@ -433,7 +433,7 @@ gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
 
 static void
 gwebkitjs_base_get_property_names_cb(JSContextRef jsctx, JSObjectRef jsobj,
-                                JSPropertyNameAccumulatorRef jsnames)
+                                     JSPropertyNameAccumulatorRef jsnames)
 {
     GWebKitJSBase *self;
     GWebKitJSBaseClass *klass;
@@ -709,7 +709,7 @@ gwebkitjs_base_get_definition(GWebKitJSBaseClass *klass)
  * gwebkitjs_base_get_jsclass: (skip)
  * @type:
  *
- * Return Value:
+ * Returns:
  **/
 static JSClassRef
 gwebkitjs_base_get_jsclass(GWebKitJSBaseClass *klass)

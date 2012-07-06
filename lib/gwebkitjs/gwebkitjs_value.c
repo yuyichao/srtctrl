@@ -27,10 +27,10 @@ struct _GWebKitJSValuePrivate {
     GHashTable *ctx_table;
 };
 
-#define GWEBKITJS_VALUE_IS_VALID(_jsvalue)                        \
-    ({                                                            \
-        GWebKitJSValue *jsvalue = (jsvalue);                      \
-        jsvalue && GWEBKITJS_IS_VALUE(ctx) && ctx->priv->jsvalue; \
+#define GWEBKITJS_VALUE_IS_VALID(_jsvalue)                              \
+    ({                                                                  \
+        GWebKitJSValue *jsvalue = (jsvalue);                            \
+        jsvalue && GWEBKITJS_IS_VALUE(ctx) && ctx->priv->jsvalue;       \
     })
 
 
@@ -201,7 +201,7 @@ _gwebkitjs_value_remove_from_table(JSValueRef key, GWebKitJSValue *value)
 
 /**
  * _gwebkitjs_value_update_table:
- * @gctx: A new created #GWebKitJSValue. (cannot be NULL)
+ * @gctx: A new created #GWebKitJSValue. (cannot be %NULL)
  *
  * Look up the corresponding JSValueRef of the #GWebKitJSValue. If found,
  * add the reference counting of the found #GWebKitJSValue and unref() the
@@ -480,7 +480,7 @@ gwebkitjs_value_is_number(GWebKitJSValue *self,
  **/
 gboolean
 gwebkitjs_value_is_string(GWebKitJSValue *self,
-                                   GWebKitJSContext *ctx)
+                          GWebKitJSContext *ctx)
 {
     return gwebkitjs_context_is_string(ctx, self);
 }

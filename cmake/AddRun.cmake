@@ -1,3 +1,5 @@
+include(CMakeParseArguments)
+
 function(add_run run_name)
   set(options)
   set(oneValueArgs "WORKING_DIRECTORY")
