@@ -224,7 +224,7 @@ gwebkitjs_closure_cif_create(ffi_type *ret_t, guint argc, ...)
  **/
 ffi_cif*
 gwebkitjs_closure_cif_create_var_lst(ffi_type *ret_t, guint fixc, guint argc,
-                                    ffi_type **argv)
+                                     ffi_type **argv)
 {
     ffi_cif *res;
 

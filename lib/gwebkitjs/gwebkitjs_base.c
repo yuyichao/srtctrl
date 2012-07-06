@@ -433,7 +433,7 @@ gwebkitjs_base_delete_property_cb(JSContextRef jsctx, JSObjectRef jsobj,
 
 static void
 gwebkitjs_base_get_property_names_cb(JSContextRef jsctx, JSObjectRef jsobj,
-                                JSPropertyNameAccumulatorRef jsnames)
+                                     JSPropertyNameAccumulatorRef jsnames)
 {
     GWebKitJSBase *self;
     GWebKitJSBaseClass *klass;

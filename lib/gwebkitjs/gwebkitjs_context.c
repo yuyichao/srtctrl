@@ -1711,7 +1711,7 @@ gwebkitjs_context_make_array(GWebKitJSContext *self, size_t argc,
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_date(GWebKitJSContext *self, size_t argc,
-                             GWebKitJSValue **argv, GError **error)
+                            GWebKitJSValue **argv, GError **error)
 {
     JSContextRef jsctx;
     JSValueRef jserror = NULL;
@@ -1775,7 +1775,7 @@ gwebkitjs_context_make_error(GWebKitJSContext *self, size_t argc,
  **/
 GWebKitJSValue*
 gwebkitjs_context_make_regexp(GWebKitJSContext *self, size_t argc,
-                             GWebKitJSValue **argv, GError **error)
+                              GWebKitJSValue **argv, GError **error)
 {
     JSContextRef jsctx;
     JSValueRef jserror = NULL;
