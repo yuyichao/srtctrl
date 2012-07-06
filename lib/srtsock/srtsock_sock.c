@@ -187,6 +187,7 @@ srtsock_sock_dispose(GObject *obj)
     SrtSockSock *self = SRTSOCK_SOCK(obj);
     SrtSockSockPrivate *priv = self->priv;
     if (priv->sock) {
+        g_socket_close(priv->sock, NULL);
         g_object_unref(priv->sock);
         priv->sock = NULL;
     }
