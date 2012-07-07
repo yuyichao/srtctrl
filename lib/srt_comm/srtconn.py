@@ -9,22 +9,17 @@ class SrtConn(_sock.Sock):
                     GObject.TYPE_NONE,
                     (GObject.TYPE_STRING,))
     }
-    def __init__(self, sfamily=None, stype=None, sprotocol=None, fd=None):
-        super().__init__()
+    def __init__(self, sfamily=None, stype=None, sprotocol=None, fd=None,
+                 **kwargs):
         if not fd is None:
-            res = super().init_from_fd(fd)
-            if not res:
-                raise IOError
-        else:
-            if sfamily is None:
-                sfamily = Gio.SocketFamily.IPV4
-            if stype is None:
-                stype = Gio.SocketType.STREAM
-            if sprotocol is None:
-                sprotocol = Gio.SocketProtocol.DEFAULT
-            res = super().init(sfamily, stype, sprotocol)
-            if not res:
-                raise IOError
+            kwargs['fd'] = fd
+        if not sfamily is None:
+            kwargs['family'] = sfamily
+        if not stype is None:
+            kwargs['type'] = stype
+        if not sprotocol is None:
+            kwargs['protocol'] = sprotocol
+        super().__init__(**kwargs)
         self._buffer = b''
         self.connect('receive', self._receive_cb)
     def _receive_cb(self, obj):

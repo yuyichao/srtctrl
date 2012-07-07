@@ -49,9 +49,8 @@ def start_mainloop(sock):
     mainloop.run()
 
 def main():
-    sock = SrtSock.Sock()
-    sock.init(Gio.SocketFamily.IPV4, Gio.SocketType.STREAM,
-              Gio.SocketProtocol.DEFAULT)
+    sock = SrtSock.Sock.new(Gio.SocketFamily.IPV4, Gio.SocketType.STREAM,
+                            Gio.SocketProtocol.DEFAULT)
     addr = find_addr()
     sock.bind(addr, True)
     start_children()
