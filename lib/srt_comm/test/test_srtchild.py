@@ -9,47 +9,39 @@ if os.fork():
 port = int(port)
 _id = int(i)
 
-from gi.repository import SrtSock, Gio, GLib
+from gi.repository import Gio, GLib
+from srt_comm import *
 
 mainloop = GLib.MainLoop()
 
-def find_addr():
-    rslvr = Gio.Resolver.get_default()
-    addrs = rslvr.lookup_by_name('localhost', None)
-    for addr in addrs:
-        if addr.get_family() == Gio.SocketFamily.IPV4:
-            return Gio.InetSocketAddress.new(addr, port)
-
 time.sleep(.5)
 
-sock = SrtSock.Sock.new(Gio.SocketFamily.IPV4, Gio.SocketType.STREAM,
-                        Gio.SocketProtocol.TCP)
-addr = find_addr()
-sock.conn(addr)
-sock.send(b'asdf\n')
-sock.send(b'asdf\n')
-sock.send(b'asdf\n')
-sock.send(b'EXIT')
+conn = SrtConn()
+conn.conn(('localhost', port))
+conn.send('asdf\n')
+conn.send('asdf\n')
+conn.send('asdf\n')
+conn.send('EXIT')
 
-def timeout_cb(sock):
+def timeout_cb(conn):
     print('timeout')
-    sock.send(b'EXIT')
+    conn.send('EXIT')
     return True
 
-def disconn_cb(sock):
-    print(sock, " Disconnected (child)")
+def disconn_cb(conn):
+    print(conn, " Disconnected (child)")
     mainloop.quit()
 
-def do_send(sock, i):
+def do_send(conn, i):
     if False:
         print('sync')
-        sock.wait_send()
+        conn.wait_send()
     else:
         print('async')
-        sock.start_send()
-        sock.connect('disconn', disconn_cb)
-        GLib.timeout_add_seconds(2, timeout_cb, sock)
+        conn.start_send()
+        conn.connect('disconn', disconn_cb)
+        GLib.timeout_add_seconds(2, timeout_cb, conn)
         mainloop.run()
 
-do_send(sock, _id)
-sock.close()
+do_send(conn, _id)
+conn.close()

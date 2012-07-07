@@ -20,12 +20,16 @@ class SrtConn(_sock.Sock):
         if not sprotocol is None:
             kwargs['protocol'] = sprotocol
         super().__init__(**kwargs)
-        self._buffer = b''
-        self.connect('receive', self._receive_cb)
+        self._buffer = ''
+        self.connect('receive', SrtConn._receive_cb)
     def _receive_cb(self, obj):
         self._buffer += _sock.buff_from_obj(obj).decode('utf-8')
-        package, self._buffer = self._do_dispatch(self._buffer)
-        self.emit('package', package)
+        while True:
+            package, self._buffer = self._do_dispatch(self._buffer)
+            if package:
+                self.emit('package', package)
+            else:
+                break
     def _do_dispatch(self, buff):
         # To be overloaded
         return (buff, '')
@@ -34,10 +38,16 @@ class SrtConn(_sock.Sock):
             newbuf = super().recv(65536)
             if newbuf is None:
                 return
-            self._buffer += newbuf
+            self._buffer += newbuf.decode('utf-8')
             package, self._buffer = self._do_dispatch(self._buffer)
             if len(package):
                 return package
+    def send(self, buff):
+        try:
+            buff = buff.encode('utf-8')
+        except AttributeError:
+            pass
+        return super().send(buff)
     def conn(self, addr):
         family = self.get_family()
         addrs = get_sock_addrs(addr, family)
