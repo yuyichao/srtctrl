@@ -3,6 +3,10 @@
 from gi.repository import SrtSock as _sock, Gio, GLib, GObject
 from srt_comm.srtaddr import *
 
+def _call_cb(cb, *args):
+    if hasattr(cb, '__call__'):
+        cb(*args)
+
 class SrtConn(_sock.Sock):
     __gsignals__ = {
         "package": (GObject.SignalFlags.RUN_FIRST,
@@ -56,8 +60,8 @@ class SrtConn(_sock.Sock):
             try:
                 if super().conn(addr):
                     return True
-            except GLib.GError as err:
-                pass
+            except GLib.GError as error:
+                err = error
         if not err is None:
             raise err
         return False
@@ -68,15 +72,15 @@ class SrtConn(_sock.Sock):
         except GLib.GError:
             res = False
         if res:
-            cb(True, *args)
+            _call_cb(cb, True, *args)
             return
         self._conn_get_addrs_cb(addrs, cb, args)
     def _conn_get_addrs_cb(self, addrs, cb, *args):
         try:
             if len(addr) == 0:
-                cb(False, *args)
+                _call_cb(cb, False, *args)
         except TypeError:
-            cb(False, *args)
+            _call_cb(cb, False, *args)
         if super().conn_async(addrs[0], self._conn_cb, (addrs[1:], cb, args)):
             return
         self._conn_get_addrs_cb(addrs[1:], cb, *args)
@@ -90,7 +94,7 @@ class SrtConn(_sock.Sock):
                 res = self.start_recv()
             except GLib.GError:
                 pass
-        cb(res, *args)
+        _call_cb(cb, res, *args)
     def conn_recv(self, addr, cb, *args):
         self.conn_async(addr, self._conn_recv_cb, cb, *args)
     def _real_bind(self, addrs):
@@ -99,8 +103,8 @@ class SrtConn(_sock.Sock):
             try:
                 if super().bind(addr, True):
                     return True
-            except GLib.GError as err:
-                pass
+            except GLib.GError as error:
+                err = error
         if not err is None:
             raise err
         return False
@@ -114,9 +118,9 @@ class SrtConn(_sock.Sock):
             res = self._real_bind(addrs)
         except GLib.GError:
             pass
-        cb(res, *args)
+        _call_cb(cb, res, *args)
     def bind_async(self, addr, cb, *args):
-        get_sock_addrs_async(addr, self.get_family(), self._bin_get_addrs_cb,
+        get_sock_addrs_async(addr, self.get_family(), self._bind_get_addrs_cb,
                              cb, *args)
     def _bind_accept_cb(self, success, cb, *args):
         res = False
@@ -125,6 +129,6 @@ class SrtConn(_sock.Sock):
                 res = self.start_accept()
             except GLib.GError:
                 pass
-        cb(res, *args)
-    def bind_accept(self, cb, *args):
+        _call_cb(cb, res, *args)
+    def bind_accept(self, addr, cb, *args):
         self.bind_async(addr, self._bind_accept_cb, cb, *args)
