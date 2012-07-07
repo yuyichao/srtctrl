@@ -33,7 +33,7 @@ def disconn_cb(conn):
     mainloop.quit()
 
 def do_send(conn, i):
-    if False:
+    if i % 2:
         print('sync')
         conn.wait_send()
     else:

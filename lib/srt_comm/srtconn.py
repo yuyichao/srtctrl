@@ -83,11 +83,17 @@ class SrtConn(_sock.Sock):
     def conn_async(self, addr, cb, *args):
         get_sock_addrs_async(addr, self.get_family(), self._conn_get_addrs_cb,
                              cb, *args)
-    def conn_and_recv(self):
-        pass
-    def bind(self, addr):
-        family = self.get_family()
-        addrs = get_sock_addrs(addr, family)
+    def _conn_recv_cb(self, success, cb, *args):
+        res = False
+        if success:
+            try:
+                res = self.start_recv()
+            except GLib.GError:
+                pass
+        cb(res, *args)
+    def conn_recv(self, addr, cb, *args):
+        self.conn_async(addr, self._conn_recv_cb, cb, *args)
+    def _real_bind(self, addrs):
         err = None
         for addr in addrs:
             try:
@@ -98,7 +104,27 @@ class SrtConn(_sock.Sock):
         if not err is None:
             raise err
         return False
-    def bind_async(self):
-        pass
-    def bind_accept(self):
-        pass
+    def bind(self, addr):
+        family = self.get_family()
+        addrs = get_sock_addrs(addr, family)
+        self._real_bind(addrs)
+    def _bind_get_addrs_cb(self, addrs, cb, *args):
+        res = False
+        try:
+            res = self._real_bind(addrs)
+        except GLib.GError:
+            pass
+        cb(res, *args)
+    def bind_async(self, addr, cb, *args):
+        get_sock_addrs_async(addr, self.get_family(), self._bin_get_addrs_cb,
+                             cb, *args)
+    def _bind_accept_cb(self, success, cb, *args):
+        res = False
+        if success:
+            try:
+                res = self.start_accept()
+            except GLib.GError:
+                pass
+        cb(res, *args)
+    def bind_accept(self, cb, *args):
+        self.bind_async(addr, self._bind_accept_cb, cb, *args)
