@@ -17,3 +17,8 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from srt_comm import _config
+from srt_comm.util import *
+
+srt_modules_path = read_env('SRT_MODULES_PATH', default=_config.srt_modules_path,
+                            append=':')
+srt_initializer = read_env('SRT_INITIALIZER', default=_config.srt_initializer)
