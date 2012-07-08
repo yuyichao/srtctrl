@@ -17,7 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect as _inspect
-import os, sys
+import os, sys, re, os.path
 
 def call_cb(cb, *args):
     if hasattr(cb, '__call__'):
@@ -64,3 +64,18 @@ def read_env(name, default=None, append=None):
             return value
         append = ':'
     return append.join((value, default))
+
+def ls_dirs(paths='.', regex=None):
+    if isinstance(paths, str):
+        paths = [paths]
+    else:
+        paths = list({('.' if p == '' else p) for p in paths})
+    all_files = []
+    for path in paths:
+        all_files += ["%s/%s" % (path, fname) for fname in os.listdir(path)]
+    all_files = [fpath for fpath in all_files if os.path.isfile(fpath)]
+    if regex is None:
+        return all_files
+    regex = re.compile(regex)
+    all_files = [fpath for fpath in all_files if regex.search(fpath)]
+    return all_files

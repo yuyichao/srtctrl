@@ -16,6 +16,12 @@
 
 include(CMakeParseArguments)
 
+get_property(RUN_ALL_ADDED GLOBAL PROPERTY "RUN_ALL_ADDED")
+if(NOT RUN_ALL_ADDED)
+  add_custom_target(run_all)
+endif()
+set_property(GLOBAL PROPERTY "RUN_ALL_ADDED" 1)
+
 function(add_run run_name)
   set(options)
   set(oneValueArgs "WORKING_DIRECTORY")
@@ -27,4 +33,5 @@ function(add_run run_name)
     set(args ${args} WORKING_DIRECTORY ${ADD_RUN_WORKING_DIRECTORY})
   endif()
   add_custom_target(${run_name} ${args})
+  add_dependencies(run_all ${run_name})
 endfunction()
