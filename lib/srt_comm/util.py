@@ -69,10 +69,19 @@ def ls_dirs(paths='.', regex=None):
     if isinstance(paths, str):
         paths = [paths]
     else:
-        paths = list({('.' if p == '' else p) for p in paths})
+        _paths = []
+        for p in paths:
+            if p == '':
+                p = '.'
+            if not p in _paths:
+                _paths.append(p)
+        paths = _paths
     all_files = []
     for path in paths:
-        all_files += ["%s/%s" % (path, fname) for fname in os.listdir(path)]
+        try:
+            all_files += ["%s/%s" % (path, fname) for fname in os.listdir(path)]
+        except OSError:
+            pass
     all_files = [fpath for fpath in all_files if os.path.isfile(fpath)]
     if regex is None:
         return all_files
