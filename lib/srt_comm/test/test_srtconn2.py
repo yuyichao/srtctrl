@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from srt_comm import *
-from gi.repository import GLib, Gio
+from gi.repository import GLib
 import os
 
 n_children = 5

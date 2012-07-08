@@ -9,7 +9,7 @@ if os.fork():
 port = int(port)
 _id = int(i)
 
-from gi.repository import Gio, GLib
+from gi.repository import GLib
 from srt_comm import *
 
 mainloop = GLib.MainLoop()
