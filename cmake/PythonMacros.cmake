@@ -88,9 +88,9 @@ macro(_PYTHON_COMPILE SOURCE_FILE)
   endif()
 
   set(_basepath "./${__tmp_base_path}")
-  if(WIN32)
-    string(REGEX REPLACE ".:/" "/" _basepath "${_basepath}")
-  endif()
+  # if(WIN32)
+  #   string(REGEX REPLACE ".:/" "/" _basepath "${_basepath}")
+  # endif()
 
   get_filename_component(_full_base_path
     "${PROJECT_BINARY_DIR}/${_basepath}" ABSOLUTE)
