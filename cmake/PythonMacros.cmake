@@ -69,30 +69,48 @@ macro(_PYTHON_COMPILE SOURCE_FILE)
   find_file(_python_compile_py PythonCompile.py PATHS ${CMAKE_MODULE_PATH})
 
   # Byte compile and install the .pyc file.
-  get_filename_component(_absfilename ${SOURCE_FILE} ABSOLUTE)
-  get_filename_component(_filename ${SOURCE_FILE} NAME)
-  get_filename_component(_filenamebase ${SOURCE_FILE} NAME_WE)
-  get_filename_component(_basepath ${SOURCE_FILE} PATH)
+  get_filename_component(_absfilename "${SOURCE_FILE}" ABSOLUTE)
+  get_filename_component(_filename "${_absfilename}" NAME)
+  get_filename_component(_filenamebase "${_absfilename}" NAME_WE)
+  get_filename_component(_basepath "${_absfilename}" PATH)
+  get_filename_component(_pro_bin_abs "${PROJECT_BINARY_DIR}" ABSOLUTE)
+  get_filename_component(_pro_src_abs "${PROJECT_SOURCE_DIR}" ABSOLUTE)
 
+  string(LENGTH "${_pro_bin_abs}" __bin_length)
+  string(FIND "${_basepath}/" "${_pro_bin_abs}/" __bin_found)
+  string(LENGTH "${_pro_src_abs}" __src_length)
+  string(FIND "${_basepath}/" "${_pro_src_abs}/" __src_found)
+
+  if(${__bin_found} EQUAL 0)
+    string(SUBSTRING "${_basepath}" ${__bin_length} -1 __tmp_base_path)
+  elseif(${__src_found} EQUAL 0)
+    string(SUBSTRING "${_basepath}" ${__src_length} -1 __tmp_base_path)
+  endif()
+
+  set(_basepath "./${__tmp_base_path}")
   if(WIN32)
     string(REGEX REPLACE ".:/" "/" _basepath "${_basepath}")
   endif()
 
-  set(_bin_py ${CMAKE_CURRENT_BINARY_DIR}/${_basepath}/${_filename})
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_basepath})
+  get_filename_component(_full_base_path
+    "${PROJECT_BINARY_DIR}/${_basepath}" ABSOLUTE)
+
+  get_filename_component(_bin_py "${_full_base_path}/${_filename}" ABSOLUTE)
+  file(MAKE_DIRECTORY "${_full_base_path}")
   if(PYTHON_MAGIC_TAG)
     # PEP 3147
-    set(_bin_pyc ${CMAKE_CURRENT_BINARY_DIR}/${_basepath}/__pycache__/${_filenamebase}.${PYTHON_MAGIC_TAG}.pyc)
-    # show be fine, just in case
-    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_basepath}/__pycache__)
+    set(_bin_pyc
+      "${_full_base_path}/__pycache__/${_filenamebase}.${PYTHON_MAGIC_TAG}.pyc")
+    # should be fine, just in case
+    file(MAKE_DIRECTORY "${_full_base_path}/__pycache__")
   else()
     # python2
-    set(_bin_pyc ${CMAKE_CURRENT_BINARY_DIR}/${_basepath}/${_filenamebase}.pyc)
+    set(_bin_pyc "${_full_base_path}/${_filenamebase}.pyc")
   endif()
 
   get_filename_component(_abs_bin_py ${_bin_py} ABSOLUTE)
   # Don't copy the file onto itself.
-  if(NOT _abs_bin_py STREQUAL ${_absfilename})
+  if(NOT "${_abs_bin_py}" STREQUAL "${_absfilename}")
     add_custom_command(
       OUTPUT ${_bin_py}
       COMMAND ${CMAKE_COMMAND} -E copy ${_absfilename} ${_bin_py}
