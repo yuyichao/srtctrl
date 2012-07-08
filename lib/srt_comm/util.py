@@ -79,31 +79,3 @@ def ls_dirs(paths='.', regex=None):
     regex = re.compile(regex)
     all_files = [fpath for fpath in all_files if regex.search(fpath)]
     return all_files
-
-def fork_ps(cb, *args):
-    pid = os.fork()
-    # will this ever happen (in python)? Or will it be a exception?.....
-    if pid < 0:
-        return False
-    elif pid:
-        # parent
-        (pid, status) = os.waitpid(pid, 0)
-        if status:
-            return False
-        return True
-    else:
-        # child
-        try:
-            gpid = os.fork()
-        except OSError:
-            os._exit(1)
-        if gpid < 0:
-            os._exit(1)
-        elif gpid:
-            os._exit(0)
-        else:
-            try:
-                cb(*args)
-            except:
-                os._exit(1)
-            os._exit(0)
