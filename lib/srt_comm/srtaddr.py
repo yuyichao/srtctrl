@@ -1,10 +1,7 @@
 # coding=utf-8
 
 from gi.repository import Gio, GLib
-
-def _call_cb(cb, *args):
-    if hasattr(cb, '__call__'):
-        cb(*args)
+from srt_comm import util
 
 def _unix_sock_addr(addr):
     if addr.startswith('\0'):
@@ -18,7 +15,7 @@ def _unix_sock_addr(addr):
 
 def _unix_sock_addr_async(addr, cb, *args):
     addr = _unix_sock_addr(addr)
-    GLib.idle_add(_call_cb, cb, [addr], *args)
+    GLib.idle_add(util.call_cb, cb, [addr], *args)
 
 def _std_inet_addr(addr):
     try:
@@ -54,7 +51,7 @@ def _inet_sock_addrs_cb(resolver, res, args):
     for addr in addrs:
         if addr.get_family() == family:
             res.append(Gio.InetSocketAddress.new(addr, port))
-    _call_cb(cb, res, *args)
+    util.call_cb(cb, res, *args)
 
 def _inet_sock_addrs_async(addr, family, cb, *args):
     host, port = _std_inet_addr(addr)
@@ -75,4 +72,4 @@ def get_sock_addrs_async(addr, family, cb, *args):
     elif family in [Gio.SocketFamily.IPV4, Gio.SocketFamily.IPV6]:
         _inet_sock_addrs_async(addr, family, cb, *args)
     else:
-        GLib.idle_add(_call_cb, cb, [], *args)
+        GLib.idle_add(util.call_cb, cb, [], *args)
