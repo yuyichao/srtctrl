@@ -16,12 +16,12 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, socket, fcntl
-from time import sleep
+from srt_comm import config
 
-from gi.repository import Gio
-from srt_comm import *
-
-class SrtRemote(SrtConn):
-    def __init__(init=config.srt_initializer):
-        pass
+class SrtRegister(object):
+    def __init__(self):
+        self._f_table = {}
+    def get_iface(self, type, name):
+        return self._f_table[type][name]
+    def __getattr__(self, key):
+        if not key
