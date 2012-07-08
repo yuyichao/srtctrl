@@ -79,3 +79,9 @@ def ls_dirs(paths='.', regex=None):
     regex = re.compile(regex)
     all_files = [fpath for fpath in all_files if regex.search(fpath)]
     return all_files
+
+def try_to_int(s):
+    try:
+        return int(s)
+    except ValueError:
+        pass

@@ -16,32 +16,26 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, sys, time
-
-if os.fork():
-    exit()
-
-(port, i) = sys.argv[1:]
-port = int(port)
-_id = int(i)
-
-from gi.repository import GLib
 from srt_comm import *
+
+conn = exec_n_conn('./test_ps_child.py', n=1)[0]
+
+print(conn)
 
 mainloop = GLib.MainLoop()
 
-time.sleep(.5)
-def recv_cb(self, msg, buff):
-    buff['buff'] += msg
-    print(repr(buff['buff']))
-    if 'EXIT' in buff['buff']:
-        print('exit')
-        mainloop.quit()
+def timeout_cb(conn):
+    print('timeout')
+    conn.send('EXIT')
+    return True
 
-conn = SrtConn()
-conn.conn_recv(('localhost', port), None)
-conn.connect('package', recv_cb, {'buff': ''})
+def disconn_cb(conn):
+    print('parent exit.')
+    mainloop.quit()
+
+conn.connect('disconn', disconn_cb)
+conn.start_send()
+GLib.timeout_add_seconds(1, timeout_cb, conn)
+conn.send('EXIT')
 
 mainloop.run()
-
-conn.close()
