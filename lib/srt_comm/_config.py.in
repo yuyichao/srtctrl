@@ -1,0 +1,5 @@
+# coding=utf-8
+
+srt_modules_path = "@SRT_MODULES_PATH@"
+
+srt_initializer = "@SRT_INITIALIZER@"

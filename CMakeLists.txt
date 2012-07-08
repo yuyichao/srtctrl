@@ -17,30 +17,42 @@ endif()
 
 if(NOT DEFINED BIN_INSTALL_DIR)
   set(BIN_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/bin")
-endif(NOT DEFINED BIN_INSTALL_DIR)
+endif()
 
 if(NOT DEFINED LIB_INSTALL_DIR)
   set(LIB_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
-endif(NOT DEFINED LIB_INSTALL_DIR)
+endif()
 
 if(NOT DEFINED PKGCONF_DIR)
   set(PKGCONF_DIR "${LIB_INSTALL_DIR}/pkgconfig")
-endif(NOT DEFINED PKGCONF_DIR)
+endif()
 
 if(NOT DEFINED DATA_INSTALL_DIR)
   set(DATA_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/share/srtctl")
-endif(NOT DEFINED DATA_INSTALL_DIR)
+endif()
 
 if(NOT DEFINED HEADER_INSTALL_DIR)
   set(HEADER_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include")
-endif(NOT DEFINED HEADER_INSTALL_DIR)
+endif()
 
 if(NOT DEFINED CONF_INSTALL_DIR)
   set(CONF_INSTALL_DIR "/etc")
-endif(NOT DEFINED CONF_INSTALL_DIR)
+endif()
 
-set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter ${CMAKE_C_FLAGS}")
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter ${CMAKE_CXX_FLAGS}")
+if(NOT DEFINED SRT_LIB_PATH)
+  set(SRT_LIB_PATH "${LIB_INSTALL_DIR}/srtctrl")
+endif()
+
+if(NOT DEFINED SRT_MODULES_PATH)
+  set(SRT_MODULES_PATH "${SRT_LIB_PATH}/modules")
+endif()
+
+if(NOT DEFINED SRT_INITIALIZER)
+  set(SRT_INITIALIZER "default")
+endif()
+
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wl,--as-needed ${CMAKE_C_FLAGS}")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wl,--as-needed ${CMAKE_CXX_FLAGS}")
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_SHARED_LINKER_FLAGS}")
 set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_MODULE_LINKER_FLAGS}")
 add_subdirectory(client)
