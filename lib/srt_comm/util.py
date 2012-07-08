@@ -17,6 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import inspect as _inspect
+import os, sys
 
 def call_cb(cb, *args):
     if hasattr(cb, '__call__'):
@@ -50,3 +51,16 @@ def execfile(file, globals=None, locals=None):
     if locals is None:
         locals = f.f_locals
     return _execfile(file, globals, locals)
+
+def read_env(name, default=None, append=None):
+    try:
+        value = os.environ[name]
+    except KeyError:
+        return default
+    if default is None:
+        return value
+    if not isinstance(append, str):
+        if not append:
+            return value
+        append = ':'
+    return append.join((value, default))
