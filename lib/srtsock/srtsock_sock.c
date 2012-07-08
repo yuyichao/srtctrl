@@ -218,6 +218,8 @@ srtsock_sock_set_property(GObject *obj, guint prop_id, const GValue *value,
         break;
     case PROP_FD:
         self->priv->fd = g_value_get_int(value);
+        if (self->priv->fd >= 0)
+            srtsock_sock_get_sock(self, NULL);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, prop_id, pspec);

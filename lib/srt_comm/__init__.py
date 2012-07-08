@@ -19,4 +19,8 @@
 from srt_comm.srtaddr import *
 from srt_comm.srtconn import SrtConn
 from srt_comm.jsonstm import get_json
-from srt_comm import util, config
+from srt_comm.ps import *
+from srt_comm.util import *
+from srt_comm import config
+import locale
+locale.setlocale(locale.LC_ALL, '')

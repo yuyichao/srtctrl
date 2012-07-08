@@ -42,7 +42,8 @@ push_thread(gpointer data)
         if (j > 0) {
             printf("%d\n", j);
             j = write(1, c, j);
-            write(1, "\n\n", 2);
+            if (write(1, "\n\n", 2) != 2)
+                printf("write \\n\\n failed....");
             srtsock_buff_pop(buff, j);
             acc += j;
         }

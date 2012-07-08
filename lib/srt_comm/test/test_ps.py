@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
 #
@@ -14,24 +16,26 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-include(CMakeParseArguments)
+from srt_comm import *
 
-get_property(RUN_ALL_ADDED GLOBAL PROPERTY "RUN_ALL_ADDED")
-if(NOT RUN_ALL_ADDED)
-  add_custom_target(run_all)
-endif()
-set_property(GLOBAL PROPERTY "RUN_ALL_ADDED" 1)
+conn = exec_n_conn('./test_ps_child.py', n=1)[0]
 
-function(add_run run_name)
-  set(options)
-  set(oneValueArgs "WORKING_DIRECTORY")
-  set(multiValueArgs "COMMAND")
-  cmake_parse_arguments(ADD_RUN "${options}"
-    "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-  set(args COMMAND ${ADD_RUN_COMMAND})
-  if(ADD_RUN_WORKING_DIRECTORY)
-    set(args ${args} WORKING_DIRECTORY ${ADD_RUN_WORKING_DIRECTORY})
-  endif()
-  add_custom_target(${run_name} ${args})
-  add_dependencies(run_all ${run_name})
-endfunction()
+print(conn)
+
+mainloop = GLib.MainLoop()
+
+def timeout_cb(conn):
+    print('timeout')
+    conn.send('EXIT')
+    return True
+
+def disconn_cb(conn):
+    print('parent exit.')
+    mainloop.quit()
+
+conn.connect('disconn', disconn_cb)
+conn.start_send()
+GLib.timeout_add_seconds(1, timeout_cb, conn)
+conn.send('EXIT')
+
+mainloop.run()

@@ -10,6 +10,7 @@ set(srt_comm_py
   util.py
   "${CMAKE_CURRENT_BINARY_DIR}/_config.py"
   config.py
+  ps.py
   )
 
 python_install_module(srt_comm ${srt_comm_py})

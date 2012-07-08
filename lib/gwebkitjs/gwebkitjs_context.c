@@ -298,12 +298,12 @@ static GWebKitJSContext*
 gwebkitjs_context_init_context(GWebKitJSContext *self,
                                JSGlobalContextRef jsctx)
 {
-    GWebKitJSContextPrivate *priv;
+    GWebKitJSContextPrivate *priv = NULL;
     GWebKitJSContext *res;
     JSValueRef jsvalue;
-    JSObjectRef object;
-    JSObjectRef tostring;
-    gboolean isglobal;
+    JSObjectRef object = NULL;
+    JSObjectRef tostring = NULL;
+    gboolean isglobal = FALSE;
     gwj_return_val_if_false(jsctx, NULL);
     if (!GWEBKITJS_IS_CONTEXT(self)) {
         self = NULL;
