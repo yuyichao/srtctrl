@@ -25,17 +25,17 @@ def disconn_cb(conn):
     if childrenleft <= 0:
         mainloop.quit()
 
-def recv_cb(self, msg, buff):
-    buff['buff'] += msg
-    print(repr(buff['buff']))
-    if 'EXIT' in buff['buff']:
-        print('exit')
-        disconn_cb(self)
+def timeout_cb(conn):
+    print('timeout')
+    conn.send('EXIT')
+    return True
 
 def accept_cb(conn, nconn):
-    nconn.connect('package', recv_cb, {'buff': ''})
+    # nconn.connect('package', recv_cb, {'buff': ''})
     nconn.connect('disconn', disconn_cb)
-    nconn.start_recv()
+    nconn.start_send()
+    GLib.timeout_add_seconds(1, timeout_cb, nconn)
+    nconn.send('EXIT')
 
 def start_mainloop(conn):
     conn.connect('accept', accept_cb)

@@ -65,7 +65,7 @@ class SrtConn(_sock.Sock):
         if not err is None:
             raise err
         return False
-    def _conn_cb(self, res, args):
+    def _conn_cb(self, conn, res, args):
         (addrs, cb, args) = args
         try:
             res = self.conn_finish(res)
@@ -77,7 +77,7 @@ class SrtConn(_sock.Sock):
         self._conn_get_addrs_cb(addrs, cb, args)
     def _conn_get_addrs_cb(self, addrs, cb, *args):
         try:
-            if len(addr) == 0:
+            if len(addrs) == 0:
                 _call_cb(cb, False, *args)
         except TypeError:
             _call_cb(cb, False, *args)

@@ -15,33 +15,17 @@ from srt_comm import *
 mainloop = GLib.MainLoop()
 
 time.sleep(.5)
+def recv_cb(self, msg, buff):
+    buff['buff'] += msg
+    print(repr(buff['buff']))
+    if 'EXIT' in buff['buff']:
+        print('exit')
+        mainloop.quit()
 
 conn = SrtConn()
-conn.conn(('localhost', port))
-conn.send('asdf\n')
-conn.send('asdf\n')
-conn.send('asdf\n')
-conn.send('EXIT')
+conn.conn_recv(('localhost', port), None)
+conn.connect('package', recv_cb, {'buff': ''})
 
-def timeout_cb(conn):
-    print('timeout')
-    conn.send('EXIT')
-    return True
+mainloop.run()
 
-def disconn_cb(conn):
-    print(conn, " Disconnected (child)")
-    mainloop.quit()
-
-def do_send(conn, i):
-    if i % 2:
-        print('sync')
-        conn.wait_send()
-    else:
-        print('async')
-        conn.start_send()
-        conn.connect('disconn', disconn_cb)
-        GLib.timeout_add_seconds(2, timeout_cb, conn)
-        mainloop.run()
-
-do_send(conn, _id)
 conn.close()

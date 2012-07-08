@@ -73,7 +73,8 @@ extern "C" {
                                GError **error);
     gboolean srtsock_sock_conn_async(SrtSockSock *self,
                                      GSocketAddress *addr,
-                                     GAsyncReadyCallback cb, gpointer p);
+                                     GAsyncReadyCallback callback,
+                                     gpointer user_data);
     gboolean srtsock_sock_conn_finish(SrtSockSock *self,
                                       GAsyncResult *result, GError **error);
     GSocketFamily srtsock_sock_get_family(SrtSockSock *self);

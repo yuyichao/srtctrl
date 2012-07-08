@@ -847,18 +847,18 @@ srtsock_sock_conn(SrtSockSock *self, GSocketAddress *addr, GError **error)
  * srtsock_sock_conn_async:
  * @self: (transfer none) (allow-none):
  * @addr: (transfer none) (allow-none):
- * @cb: (scope async):
- * @p: (closure):
+ * @callback: (scope async) (closure user_data):
+ * @user_data: (closure):
  **/
 gboolean
 srtsock_sock_conn_async(SrtSockSock *self, GSocketAddress *addr,
-                        GAsyncReadyCallback cb, gpointer p)
+                        GAsyncReadyCallback callback, gpointer user_data)
 {
     GSocketConnection *conn;
     g_return_val_if_fail(SRTSOCK_IS_SOCK(self), FALSE);
     conn = srtsock_sock_get_connection(self);
     g_return_val_if_fail(conn, FALSE);
-    g_socket_connection_connect_async(conn, addr, NULL, cb, p);
+    g_socket_connection_connect_async(conn, addr, NULL, callback, user_data);
     return TRUE;
 }
 
