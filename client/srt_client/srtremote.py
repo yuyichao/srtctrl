@@ -20,6 +20,7 @@ import os, socket, fcntl
 from time import sleep
 
 from srt_comm import *
+from gi.repository import GObject
 
 class SrtRemote(SrtConn):
     __gsignals__ = {

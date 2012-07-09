@@ -99,8 +99,8 @@ def conn_pair_n(n=1, domain=socket.AF_UNIX, type=socket.SOCK_STREAM, protocol=0,
         pairs += [conn_pair(domain, type, protocol, gtype)]
     return tuple(zip(*pairs))
 
-def exec_n_conn(fname, n=1, args=None):
-    pconn, cconn = conn_pair_n(n=n)
+def exec_n_conn(fname, n=1, args=None, gtype=SrtConn):
+    pconn, cconn = conn_pair_n(n=n, gtype=gtype)
     for conn in pconn:
         flags = fcntl.fcntl(conn.props.fd, fcntl.F_GETFD)
         fcntl.fcntl(conn.props.fd, fcntl.F_SETFD, flags | fcntl.FD_CLOEXEC)

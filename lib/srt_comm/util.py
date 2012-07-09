@@ -25,6 +25,8 @@ def call_cb(cb, *args):
 
 def get_line(string, start=0):
     l = len(string)
+    if not l:
+        return ('', '', '')
     start = start % l
     i = start
     while i < l and string[i] == True:

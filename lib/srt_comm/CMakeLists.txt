@@ -13,6 +13,7 @@ set(srt_comm_py
   ps.py
   module.py
   error.py
+  jsonsock.py
   )
 
 python_install_module(srt_comm ${srt_comm_py})

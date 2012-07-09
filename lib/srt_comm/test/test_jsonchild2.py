@@ -1,4 +1,4 @@
-# coding=utf-8
+#!/usr/bin/env python
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,14 +16,31 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm.srtaddr import *
-from srt_comm.srtconn import SrtConn
-from srt_comm.jsonsock import JSONSock
-from srt_comm.jsonstm import get_json
-from srt_comm.ps import *
-from srt_comm.util import *
-from srt_comm import config
-from srt_comm.module import *
-from srt_comm.error import *
-import locale
-locale.setlocale(locale.LC_ALL, '')
+import os, sys, time
+
+if os.fork():
+    exit()
+
+(port, i) = sys.argv[1:]
+port = int(port)
+_id = int(i)
+
+from gi.repository import GLib
+from srt_comm import *
+
+mainloop = GLib.MainLoop()
+
+time.sleep(.5)
+def recv_cb(self, msg):
+    print(repr(msg))
+    if 'EXIT' == msg['type']:
+        print('exit')
+        mainloop.quit()
+
+conn = JSONSock()
+conn.conn_recv(('localhost', port), None)
+conn.connect('got-obj', recv_cb)
+
+mainloop.run()
+
+conn.close()
