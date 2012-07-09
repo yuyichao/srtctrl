@@ -22,7 +22,33 @@ from time import sleep
 from srt_comm import *
 
 class SrtRemote(SrtConn):
-    def __init__(self, init=config.srt_initializer):
+    def __init__(self):
         super.__init__()
+        self._dispatch = None
+        self._name = None
         self._plugins = SrtPlugins()
+    def _conn():
+        pass
+    def init(self, addr, init=config.srt_initializer):
+        self.conn_send()
         self._init = self._plugins.initializer[init](self)
+    def set_dispatch(self, dispatch):
+        self._dispatch = dispatch
+    def _do_dispatch(self, buff):
+        try:
+            return self._dispatch(buff)
+        except:
+            return super()._do_dispatch(buff)
+    def set_name(self, name):
+        if not self._name is None:
+            raise AttributeError('name is already set')
+        self._name = name
+        if name is None:
+            # error signal here
+            return
+        try:
+            self._protocol = self._plugins.protocol[name](self)
+        except:
+            # error signal here
+            return
+        # initialized signal here
