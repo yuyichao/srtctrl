@@ -19,9 +19,9 @@
 import os, socket, fcntl
 from time import sleep
 
-from gi.repository import Gio
 from srt_comm import *
 
 class SrtRemote(SrtConn):
     def __init__(init=config.srt_initializer):
-        pass
+        super.__init__()
+        self._plugins = SrtPlugins()

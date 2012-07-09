@@ -51,7 +51,6 @@ class SrtPlugins:
         return True
     def _get_iface(self, key, name):
         while not (key in self._ftable and name in self._ftable[key]):
-            print(self._ftable)
             if not self._load_next():
                 break
         try:

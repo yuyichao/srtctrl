@@ -3,7 +3,7 @@ set(srt_client_py
   srtantn.py
   srtbase.py
   srtconf.py
-  srtconn.py
+  srtremote.py
   srtpara.py
   srtsrc.py
   )
