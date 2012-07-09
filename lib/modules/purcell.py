@@ -93,7 +93,16 @@ class Purcell:
                              "edge": direct})
             return
         elif seq[0] == '128':
-            pass
+            if len(seq) < 66:
+                remote.unknown(pkg)
+                return
+            try:
+                data = [int(p) for p in pkg[1:65]]
+            except ValueError:
+                remote.unknown(pkg)
+                return
+            remote.feed_obj({"type": "radio", "data": data})
+            return
         else:
             remote.unknown(pkg)
             return
