@@ -27,11 +27,16 @@ class SrtRemote(SrtConn):
         self._dispatch = None
         self._name = None
         self._plugins = SrtPlugins()
-    def _conn():
-        pass
-    def init(self, addr, init=config.srt_initializer):
-        self.conn_send()
+    def _conn_cb(self, success, init):
+        if not success:
+            # error signal
+            return
+        if not self.start_send():
+            # error signal
+            return
         self._init = self._plugins.initializer[init](self)
+    def init(self, addr, init=config.srt_initializer):
+        self.conn_recv(addr, self._conn_cb, init)
     def set_dispatch(self, dispatch):
         self._dispatch = dispatch
     def _do_dispatch(self, buff):
