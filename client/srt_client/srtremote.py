@@ -22,6 +22,7 @@ from time import sleep
 from srt_comm import *
 
 class SrtRemote(SrtConn):
-    def __init__(init=config.srt_initializer):
+    def __init__(self, init=config.srt_initializer):
         super.__init__()
         self._plugins = SrtPlugins()
+        self._init = self._plugins.initializer[init](self)
