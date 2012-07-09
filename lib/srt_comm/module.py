@@ -66,3 +66,5 @@ class SrtPlugins:
         # def _setter(key2, value):
         #     self.__setter__(key1, key2, value)
         return new_wrapper(_getter, None)
+    def __getitem__(self, key):
+        return self.__getattr__(key)

@@ -105,6 +105,10 @@ def new_wrapper(getter, setter):
             if key.startswith('_') or not hasattr(setter, '__call__'):
                 raise AttributeError("Attribute %s is read-only" % key)
             setter(key, value)
+        def __getitem__(self, key):
+            return self.__getattr__(key)
+        def __setitem__(self, key, value):
+            self.__setattr__(key, value)
     return _wrapper()
 
 def new_wrapper2(getter, setter):
