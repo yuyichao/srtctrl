@@ -16,27 +16,44 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm import config
+from srt_comm import *
 
-def new_wrapper(getter, setter):
-    class _wrapper(object):
-        def __getattr__(self, key):
-            if key.startswith('_'):
-                raise AttributeError("Attribute %s not found" % key)
-            return getter(key)
-        def __setattr__(self, key, value):
-            if key.startswith('_'):
-                raise AttributeError("Attribute %s is read-only" % key)
-            setter(key, value)
-    return _wrapper()
-
-def new_wrapper2(getter, setter):
-    def _getter(key1):
-        def __getter(key2):
-            return getter(key1, key2)
-        def __setter(key2, value):
-            setter(key1, key2, value)
-        return new_wrapper(__getter, __setter)
-    def _setter(key1, value):
-        raise AttributeError("Attribute %s is read-only" % key2)
-    return new_wrapper(_getter, _setter)
+class SrtPlugins:
+    def __init__(self, path=config.srt_modules_path):
+        paths = path.split(':')
+        self._ftable = {}
+        self._files = ls_dirs(paths=paths, regex='\\.py$')
+        self._loaded_index = -1
+        self._wrapper = new_wrapper2(self.__getter__, self.__setter__)
+    def __getter__(self, key1, key2):
+        iface = self.get_iface(key1, key2)
+        if iface is None:
+            raise AttributeError("Interface %s of type %s not found" %
+                                 (key1, key2))
+        return iface
+    def __setter__(self, key1, key2, value):
+        if not key1 in self._ftable:
+            self._ftable[key1] = {}
+        if not key2 in self._ftable[key1]:
+            self._ftable[key1][key2] = value
+        else:
+            raise AttributeError("Interface %s of type %s cannot be overloaded" %
+                                 (key1, key2))
+    def _load_next(self):
+        self._loaded_index += 1
+        if self._loaded_index >= len(self._files):
+            return False
+        fname = self._files[self._loaded_index]
+        try:
+            execfile(fname, {}, {'reg': self._wrapper})
+        except:
+            pass
+        return True
+    def get_iface(self, key, name):
+        while not (key in self._ftable and name in self._ftable[key]):
+            if not self._load_next():
+                break
+        try:
+            return self._ftable[key][name]
+        except KeyError:
+            return

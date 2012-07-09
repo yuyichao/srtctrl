@@ -94,3 +94,26 @@ def try_to_int(s):
         return int(s)
     except ValueError:
         pass
+
+def new_wrapper(getter, setter):
+    class _wrapper:
+        def __getattr__(self, key):
+            if key.startswith('_'):
+                raise AttributeError("Attribute %s not found" % key)
+            return getter(key)
+        def __setattr__(self, key, value):
+            if key.startswith('_'):
+                raise AttributeError("Attribute %s is read-only" % key)
+            setter(key, value)
+    return _wrapper()
+
+def new_wrapper2(getter, setter):
+    def _getter(key1):
+        def __getter(key2):
+            return getter(key1, key2)
+        def __setter(key2, value):
+            setter(key1, key2, value)
+        return new_wrapper(__getter, __setter)
+    def _setter(key1, value):
+        raise AttributeError("Attribute %s is read-only" % key2)
+    return new_wrapper(_getter, _setter)
