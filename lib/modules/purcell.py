@@ -20,8 +20,9 @@ class Purcell:
     def __init__(self, remote):
         self._remote = remote
         self._remote.set_dispatch(iface.dispatch.get_line)
-        self._remote.connect('package', self._pkg_cb)
-    def _pkg_cb(self, remote, pkg):
+        self._remote.connect('package', self._package_cb)
+        self._remote.connect('request', self._request_cb)
+    def _package_cb(self, remote, pkg):
         seq = pkg.split()
         if not seq:
             return
@@ -105,6 +106,47 @@ class Purcell:
             return
         else:
             remote.unknown(pkg)
+            return
+    def _request_cb(self, obj):
+        try:
+            reqtype = obj['type']
+        except:
+            remote.unknown_req(obj)
+        if reqtype == 'move':
+            try:
+                direct = int(obj['direct'])
+                count = int(obj['count'])
+            except:
+                remote.unknown_req(obj)
+                return
+            if (not 0 <= direct <= 3) or count <= 0:
+                remote.unknown_req(obj)
+                return
+            remote.send('move %d %d\n' % (direct, count))
+            return
+        elif reqtype == 'source':
+            try:
+                on = bool(obj['on'])
+            except:
+                remote.unknown_req(obj)
+                return
+            direct = 7 if on else 6
+            remote.send('move %d %d\n' % (direct, 0))
+            return
+        elif reqtype == 'radio':
+            try:
+                freq = int(obj['freq'])
+                mode = int(obj['mode'])
+            except:
+                remote.unknown_req(obj)
+                return
+            if (not 1 <= mode <= 3) or freq <= 0:
+                remote.unknown_req(obj)
+                return
+            remote.send('radio %d %d\n' % (freq, mode))
+            return
+        else:
+            remote.unknown_req(obj)
             return
 
 iface.protocol.purcell = Purcell

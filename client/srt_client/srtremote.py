@@ -35,6 +35,9 @@ class SrtRemote(SrtConn):
         "got-obj": (GObject.SignalFlags.RUN_FIRST,
                     GObject.TYPE_NONE,
                     (GObject.TYPE_PYOBJECT,)),
+        "request": (GObject.SignalFlags.RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT,)),
     }
     def __init__(self):
         super.__init__()
@@ -81,6 +84,11 @@ class SrtRemote(SrtConn):
         self.emit('error', SRTERR_BUSY, 'remote server busy')
     def unknown(self, reply=''):
         self.emit('error', SRTERR_UNKOWN_REPLY,
-                  'unknown reply %s from server' % reply)
+                  'unknown reply %s from server' % str(reply))
+    def unknown_req(self, req=''):
+        self.emit('error', SRTERR_UNKOWN_CMD,
+                  'unknown command %s from user' % str(req))
     def ready(self):
         self.emit('ready')
+    def request(self, obj):
+        self.emit('request', obj)
