@@ -22,19 +22,32 @@ from time import sleep
 from srt_comm import *
 
 class SrtRemote(SrtConn):
+    __gsignals__ = {
+        "error": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_INT, GObject.TYPE_STRING)),
+        "initialized": (GObject.SignalFlags.RUN_FIRST,
+                        GObject.TYPE_NONE,
+                        (GObject.TYPE_STRING,)),
+        "got-obj": (GObject.SignalFlags.RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT,)),
+    }
     def __init__(self):
         super.__init__()
         self._dispatch = None
         self._name = None
         self._plugins = SrtPlugins()
+    def _disconn_cb(self):
+        self.emit('error', SRTERR_CONN, 'disconnected')
     def _conn_cb(self, success, init):
         if not success:
-            # error signal
+            self.emit('error', SRTERR_CONN, 'cannot connect')
             return
         if not self.start_send():
-            # error signal
+            self.emit('error', SRTERR_CONN, 'cannot send')
             return
-        self._init = self._plugins.initializer[init](self)
+        self._plugins.initializer[init](self)
     def init(self, addr, init=config.srt_initializer):
         self.conn_recv(addr, self._conn_cb, init)
     def set_dispatch(self, dispatch):
@@ -49,11 +62,17 @@ class SrtRemote(SrtConn):
             raise AttributeError('name is already set')
         self._name = name
         if name is None:
-            # error signal here
+            self.emit('error', SRTERR_PLUGIN, 'cannot decide type '
+                      'of remote server')
             return
         try:
             self._protocol = self._plugins.protocol[name](self)
         except:
-            # error signal here
+            self.emit('error', SRTERR_PLUGIN, 'protocol [%s] cannot be loaded' %
+                      name)
             return
-        # initialized signal here
+        self.emit('initialized', name)
+    def feed_obj(self, obj):
+        self.emit('got-obj', obj)
+    def busy(self):
+        self.emit('error', SRTERR_BUSY, 'remote server busy')

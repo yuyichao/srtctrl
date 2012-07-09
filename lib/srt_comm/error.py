@@ -16,13 +16,12 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm.srtaddr import *
-from srt_comm.srtconn import SrtConn
-from srt_comm.jsonstm import get_json
-from srt_comm.ps import *
-from srt_comm.util import *
-from srt_comm import config
-from srt_comm.module import *
-from srt_comm.error import *
-import locale
-locale.setlocale(locale.LC_ALL, '')
+(SRTERR_CONN, # connection lost or other connection errors
+ SRTERR_BUSY, # resources busy
+ SRTERR_PLUGIN, # plugin of required type/name cannot been found
+ SRTERR_UNKNOWN_REPLY, # unkown reply from remote server
+ SRTERR_UNKNOWN_CMD, # unknown command from user
+ SRTERR_GENERIC_REMOTE, # generic remote error
+ SRTERR_GENERIC_LOCAL, # generic local error
+ SRTERR_LAST,
+ *_SRTERR_EXTRAS) = range(100)
