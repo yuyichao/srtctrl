@@ -30,20 +30,20 @@ gpointer
 push_thread(gpointer data)
 {
     SrtSockBuff *buff;
-    gchar *c;
+    /* gchar *c; */
     guint n;
     int j;
     int acc = 0;
     buff = data;
     while (TRUE) {
-        c = srtsock_buff_get(buff, &n);
+        /* c = srtsock_buff_get(buff, &n); */
+        srtsock_buff_get(buff, &n);
         j = rand() % (n > 98 ? 100 : (n + 2));
         j = j > n ? n : j;
         if (j > 0) {
-            printf("%d\n", j);
-            j = write(1, c, j);
-            if (write(1, "\n\n", 2) != 2)
-                printf("write \\n\\n failed....");
+            /* printf("%d\n", j); */
+            /* j = write(1, c, j); */
+            /* printf("\n\n"); */
             srtsock_buff_pop(buff, j);
             acc += j;
         }

@@ -21,7 +21,7 @@ from gi.repository import GLib
 import os
 
 n_children = 5
-port = 15001
+port = 15002
 
 childrenleft = n_children
 disconnected = {}

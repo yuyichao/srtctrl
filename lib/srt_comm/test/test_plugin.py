@@ -1,4 +1,4 @@
-# coding=utf-8
+#!/usr/bin/env python
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,12 +16,11 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, socket, fcntl
-from time import sleep
-
-from gi.repository import Gio
 from srt_comm import *
 
-class SrtRemote(SrtConn):
-    def __init__(init=config.srt_initializer):
-        pass
+plugins = SrtPlugins()
+print(plugins._files)
+print('plugin created')
+print(plugins.test.func1())
+print(plugins.test.func2(4))
+print(plugins.test2.func3())

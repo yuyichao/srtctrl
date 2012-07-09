@@ -18,7 +18,7 @@ from gi.repository import GWebKitJS as _gwkjs, GObject, WebKit
 
 from pywkjs.general import *
 
-class Helper(GObject.GObject):
+class Helper(GObject.Object):
     __gsignals__ = {
         "window-object-cleared": (GObject.SignalFlags.RUN_FIRST,
                                   GObject.TYPE_NONE,

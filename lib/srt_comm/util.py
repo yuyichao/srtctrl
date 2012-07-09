@@ -69,10 +69,19 @@ def ls_dirs(paths='.', regex=None):
     if isinstance(paths, str):
         paths = [paths]
     else:
-        paths = list({('.' if p == '' else p) for p in paths})
+        _paths = []
+        for p in paths:
+            if p == '':
+                p = '.'
+            if not p in _paths:
+                _paths.append(p)
+        paths = _paths
     all_files = []
     for path in paths:
-        all_files += ["%s/%s" % (path, fname) for fname in os.listdir(path)]
+        try:
+            all_files += ["%s/%s" % (path, fname) for fname in os.listdir(path)]
+        except OSError:
+            pass
     all_files = [fpath for fpath in all_files if os.path.isfile(fpath)]
     if regex is None:
         return all_files
@@ -85,3 +94,28 @@ def try_to_int(s):
         return int(s)
     except ValueError:
         pass
+
+def new_wrapper(getter, setter):
+    class _wrapper:
+        def __getattr__(self, key):
+            if key.startswith('_') or not hasattr(getter, '__call__'):
+                raise AttributeError("Attribute %s not found" % key)
+            return getter(key)
+        def __setattr__(self, key, value):
+            if key.startswith('_') or not hasattr(setter, '__call__'):
+                raise AttributeError("Attribute %s is read-only" % key)
+            setter(key, value)
+    return _wrapper()
+
+def new_wrapper2(getter, setter):
+    def _getter(key1):
+        def __getter(key2):
+            if not hasattr(getter, '__call__'):
+                raise AttributeError("Attribute %s not found" % key2)
+            return getter(key1, key2)
+        def __setter(key2, value):
+            if not hasattr(setter, '__call__'):
+                raise AttributeError("Attribute %s is read-only" % key2)
+            setter(key1, key2, value)
+        return new_wrapper(__getter, __setter)
+    return new_wrapper(_getter, None)

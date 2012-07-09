@@ -22,5 +22,6 @@ from srt_comm.jsonstm import get_json
 from srt_comm.ps import *
 from srt_comm.util import *
 from srt_comm import config
+from srt_comm.module import *
 import locale
 locale.setlocale(locale.LC_ALL, '')
