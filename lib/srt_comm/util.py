@@ -98,11 +98,11 @@ def try_to_int(s):
 def new_wrapper(getter, setter):
     class _wrapper:
         def __getattr__(self, key):
-            if key.startswith('_'):
+            if key.startswith('_') or not hasattr(getter, '__call__'):
                 raise AttributeError("Attribute %s not found" % key)
             return getter(key)
         def __setattr__(self, key, value):
-            if key.startswith('_'):
+            if key.startswith('_') or not hasattr(setter, '__call__'):
                 raise AttributeError("Attribute %s is read-only" % key)
             setter(key, value)
     return _wrapper()
@@ -110,10 +110,12 @@ def new_wrapper(getter, setter):
 def new_wrapper2(getter, setter):
     def _getter(key1):
         def __getter(key2):
+            if not hasattr(getter, '__call__'):
+                raise AttributeError("Attribute %s not found" % key2)
             return getter(key1, key2)
         def __setter(key2, value):
+            if not hasattr(setter, '__call__'):
+                raise AttributeError("Attribute %s is read-only" % key2)
             setter(key1, key2, value)
         return new_wrapper(__getter, __setter)
-    def _setter(key1, value):
-        raise AttributeError("Attribute %s is read-only" % key2)
-    return new_wrapper(_getter, _setter)
+    return new_wrapper(_getter, None)

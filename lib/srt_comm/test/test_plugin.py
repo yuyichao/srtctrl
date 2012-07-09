@@ -18,37 +18,9 @@
 
 from srt_comm import *
 
-def new_dict_wrapper():
-    d = {}
-    def getter(key1, key2):
-        return d[key1][key2]
-    def setter(key1, key2, value):
-        if not key1 in d:
-            d[key1] = {}
-        d[key1][key2] = value
-    def p():
-        print(d)
-    return p, new_wrapper2(getter, setter)
-
-p, obj = new_dict_wrapper()
-p2, obj2 = new_dict_wrapper()
-
-p()
-p2()
-obj.a.b = 1
-obj.c.e = 3
-obj.a.j = "asdf"
-obj.c.ll = [1, 2]
-obj.k.a = None
-obj.lll.s = "m"
-obj.lll.s = 1234
-
-obj2.a.b = 188
-obj2.c.d = 3412
-obj2.a.j = "aslllllllll"
-obj2.c.ll = [1, 2, 4]
-obj2.k.a = {}
-obj2.lll.s = "mkkk"
-p()
-p2()
-print(obj.lll.s)
+plugins = SrtPlugins()
+print(plugins._files)
+print('plugin created')
+print(plugins.test.func1())
+print(plugins.test.func2(4))
+print(plugins.test2.func3())

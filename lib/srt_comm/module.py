@@ -26,7 +26,7 @@ class SrtPlugins:
         self._loaded_index = -1
         self._wrapper = new_wrapper2(self.__getter__, self.__setter__)
     def __getter__(self, key1, key2):
-        iface = self.get_iface(key1, key2)
+        iface = self._get_iface(key1, key2)
         if iface is None:
             raise AttributeError("Interface %s of type %s not found" %
                                  (key1, key2))
@@ -45,15 +45,25 @@ class SrtPlugins:
             return False
         fname = self._files[self._loaded_index]
         try:
-            execfile(fname, {}, {'reg': self._wrapper})
+            execfile(fname, {'iface': self._wrapper}, {'iface': self._wrapper})
         except:
             pass
         return True
-    def get_iface(self, key, name):
+    def _get_iface(self, key, name):
         while not (key in self._ftable and name in self._ftable[key]):
+            print(self._ftable)
             if not self._load_next():
                 break
         try:
             return self._ftable[key][name]
         except KeyError:
             return
+    def __getattr__(self, key1):
+        if key1.startswith('_'):
+            raise AttributeError("Attribute %s not found" % key)
+        def _getter(key2):
+            return self.__getter__(key1, key2)
+        # disable setting iface from host for now.
+        # def _setter(key2, value):
+        #     self.__setter__(key1, key2, value)
+        return new_wrapper(_getter, None)
