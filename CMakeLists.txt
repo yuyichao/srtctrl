@@ -9,10 +9,33 @@ include(CheckAll)
 include(GObjectIntrospection)
 include(AddRun)
 
-option(ENABLE_TEST "Test build" OFF)
+option(ENABLE_TEST "Test build" Off)
+
+option(ENABLE_FRONT "Frontends" On)
+option(ENABLE_BACK "Beckend" On)
+
+option(ENABLE_FRONT_WEBKITGTK3 "GWebKitJS library for webkitgtk-3 frontend" On)
+
+# This two will automatically be enabled if parts relying on it is enabled
+option(ENABLE_GWEBKITJS "GWebKitJS library for webkitgtk-3 frontend" Off)
+option(ENABLE_SRTSOCK "Srtsock library for communication in backend" Off)
+option(ENABLE_SRTCOMM "General python modules for backend" Off)
 
 if(ENABLE_TEST)
   enable_testing()
+endif()
+
+if(NOT ENABLE_FRONT)
+  set(ENABLE_FRONT_WEBKITGTK3 Off)
+endif()
+
+if(ENABLE_FRONT_WEBKITGTK3)
+  set(ENABLE_GWEBKITJS On)
+endif()
+
+if(ENABLE_BACK)
+  set(ENABLE_SRTSOCK On)
+  set(ENABLE_SRTCOMM On)
 endif()
 
 if(NOT DEFINED BIN_INSTALL_DIR)
@@ -63,6 +86,13 @@ set(CMAKE_C_FLAGS "-g -pipe -Wall -Wextra -Wno-sign-compare -Wno-unused-paramete
 set(CMAKE_CXX_FLAGS "-g -pipe -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wl,--as-needed ${CMAKE_CXX_FLAGS}")
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_SHARED_LINKER_FLAGS}")
 set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_MODULE_LINKER_FLAGS}")
-add_subdirectory(client)
+
+if(ENABLE_BACK)
+  add_subdirectory(client)
+endif()
+
 add_subdirectory(lib)
-add_subdirectory(front)
+
+if(ENABLE_FRONT)
+  add_subdirectory(front)
+endif()
