@@ -16,13 +16,14 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-class Zwichy:
+class Zwicky:
     def __init__(self, remote):
         self._remote = remote
-        self._remote.set_dispatch(iface.dispatch.get_line)
+        self._remote.set_dispatch(iface.dispatch.line)
         self._remote.connect('package', self._package_cb)
         self._remote.connect('request', self._request_cb)
     def _package_cb(self, remote, pkg):
+        print(repr(pkg))
         seq = pkg.split()
         if not seq:
             return
@@ -33,6 +34,7 @@ class Zwichy:
             remote.busy()
             return
         elif seq[0] == 'MAYBE':
+            print("maybe")
             remote.send('RUBUSY?\n')
             return
         elif seq[0] == 'BEEP':
@@ -153,4 +155,4 @@ class Zwichy:
             remote.unknown_req(obj)
             return
 
-iface.protocol.zwichy = Zwichy
+iface.protocol.zwicky = Zwicky

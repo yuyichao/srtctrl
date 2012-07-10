@@ -20,6 +20,8 @@ from srt_comm import *
 
 def dispatch_line(buff):
     (extra, pkg, left) = get_line(buff)
+    # TODO fix get_line
+    print((extra, pkg, left))
     return (pkg, left)
 
 iface.dispatch.line = dispatch_line

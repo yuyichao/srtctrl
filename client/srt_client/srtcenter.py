@@ -107,12 +107,13 @@ class SrtCenter(GObject.Object):
             self._quit()
     def _remote_init_cb(self, remote, name):
         self._helper.send({"type": "init", "name": name})
-        self.emit(init, name)
+        self.emit('init', name)
     def _remote_ready_cb(self, remote):
         self._helper.send({"type": "ready"})
     def _remote_quit_cb(self, remote):
         self._quit()
     def _remote_got_obj_cb(self, remote, obj):
+        print(obj)
         self._helper.send({"type": "remote", "obj": obj})
 
     def _quit(self):
@@ -138,7 +139,7 @@ class SrtCenter(GObject.Object):
         port = int(self._config.generic.port)
         init = None
         try:
-            init = str(self._config.initializer)
+            init = str(self._config.generic.initializer)
         except:
             pass
         if init is None:

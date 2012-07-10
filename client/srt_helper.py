@@ -18,6 +18,11 @@
 
 from srt_comm import *
 
+# _exit = exit
+# def exit():
+#     print('exit')
+#     _exit()
+
 class SrtHelper:
     def __init__(self, sock):
         self._sock = sock
@@ -92,6 +97,7 @@ def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
     helper._start()
+    print('exit')
 
 if __name__ == '__main__':
     main()

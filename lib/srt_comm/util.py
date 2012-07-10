@@ -23,6 +23,12 @@ def call_cb(cb, *args):
     if hasattr(cb, '__call__'):
         cb(*args)
 
+def call_catch(cb, *args):
+    try:
+        call_cb(cb, *args)
+    except:
+        return
+
 def get_line(string, start=0):
     l = len(string)
     if not l:

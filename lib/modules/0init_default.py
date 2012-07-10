@@ -20,20 +20,20 @@ class DefaultInit:
     def __init__(self, remote):
         self._remote = remote
         self._remote.set_dispatch(self._dispatch)
-        self.send('RUBUSY?\n')
+        self._remote.send('RUBUSY?\n')
     def _dispatch(self, buff):
         buff = buff.lstrip()
         if not buff:
             return ('', '')
         if buff[0].isalpha():
-            self._remote.set_dispatch(iface.dispatch.get_line)
+            self._remote.set_dispatch(iface.dispatch.line)
             self._remote.set_name('zwicky')
-            return iface.dispatch.get_line(buff)
+            return iface.dispatch.line(buff)
         if buff[0] in '([{':
-            pkg, left = iface.dispatch.get_json(buff)
+            pkg, left = iface.dispatch.json(buff)
             if not pkg:
                 return pkg, left
-            self._remote.set_dispatch(iface.dispatch.get_json)
+            self._remote.set_dispatch(iface.dispatch.json)
             import json
             try:
                 obj = json.loads(pkg)
