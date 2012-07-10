@@ -77,6 +77,7 @@ class SrtCenter(GObject.Object):
         self._quit()
     def _remote_got_obj_cb(self, remote, obj):
         self._helper.send({"type": "remote", "obj": obj})
+
     def _quit(self):
         self.emit('quit')
         self._remote.wait_send()
@@ -88,7 +89,7 @@ class SrtCenter(GObject.Object):
         # shutdown here?
     def do_error(self, errno, msg):
         # TODO add srthost
-        self._helper.send({"type": "quit", "errno": errno, "msg": msg})
+        self._helper.send({"type": "error", "errno": errno, "msg": msg})
     def run(self):
         host = str(self._config.host)
         port = int(self._config.port)
