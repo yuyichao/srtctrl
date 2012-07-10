@@ -53,13 +53,13 @@ class SrtConn(_sock.Sock):
         return (buff, '')
     def recv(self):
         while True:
+            package, self._buffer = self._do_dispatch(self._buffer)
+            if len(package):
+                return package
             newbuf = super().recv(65536)
             if not newbuf:
                 return
             self._buffer += newbuf.decode('utf-8')
-            package, self._buffer = self._do_dispatch(self._buffer)
-            if len(package):
-                return package
     def send(self, buff):
         try:
             buff = buff.encode('utf-8')

@@ -52,7 +52,8 @@ class SrtHelper:
                     continue
                 try:
                     self._plugins.helper[name](self)
-                except:
+                except Exception as err:
+                    # print(err)
                     self._send({"type": "error", "errno": SRTERR_PLUGIN,
                                 "msg": "error running helper [%s]" % name})
                 return
@@ -82,8 +83,9 @@ class SrtHelper:
             if pkgtype is None:
                 continue
             elif pkgtype == "init":
-                self._send({"type": "error", "errno": SRTERR_GENERIC_LOCAL,
-                            "msg": "trying to init helper multiple times"})
+                # self._send({"type": "error", "errno": SRTERR_GENERIC_LOCAL,
+                #             "msg": "trying to init helper multiple times"})
+                continue
             elif pkgtype == "quit":
                 exit()
             elif pkgtype == "error":

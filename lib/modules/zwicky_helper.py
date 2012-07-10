@@ -90,13 +90,14 @@ class ZwickyHelper:
     def run(self):
         self.wait_ready()
         self.reset()
-        self.send_ready()
+        self._helper.send_ready()
         while True:
-            sid, obj = recv_slave()
+            sid, obj = self.recv_slave()
             # do real work here...
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
     zwicky.run()
+    print("exit")
 
 iface.helper.zwicky = StartZwicky

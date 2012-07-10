@@ -16,14 +16,18 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from gi.repository import GLib
+
 class Zwicky:
     def __init__(self, remote):
         self._remote = remote
         self._remote.set_dispatch(iface.dispatch.line)
         self._remote.connect('package', self._package_cb)
         self._remote.connect('request', self._request_cb)
+    def _reask_busy(self):
+        self._remote.send('RUBUSY?\n')
+        return False
     def _package_cb(self, remote, pkg):
-        print(repr(pkg))
         seq = pkg.split()
         if not seq:
             return
@@ -34,8 +38,7 @@ class Zwicky:
             remote.busy()
             return
         elif seq[0] == 'MAYBE':
-            print("maybe")
-            remote.send('RUBUSY?\n')
+            remote.reconnect()
             return
         elif seq[0] == 'BEEP':
             if len(seq) < 2:
@@ -65,9 +68,9 @@ class Zwicky:
             if len(seq) < 4:
                 remote.unknown(pkg)
                 return
-            (count, over, direct) == seq[1:4]
+            (count, over, direct) = seq[1:4]
             try:
-                count = int(count) + int(over)
+                rcount = int(count) + int(over)
             except ValueError:
                 remote.unknown(pkg)
                 return
@@ -75,16 +78,16 @@ class Zwicky:
                 remote.unknown(pkg)
                 return
             direct = int(direct)
-            remote.feed_obj({"type": "move", "direct": direct, "count": count,
+            remote.feed_obj({"type": "move", "direct": direct, "count": rcount,
                              "edge": -1})
             return
         elif seq[0] == 'T':
             if len(seq) < 4:
                 remote.unknown(pkg)
                 return
-            (count, over, origin) == seq[1:4]
+            (count, direct, origin) = seq[1:4]
             try:
-                count = int(count)
+                rcount = int(count)
             except ValueError:
                 remote.unknown(pkg)
                 return
@@ -92,7 +95,7 @@ class Zwicky:
                 remote.unknown(pkg)
                 return
             direct = int(direct)
-            remote.feed_obj({"type": "move", "direct": direct, "count": count,
+            remote.feed_obj({"type": "move", "direct": direct, "count": rcount,
                              "edge": direct})
             return
         elif seq[0] == '128':
@@ -109,7 +112,7 @@ class Zwicky:
         else:
             remote.unknown(pkg)
             return
-    def _request_cb(self, obj):
+    def _request_cb(self, remote, obj):
         try:
             reqtype = obj['type']
         except:
@@ -148,8 +151,7 @@ class Zwicky:
             remote.send('radio %d %d  \n' % (freq, mode))
             return
         elif reqtype == 'quit':
-            remote.send('bye. \n' % (freq, mode))
-            remote.quit()
+            remote.send('bye. \n')
             return
         else:
             remote.unknown_req(obj)

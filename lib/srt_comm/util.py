@@ -35,7 +35,7 @@ def get_line(string, start=0):
         return ('', '', '')
     start = start % l
     i = start
-    while i < l and string[i] == True:
+    while i < l and string[i].isspace():
         i += 1
     if i >= l:
         return (string[start:l], '', '')
