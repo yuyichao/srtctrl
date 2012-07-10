@@ -1,4 +1,4 @@
-# coding=utf-8
+#!/usr/bin/env python
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,4 +16,11 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_client.srtcenter import SrtCenter
+from srt_client import *
+
+def main():
+    srtcenter = SrtCenter()
+    srtcenter.run()
+
+if __name__ == '__main__':
+    main()

@@ -19,6 +19,8 @@
 from srt_comm import *
 from srt_comm import config as glob_conf
 from gi.repository import GObject, GLib
+from srt_client.srtconf import *
+from srt_client.srtremote import *
 
 class SrtCenter(GObject.Object):
     __gsignals__ = {
@@ -37,7 +39,7 @@ class SrtCenter(GObject.Object):
         self.__init_helper__()
 
     def __init_config__(self, config):
-        self._config = SrtConfig()
+        self._config = SrtConf()
         try:
             for key, value in config.items():
                 try:
