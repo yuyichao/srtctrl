@@ -47,10 +47,14 @@ class SrtCenter(GObject.Object):
     def __init_config__(self, config):
         self._config = SrtConf()
         try:
-            for key, value in config.items():
+            for field, group in config.items():
                 try:
-                    self._config[key] = value
-                except KeyError:
+                    for key, value in group.items():
+                        try:
+                            self._config[field][key] = value
+                        except:
+                            pass
+                except:
                     pass
         except:
             pass
@@ -130,8 +134,8 @@ class SrtCenter(GObject.Object):
         # TODO tell host
         pass
     def run(self):
-        host = str(self._config.host)
-        port = int(self._config.port)
+        host = str(self._config.generic.host)
+        port = int(self._config.generic.port)
         init = None
         try:
             init = str(self._config.initializer)

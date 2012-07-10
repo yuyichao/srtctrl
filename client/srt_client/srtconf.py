@@ -53,12 +53,12 @@ class SrtConf(GObject.Object):
     def __getattr__(self, field):
         if field.startswith('_') or '/' in field:
             raise AttributeError("Attribute %s not found" % field)
-        def _getter(self, key):
+        def _getter(key):
             value = self._get_config(field, key)
             if value is None:
                 raise AttributeError("Attribute %s not found" % field)
             return value
-        def _setter(self, key, value):
+        def _setter(key, value):
             self._load_file(field)
             self._config[field][key] = value
             self.emit('updated', field, key)
