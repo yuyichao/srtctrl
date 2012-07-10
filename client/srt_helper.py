@@ -22,13 +22,21 @@ class SrtHelper:
     def __init__(self, sock):
         self._sock = sock
         self._plugins = SrtPlugins()
-    def run(self):
+    def _run(self):
         pass
+    def send(self, obj):
+        self._sock.send(obj)
+        self._sock.wait_send()
+    def _recv(self):
+        return self._sock.recv()
+    def recv(self):
+        while True:
+            pkg = self._sock.recv()
 
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper.run()
+    helper._run()
 
 if __name__ == '__main__':
     main()
