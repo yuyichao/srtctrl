@@ -1,6 +1,3 @@
-add_subdirectory(srt_front)
-add_subdirectory(data)
-
-if(ENABLE_TEST)
-  add_subdirectory(test)
+if(ENABLE_FRONT_WEBKITGTK3)
+  add_subdirectory(webkitgtk3)
 endif()

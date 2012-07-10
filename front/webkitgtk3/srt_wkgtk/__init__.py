@@ -17,7 +17,7 @@
 from pywkjs import *
 
 from gi.repository import WebKit, Gtk
-from srt_front.window import SrtWindow
+from .window import SrtWindow
 
 class Obj(object):
     pass

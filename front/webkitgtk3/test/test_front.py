@@ -14,7 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import srt_front, sys
+import srt_wkgtk, sys
 from gi.repository import GLib, Gtk, GObject
 import random
 
@@ -55,7 +55,7 @@ def main():
     path = sys.argv[1]
     uri = GLib.filename_to_uri(path, None)
     src = FakeSource()
-    ui = srt_front.SrtUI(uri, {"Source": src})
+    ui = srt_wkgtk.SrtUI(uri, {"Source": src})
     ui.show_all()
     Gtk.main()
 
