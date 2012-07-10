@@ -30,19 +30,20 @@ class SrtConf(GObject.Object):
         self._config = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')
     def _load_file(self, name):
-        self._loaded_index += 1
-        if self._loaded_index >= len(self._files):
-            return False
-        fname = self._files[self._loaded_index]
-        g = {}
-        l = {}
-        try:
-            execfile(fname, g, l)
-        except:
-            pass
-        l.update(self._config)
-        self._config = l
-        return True
+        if name in self._config:
+            return
+        self._config[name] = {}
+        for f in self._files:
+            if not f.endswith('/%s.py' % name):
+                continue
+            g = {}
+            l = {}
+            try:
+                execfile(f, g, l)
+            except:
+                pass
+            l.update(self._config[name])
+            self._config[name] = l
     def _get_config(self, field, key):
         self._load_file(field)
         try:
@@ -59,8 +60,6 @@ class SrtConf(GObject.Object):
             return value
         def _setter(self, key, value):
             self._load_file(field)
-            if not key in self._config:
-                self._config[field] = {}
             self._config[field][key] = value
             self.emit('updated', field, key)
         return new_wrapper(_getter, _setter)
