@@ -21,6 +21,8 @@ class ZwickyHelper:
         self._helper = helper
         self._ready = helper.ready
         self._pending_slave = None
+        self._az_c = 0
+        self._el_c = 0
         # init config here
     def recv(self):
         while True:
@@ -30,8 +32,7 @@ class ZwickyHelper:
                 continue
             elif pkgtype == "remote":
                 obj = pkg["obj"]
-                self.handle_remote(obj)
-                return obj
+                return self.handle_remote(obj)
             elif pkgtype == "slave":
                 self.handle_slave(pkg["sid"], pkg["obj"])
             else:
@@ -59,7 +60,7 @@ class ZwickyHelper:
                     continue
 
     def handle_remote(self, obj):
-        # update coordinate etc here
+        # update coordinate etc and return processed data
         pass
     def handle_slave(self, sid, obj):
         if obj["type"] == "prop":
@@ -90,13 +91,14 @@ class ZwickyHelper:
     def run(self):
         self.wait_ready()
         self.reset()
-        self.send_ready()
-        while True:
-            sid, obj = recv_slave()
-            # do real work here...
+        self._helper.send_ready()
+        # while True:
+        #     sid, obj = self.recv_slave()
+        #     # do real work here...
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
     zwicky.run()
+    print("exit")
 
 iface.helper.zwicky = StartZwicky

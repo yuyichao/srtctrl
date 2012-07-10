@@ -36,9 +36,9 @@ class SrtRemote(SrtConn):
         "request": (GObject.SignalFlags.RUN_FIRST,
                     GObject.TYPE_NONE,
                     (GObject.TYPE_PYOBJECT,)),
-        "quit": (GObject.SignalFlags.RUN_FIRST,
-                 GObject.TYPE_NONE,
-                 ()),
+        "reconnect": (GObject.SignalFlags.RUN_FIRST,
+                      GObject.TYPE_NONE,
+                      ()),
     }
     def __init__(self):
         super().__init__()
@@ -66,7 +66,7 @@ class SrtRemote(SrtConn):
     def _do_dispatch(self, buff):
         try:
             return self._dispatch(buff)
-        except:
+        except Exception as e:
             return super()._do_dispatch(buff)
     def set_name(self, name):
         if not self._name is None:
@@ -97,5 +97,5 @@ class SrtRemote(SrtConn):
         self.emit('ready')
     def request(self, obj):
         self.emit('request', obj)
-    def quit(self):
-        self.emit('quit')
+    def reconnect(self):
+        self.emit('reconnect')

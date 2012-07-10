@@ -45,7 +45,10 @@ class SrtPlugins:
             return False
         fname = self._files[self._loaded_index]
         try:
-            execfile(fname, {'iface': self._wrapper}, {'iface': self._wrapper})
+            l = {'iface': self._wrapper}
+            g = {'iface': self._wrapper}
+            execfile(fname, g, l)
+            g.update(l)
         except:
             pass
         return True

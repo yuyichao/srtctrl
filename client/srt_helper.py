@@ -18,6 +18,11 @@
 
 from srt_comm import *
 
+# _exit = exit
+# def exit():
+#     print('exit')
+#     _exit()
+
 class SrtHelper:
     def __init__(self, sock):
         self._sock = sock
@@ -47,7 +52,8 @@ class SrtHelper:
                     continue
                 try:
                     self._plugins.helper[name](self)
-                except:
+                except Exception as err:
+                    # print(err)
                     self._send({"type": "error", "errno": SRTERR_PLUGIN,
                                 "msg": "error running helper [%s]" % name})
                 return
@@ -77,8 +83,9 @@ class SrtHelper:
             if pkgtype is None:
                 continue
             elif pkgtype == "init":
-                self._send({"type": "error", "errno": SRTERR_GENERIC_LOCAL,
-                            "msg": "trying to init helper multiple times"})
+                # self._send({"type": "error", "errno": SRTERR_GENERIC_LOCAL,
+                #             "msg": "trying to init helper multiple times"})
+                continue
             elif pkgtype == "quit":
                 exit()
             elif pkgtype == "error":
@@ -91,7 +98,10 @@ class SrtHelper:
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper._start()
+    try:
+        helper._start()
+    except:
+        pass
 
 if __name__ == '__main__':
     main()

@@ -40,6 +40,7 @@ class SrtCenter(GObject.Object):
     def __init__(self, config={}):
         super().__init__()
         self._mainloop = GLib.MainLoop()
+        self._remote_err_id = 0
         self.__init_config__(config)
         self.__init_remote__()
         self.__init_helper__()
@@ -59,12 +60,14 @@ class SrtCenter(GObject.Object):
         except:
             pass
     def __init_remote__(self):
+        if self._remote_err_id:
+            self._remote.disconnect(self._remote_err_id)
         self._remote = SrtRemote()
-        self._remote.connect('error', self._remote_err_cb)
-        self._remote.connect('quit', self._remote_quit_cb)
+        self._remote_err_id = self._remote.connect('error', self._remote_err_cb)
         self._remote.connect('initialized', self._remote_init_cb)
         self._remote.connect('ready', self._remote_ready_cb)
         self._remote.connect('got-obj', self._remote_got_obj_cb)
+        self._remote.connect('reconnect', self._remote_reconnect_cb)
     def __init_helper__(self):
         self._helper = exec_n_conn(glob_conf.srt_helper, n=1, gtype=JSONSock)[0]
         self._helper.start_send()
@@ -82,7 +85,13 @@ class SrtCenter(GObject.Object):
                 obj = pkg["obj"]
             except:
                 return
-            self._remote.send(obj)
+            try:
+                if pkg["type"] == "quit":
+                    self._quit()
+                    return
+            except:
+                pass
+            self._remote.request(obj)
             return
         elif pkgtype == "slave":
             # TODO send to host
@@ -95,6 +104,9 @@ class SrtCenter(GObject.Object):
         elif pkgtype == "got-cmd":
             # TODO send to host
             pass
+        elif pkgtype == "quit":
+            self._quit()
+            return
         else:
             return
     def _helper_disconn_cb(self, helper):
@@ -107,20 +119,21 @@ class SrtCenter(GObject.Object):
             self._quit()
     def _remote_init_cb(self, remote, name):
         self._helper.send({"type": "init", "name": name})
-        self.emit(init, name)
+        self.emit('init', name)
     def _remote_ready_cb(self, remote):
         self._helper.send({"type": "ready"})
-    def _remote_quit_cb(self, remote):
-        self._quit()
     def _remote_got_obj_cb(self, remote, obj):
         self._helper.send({"type": "remote", "obj": obj})
-
+    def _remote_reconnect_cb(self, remote):
+        self.__init_remote__()
+        self._start_remote()
     def _quit(self):
         self.emit('quit')
         self._remote.wait_send()
         self._mainloop.quit()
     def do_quit(self):
         # TODO add srthost
+        self._remote.request({"type": "quit"})
         self._helper.send({"type": "quit"})
         self._helper.wait_send()
         # shutdown here?
@@ -134,15 +147,20 @@ class SrtCenter(GObject.Object):
         # TODO tell host
         pass
     def run(self):
+        self._start_remote()
+        try:
+            self._mainloop.run()
+        except:
+            self._quit()
+    def _start_remote(self):
         host = str(self._config.generic.host)
         port = int(self._config.generic.port)
         init = None
         try:
-            init = str(self._config.initializer)
+            init = str(self._config.generic.initializer)
         except:
             pass
         if init is None:
             self._remote.init((host, port))
         else:
             self._remote.init((host, port), init=init)
-        self._mainloop.run()
