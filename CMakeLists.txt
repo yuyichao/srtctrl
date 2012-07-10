@@ -47,9 +47,14 @@ if(NOT DEFINED SRT_MODULES_PATH)
   set(SRT_MODULES_PATH "${SRT_LIB_PATH}/modules")
 endif()
 
+if(NOT DEFINED SRT_CONFIG_PATH)
+  set(SRT_CONFIG_PATH "${DATA_INSTALL_DIR}/config")
+endif()
+
 if(NOT DEFINED SRT_INITIALIZER)
   set(SRT_INITIALIZER "default")
 endif()
+
 set(CMAKE_C_FLAGS "-g -pipe -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wl,--as-needed ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "-g -pipe -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter -Wl,--as-needed ${CMAKE_CXX_FLAGS}")
 set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--as-needed ${CMAKE_SHARED_LINKER_FLAGS}")

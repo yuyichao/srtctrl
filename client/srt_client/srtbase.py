@@ -2,13 +2,6 @@ from gi.repository import GObject, GLib
 
 from .srtconf import *
 
-(SRTERR_DISCONN,
- SRTERR_BUSY,
- SRTERR_MOVE_LIMIT,
- SRTERR_UNKNOWN_REPLY,
- SRTERR_UNKNOW_CMD,
- *_SRTERR_EXTRAS) = range(100)
-
 class SrtBase(GObject.Object):
     __gsignals__ = {
         'error': (GObject.SIGNAL_RUN_FIRST, GObject.TYPE_NONE,

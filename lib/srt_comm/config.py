@@ -21,4 +21,6 @@ from srt_comm.util import *
 
 srt_modules_path = read_env('SRT_MODULES_PATH', default=_config.srt_modules_path,
                             append=':')
+srt_config_path = read_env('SRT_CONFIG_PATH', default=_config.srt_config_path,
+                            append=':')
 srt_initializer = read_env('SRT_INITIALIZER', default=_config.srt_initializer)
