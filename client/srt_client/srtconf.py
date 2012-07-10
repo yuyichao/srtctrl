@@ -29,8 +29,7 @@ class SrtConf(GObject.Object):
         paths = path.split(':')
         self._config = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')
-        self._loaded_index = -1
-    def _load_next(self):
+    def _load_file(self, name):
         self._loaded_index += 1
         if self._loaded_index >= len(self._files):
             return False
@@ -44,30 +43,31 @@ class SrtConf(GObject.Object):
         l.update(self._config)
         self._config = l
         return True
-    def _get_config(self, key):
-        while not key in self._config:
-            if not self._load_next():
-                break
+    def _get_config(self, field, key):
+        self._load_file(field)
         try:
-            return self._config[key]
+            return self._config[field][key]
         except KeyError:
             return
-    def __getattr__(self, key):
-        if key.startswith('_'):
-            raise AttributeError("Attribute %s not found" % key)
-        value = self._get_config(key)
-        if value is None:
-            raise AttributeError("Attribute %s not found" % key)
-        return value
+    def __getattr__(self, field):
+        if field.startswith('_') or '/' in field:
+            raise AttributeError("Attribute %s not found" % field)
+        def _getter(self, key):
+            value = self._get_config(field, key)
+            if value is None:
+                raise AttributeError("Attribute %s not found" % field)
+            return value
+        def _setter(self, key, value):
+            self._load_file(field)
+            if not key in self._config:
+                self._config[field] = {}
+            self._config[field][key] = value
+            self.emit('updated', field, key)
+        return new_wrapper(_getter, _setter)
     def __setattr__(self, key, value):
         if key.startswith('_'):
             super().__setattr__(key, value)
             return
-        self._config[key] = value
-        self.emit('updated', key)
+        raise AttributeError("Attribute %s read only" % key)
     def __getitem__(self, key):
-        return self.__getattr__(key)
-    def __setitem__(self, key, value):
-        if key.startswith('_'):
-            raise KeyError("Cannot set key %s" % key)
-        self.__setattr__(key, value)
+        return self.__getattr__(str(key))
