@@ -17,6 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from srt_comm import *
+from srt_comm import config as glob_conf
 from gi.repository import GObject
 
 class SrtCenter(GObject.Object):
