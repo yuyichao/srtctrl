@@ -23,6 +23,11 @@ from gi.repository import GObject
 class SrtCenter(GObject.Object):
     def __init__(self, config={}):
         super().__init__()
+        self.__init_config__(config)
+        self.__init_remote__()
+        self.__init_helper__()
+
+    def __init_config__(self, config):
         self._config = SrtConfig()
         try:
             for key, value in config.items():
@@ -32,11 +37,22 @@ class SrtCenter(GObject.Object):
                     pass
         except:
             pass
+    def __init_remote__(self):
         self._remote = SrtRemote()
         self._remote.connect('error', self._remote_err_cb)
         self._remote.connect('initialized', self._remote_init_cb)
         self._remote.connect('ready', self._remote_ready_cb)
         self._remote.connect('got-obj', self._remote_got_obj_cb)
+    def __init_helper__(self):
+        self._helper = exec_n_conn(glob_conf.srt_helper, n=1, gtype=JSONSock)[0]
+        self._helper.start_send()
+        self._helper.start_recv()
+        self._helper.connect('disconnect', self._helper_disconn_cb)
+        self._helper.connect('got-obj', self._helper_got_obj_cb)
+    def _helper_got_obj_cb(self, helper, obj):
+        pass
+    def _helper_disconn_cb(self, helper):
+        pass
     def _remote_err_cb(self, remote, errno, msg):
         pass
     def _remote_init_cb(self, remote, name):
