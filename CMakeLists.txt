@@ -16,7 +16,7 @@ option(ENABLE_BACK "Beckend" On)
 
 option(ENABLE_FRONT_WEBKITGTK3 "GWebKitJS library for webkitgtk-3 frontend" On)
 
-# This two will automatically be enabled if parts relying on it is enabled
+# This two options will automatically be enabled if needed
 option(ENABLE_GWEBKITJS "GWebKitJS library for webkitgtk-3 frontend" Off)
 option(ENABLE_SRTSOCK "Srtsock library for communication in backend" Off)
 option(ENABLE_SRTCOMM "General python modules for backend" Off)
