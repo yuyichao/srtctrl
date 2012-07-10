@@ -98,8 +98,10 @@ class SrtHelper:
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper._start()
-    print('exit')
+    try:
+        helper._start()
+    except:
+        pass
 
 if __name__ == '__main__':
     main()

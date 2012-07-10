@@ -148,7 +148,10 @@ class SrtCenter(GObject.Object):
         pass
     def run(self):
         self._start_remote()
-        self._mainloop.run()
+        try:
+            self._mainloop.run()
+        except:
+            self._quit()
     def _start_remote(self):
         host = str(self._config.generic.host)
         port = int(self._config.generic.port)

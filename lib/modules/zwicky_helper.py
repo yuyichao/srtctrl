@@ -30,8 +30,7 @@ class ZwickyHelper:
                 continue
             elif pkgtype == "remote":
                 obj = pkg["obj"]
-                self.handle_remote(obj)
-                return obj
+                return self.handle_remote(obj)
             elif pkgtype == "slave":
                 self.handle_slave(pkg["sid"], pkg["obj"])
             else:
@@ -59,7 +58,7 @@ class ZwickyHelper:
                     continue
 
     def handle_remote(self, obj):
-        # update coordinate etc here
+        # update coordinate etc and return processed data
         pass
     def handle_slave(self, sid, obj):
         if obj["type"] == "prop":
