@@ -18,8 +18,12 @@
 
 from srt_client import *
 
+def err_cb(center, errno, msg):
+    print(msg)
+
 def main():
     srtcenter = SrtCenter()
+    srtcenter.connect('error', err_cb)
     srtcenter.run()
 
 if __name__ == '__main__':

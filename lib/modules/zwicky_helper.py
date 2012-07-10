@@ -21,6 +21,8 @@ class ZwickyHelper:
         self._helper = helper
         self._ready = helper.ready
         self._pending_slave = None
+        self._az_c = 0
+        self._el_c = 0
         # init config here
     def recv(self):
         while True:
@@ -90,9 +92,9 @@ class ZwickyHelper:
         self.wait_ready()
         self.reset()
         self._helper.send_ready()
-        while True:
-            sid, obj = self.recv_slave()
-            # do real work here...
+        # while True:
+        #     sid, obj = self.recv_slave()
+        #     # do real work here...
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
