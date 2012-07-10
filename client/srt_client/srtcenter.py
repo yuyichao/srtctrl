@@ -59,7 +59,7 @@ class SrtCenter(GObject.Object):
         self._helper = exec_n_conn(glob_conf.srt_helper, n=1, gtype=JSONSock)[0]
         self._helper.start_send()
         self._helper.start_recv()
-        self._helper.connect('disconnect', self._helper_disconn_cb)
+        self._helper.connect('disconn', self._helper_disconn_cb)
         self._helper.connect('got-obj', self._helper_got_obj_cb)
 
     def _helper_got_obj_cb(self, helper, obj):

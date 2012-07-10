@@ -33,6 +33,8 @@ class SrtHelper:
     def _start(self):
         while True:
             pkg = self._sock.recv()
+            if not pkg:
+                exit()
             pkgtype = self.check_pkg_type(pkg)
             if pkgtype is None:
                 continue
@@ -69,6 +71,8 @@ class SrtHelper:
     def recv(self):
         while True:
             pkg = self._sock.recv()
+            if not pkg:
+                exit()
             pkgtype = self.check_pkg_type(pkg)
             if pkgtype is None:
                 continue

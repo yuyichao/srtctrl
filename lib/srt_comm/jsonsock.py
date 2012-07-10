@@ -43,8 +43,11 @@ class JSONSock(SrtConn):
         self.emit('got-obj', obj)
     def recv(self):
         while True:
+            pkg = super().recv()
+            if not pkg:
+                return
             try:
-                return json.loads(super().recv())
+                return json.loads(pkg)
             except ValueError:
                 pass
     def send(self, obj):

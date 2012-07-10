@@ -41,7 +41,7 @@ class SrtRemote(SrtConn):
                  ()),
     }
     def __init__(self):
-        super.__init__()
+        super().__init__()
         self._dispatch = None
         self._name = None
         self._plugins = SrtPlugins()

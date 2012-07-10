@@ -1,4 +1,4 @@
-add_run(test_jsonsock3
+add_run(test_client
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND env GI_TYPELIB_PATH="${PROJECT_BINARY_DIR}/lib/srtsock"
   PYTHONPATH="${PROJECT_BINARY_DIR}/lib:${PROJECT_BINARY_DIR}/client"
