@@ -20,7 +20,39 @@ from srt_comm import *
 from gi.repository import GObject
 
 class SrtCenter(GObject.Object):
-    def __init__(self):
+    def __init__(self, config={}):
         super().__init__()
-        self._remote = SrtRemote()
         self._config = SrtConfig()
+        try:
+            for key, value in config.items():
+                try:
+                    self._config[key] = value
+                except KeyError:
+                    pass
+        except:
+            pass
+        self._remote = SrtRemote()
+        self._remote.connect('error', self._remote_err_cb)
+        self._remote.connect('initialized', self._remote_init_cb)
+        self._remote.connect('ready', self._remote_ready_cb)
+        self._remote.connect('got-obj', self._remote_got_obj_cb)
+    def _remote_err_cb(self, remote, errno, msg):
+        pass
+    def _remote_init_cb(self, remote, name):
+        pass
+    def _remote_ready_cb(self, remote):
+        pass
+    def _remote_got_obj_cb(self, remote, obj):
+        pass
+    def init(self):
+        host = str(self._config.host)
+        port = int(self._config.port)
+        init = None
+        try:
+            init = str(self._config.initializer)
+        except:
+            pass
+        if init is None:
+            self._remote.init((host, port))
+        else:
+            self._remote.init((host, port), init=init)
