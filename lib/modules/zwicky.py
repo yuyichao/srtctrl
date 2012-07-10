@@ -122,7 +122,7 @@ class Zwichy:
             if (not 0 <= direct <= 3) or count <= 0:
                 remote.unknown_req(obj)
                 return
-            remote.send('move %d %d\n' % (direct, count))
+            remote.send('move %d %d  \n' % (direct, count))
             return
         elif reqtype == 'source':
             try:
@@ -131,7 +131,7 @@ class Zwichy:
                 remote.unknown_req(obj)
                 return
             direct = 7 if on else 6
-            remote.send('move %d %d\n' % (direct, 0))
+            remote.send('move %d %d  \n' % (direct, 0))
             return
         elif reqtype == 'radio':
             try:
@@ -143,7 +143,11 @@ class Zwichy:
             if (not 1 <= mode <= 3) or freq <= 0:
                 remote.unknown_req(obj)
                 return
-            remote.send('radio %d %d\n' % (freq, mode))
+            remote.send('radio %d %d  \n' % (freq, mode))
+            return
+        elif reqtype == 'quit':
+            remote.send('bye. \n' % (freq, mode))
+            remote.quit()
             return
         else:
             remote.unknown_req(obj)
