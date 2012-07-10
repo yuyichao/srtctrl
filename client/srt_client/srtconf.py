@@ -23,7 +23,7 @@ class SrtConf(GObject.Object):
     __gsignals__ = {
         "updated": (GObject.SignalFlags.RUN_FIRST,
                     GObject.TYPE_NONE,
-                    (GObject.TYPE_STRING,)),
+                    (GObject.TYPE_STRING, GObject.TYPE_STRING)),
     }
     def __init__(self, path=config.srt_config_path):
         paths = path.split(':')
