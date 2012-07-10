@@ -62,10 +62,10 @@ class SrtHelper:
         self._send({"type": "remote", "obj": obj})
     def reply(self, sid, obj):
         self._send({"type": "slave", "sid": sid, "obj": obj})
-    def send_busy(self, sid):
-        self._send({"type": "busy", "sid": sid})
     def send_got_cmd(self, sid):
         self._send({"type": "got-cmd", "sid": sid})
+    def send_busy(self, sid):
+        self._send({"type": "busy", "sid": sid})
     def send_ready(self):
         self._send({"type": "ready"})
     def recv(self):

@@ -19,6 +19,7 @@
 (SRTERR_CONN, # connection lost or other connection errors
  SRTERR_BUSY, # resources busy
  SRTERR_PLUGIN, # plugin of required type/name cannot been found
+ SRTERR_HELPER_QUIT, # helper quit
  SRTERR_UNKNOWN_REPLY, # unkown reply from remote server
  SRTERR_UNKNOWN_CMD, # unknown command from user
  SRTERR_GENERIC_REMOTE, # generic remote error

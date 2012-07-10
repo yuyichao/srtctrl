@@ -51,4 +51,8 @@ class JSONSock(SrtConn):
             except ValueError:
                 pass
     def send(self, obj):
-        super().send(json.dumps(obj))
+        try:
+            pkg = json.dumps(obj)
+        except TypeError:
+            return
+        super().send(pkg)

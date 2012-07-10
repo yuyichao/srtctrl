@@ -24,6 +24,12 @@ from srt_client.srtremote import *
 
 class SrtCenter(GObject.Object):
     __gsignals__ = {
+        "init": (GObject.SignalFlags.RUN_FIRST,
+                 GObject.TYPE_NONE,
+                 (GObject.TYPE_STRING,)),
+        "ready": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  ()),
         "quit": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
                  ()),
@@ -62,10 +68,34 @@ class SrtCenter(GObject.Object):
         self._helper.connect('disconn', self._helper_disconn_cb)
         self._helper.connect('got-obj', self._helper_got_obj_cb)
 
-    def _helper_got_obj_cb(self, helper, obj):
-        pass
+    def _helper_got_obj_cb(self, helper, pkg):
+        try:
+            pkgtype = pkg["type"]
+        except:
+            return
+        if pkgtype == "remote":
+            try:
+                obj = pkg["obj"]
+            except:
+                return
+            self._remote.send(obj)
+            return
+        elif pkgtype == "slave":
+            # TODO send to host
+            pass
+        elif pkgtype == "busy":
+            # TODO send to host
+            pass
+        elif pkgtype == "ready":
+            self.emit('ready')
+        elif pkgtype == "got-cmd":
+            # TODO send to host
+            pass
+        else:
+            return
     def _helper_disconn_cb(self, helper):
-        pass
+        self.emit('error', SRTERR_HELPER_QUIT, "Helper quit")
+        self._quit()
 
     def _remote_err_cb(self, remote, errno, msg):
         self.emit('error', errno, msg)
@@ -73,6 +103,7 @@ class SrtCenter(GObject.Object):
             self._quit()
     def _remote_init_cb(self, remote, name):
         self._helper.send({"type": "init", "name": name})
+        self.emit(init, name)
     def _remote_ready_cb(self, remote):
         self._helper.send({"type": "ready"})
     def _remote_quit_cb(self, remote):
@@ -92,6 +123,12 @@ class SrtCenter(GObject.Object):
     def do_error(self, errno, msg):
         # TODO add srthost
         self._helper.send({"type": "error", "errno": errno, "msg": msg})
+    def do_init(self, name):
+        # TODO init host
+        pass
+    def do_ready(self):
+        # TODO tell host
+        pass
     def run(self):
         host = str(self._config.host)
         port = int(self._config.port)
