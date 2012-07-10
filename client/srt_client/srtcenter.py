@@ -19,6 +19,8 @@
 from srt_comm import *
 from srt_comm import config as glob_conf
 from gi.repository import GObject, GLib
+from srt_client.srtconf import *
+from srt_client.srtremote import *
 
 class SrtCenter(GObject.Object):
     __gsignals__ = {
@@ -37,7 +39,7 @@ class SrtCenter(GObject.Object):
         self.__init_helper__()
 
     def __init_config__(self, config):
-        self._config = SrtConfig()
+        self._config = SrtConf()
         try:
             for key, value in config.items():
                 try:
@@ -57,7 +59,7 @@ class SrtCenter(GObject.Object):
         self._helper = exec_n_conn(glob_conf.srt_helper, n=1, gtype=JSONSock)[0]
         self._helper.start_send()
         self._helper.start_recv()
-        self._helper.connect('disconnect', self._helper_disconn_cb)
+        self._helper.connect('disconn', self._helper_disconn_cb)
         self._helper.connect('got-obj', self._helper_got_obj_cb)
 
     def _helper_got_obj_cb(self, helper, obj):
@@ -77,6 +79,7 @@ class SrtCenter(GObject.Object):
         self._quit()
     def _remote_got_obj_cb(self, remote, obj):
         self._helper.send({"type": "remote", "obj": obj})
+
     def _quit(self):
         self.emit('quit')
         self._remote.wait_send()
@@ -88,7 +91,7 @@ class SrtCenter(GObject.Object):
         # shutdown here?
     def do_error(self, errno, msg):
         # TODO add srthost
-        self._helper.send({"type": "quit", "errno": errno, "msg": msg})
+        self._helper.send({"type": "error", "errno": errno, "msg": msg})
     def run(self):
         host = str(self._config.host)
         port = int(self._config.port)

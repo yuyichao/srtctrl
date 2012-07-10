@@ -54,7 +54,7 @@ class SrtConn(_sock.Sock):
     def recv(self):
         while True:
             newbuf = super().recv(65536)
-            if newbuf is None:
+            if not newbuf:
                 return
             self._buffer += newbuf.decode('utf-8')
             package, self._buffer = self._do_dispatch(self._buffer)

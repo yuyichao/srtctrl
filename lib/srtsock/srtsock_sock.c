@@ -543,8 +543,9 @@ srtsock_sock_in_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
         if (self->priv->receiving) {
             guint rsize;
             gchar buff[65536];
+            GError *error = NULL;
             rsize = g_socket_receive_with_blocking(self->priv->sock, buff,
-                                                   65536, FALSE, NULL, NULL);
+                                                   65536, FALSE, NULL, &error);
             if (rsize > 0) {
                 GObject *obj;
                 obj = srtsock_obj_from_buff(rsize, buff);
@@ -554,8 +555,14 @@ srtsock_sock_in_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
                                   obj, &handled);
                     g_object_unref(obj);
                 }
-            } else {
+            } else if (!rsize) {
                 srtsock_sock_close(self, NULL);
+            } else {
+                if (error) {
+                    if (!srtsock_sock_io_err_ok(error->code))
+                        srtsock_sock_close(self, NULL);
+                    g_error_free(error);
+                }
             }
         }
         srtsock_sock_update_in_src(self);
@@ -941,15 +948,27 @@ gchar*
 srtsock_sock_recv(SrtSockSock *self, gsize size, gssize *rsize, GError **error)
 {
     gchar *buff;
+    GError *ierror = NULL;
     g_return_val_if_fail(SRTSOCK_SOCK_IS_VALID(self), NULL);
     g_return_val_if_fail(rsize, NULL);
     buff = g_malloc0(size);
     *rsize = g_socket_receive_with_blocking(self->priv->sock, buff, size,
-                                            TRUE, NULL, error);
-    if (*rsize < 0) {
-        *rsize = 0;
+                                            TRUE, NULL, &ierror);
+    if (!*rsize) {
         g_free(buff);
         srtsock_sock_close(self, NULL);
+        return NULL;
+    } else if (*rsize < 0) {
+        *rsize = 0;
+        g_free(buff);
+        if (ierror) {
+            if (!srtsock_sock_io_err_ok(ierror->code))
+                srtsock_sock_close(self, NULL);
+            if (error)
+                *error = ierror;
+            else
+                g_error_free(ierror);
+        }
         return NULL;
     }
     buff = g_realloc(buff, *rsize);

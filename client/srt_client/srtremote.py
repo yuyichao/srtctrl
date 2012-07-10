@@ -41,7 +41,7 @@ class SrtRemote(SrtConn):
                  ()),
     }
     def __init__(self):
-        super.__init__()
+        super().__init__()
         self._dispatch = None
         self._name = None
         self._plugins = SrtPlugins()
@@ -54,7 +54,11 @@ class SrtRemote(SrtConn):
         if not self.start_send():
             self.emit('error', SRTERR_CONN, 'cannot send')
             return
-        self._plugins.initializer[init](self)
+        try:
+            self._plugins.initializer[init](self)
+        except:
+            self.emit('error', SRTERR_PLUGIN,
+                      'initializer [%s] cannot be loaded' % init)
     def init(self, addr, init=config.srt_initializer):
         self.conn_recv(addr, self._conn_cb, init)
     def set_dispatch(self, dispatch):
@@ -69,14 +73,14 @@ class SrtRemote(SrtConn):
             raise AttributeError('name is already set')
         self._name = name
         if name is None:
-            self.emit('error', SRTERR_PLUGIN, 'cannot decide type '
-                      'of remote server')
+            self.emit('error', SRTERR_PLUGIN,
+                      'cannot decide type of remote server')
             return
         try:
             self._protocol = self._plugins.protocol[name](self)
         except:
-            self.emit('error', SRTERR_PLUGIN, 'protocol [%s] cannot be loaded' %
-                      name)
+            self.emit('error', SRTERR_PLUGIN,
+                      'protocol [%s] cannot be loaded' % name)
             return
         self.emit('initialized', name)
     def feed_obj(self, obj):

@@ -21,22 +21,77 @@ from srt_comm import *
 class SrtHelper:
     def __init__(self, sock):
         self._sock = sock
+        self._name = None
+        self.ready = False
         self._plugins = SrtPlugins()
-    def _run(self):
-        pass
-    def send(self, obj):
+    def check_pkg_type(self, pkg):
+        try:
+            pkgtype = pkg['type']
+        except:
+            return None
+        return pkgtype
+    def _start(self):
+        while True:
+            pkg = self._sock.recv()
+            if not pkg:
+                exit()
+            pkgtype = self.check_pkg_type(pkg)
+            if pkgtype is None:
+                continue
+            elif pkgtype == "error":
+                continue
+            elif pkgtype == "init":
+                try:
+                    name = pkg["name"]
+                except:
+                    continue
+                try:
+                    self._plugins.helper[name](self)
+                except:
+                    self._send({"type": "error", "errno": SRTERR_PLUGIN,
+                                "msg": "error running helper [%s]" % name})
+                return
+            elif pkgtype == "ready":
+                self.ready = True
+            elif pkgtype == "quit":
+                exit()
+    def _send(self, obj):
         self._sock.send(obj)
         self._sock.wait_send()
-    def _recv(self):
-        return self._sock.recv()
+    def send(self, obj):
+        self._send({"type": "remote", "obj": obj})
+    def reply(self, sid, obj):
+        self._send({"type": "slave", "sid": sid, "obj": obj})
+    def send_busy(self, sid):
+        self._send({"type": "busy", "sid": sid})
+    def send_got_cmd(self, sid):
+        self._send({"type": "got-cmd", "sid": sid})
+    def send_ready(self):
+        self._send({"type": "ready"})
     def recv(self):
         while True:
             pkg = self._sock.recv()
+            if not pkg:
+                exit()
+            pkgtype = self.check_pkg_type(pkg)
+            if pkgtype is None:
+                continue
+            elif pkgtype == "init":
+                self._send({"type": "error", "errno": SRTERR_GENERIC_LOCAL,
+                            "msg": "trying to init helper multiple times"})
+            elif pkgtype == "quit":
+                exit()
+            elif pkgtype == "error":
+                continue
+            elif pkgtype in ["ready", "remote", "slave"]:
+                return pkg
+            self._send({"type": "error", "errno": SRTERR_UNKNOWN_CMD,
+                        "msg": "trying to init helper multiple times"})
 
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper._run()
+    helper._start()
 
 if __name__ == '__main__':
     main()
