@@ -18,8 +18,17 @@
 
 from srt_comm import *
 
+class SrtHelper:
+    def __init__(self, sock):
+        self._sock = sock
+        self._plugins = SrtPlugins()
+    def run(self):
+        pass
+
 def main():
-    pass
+    sock = get_passed_conns(gtype=JSONSock)[0]
+    helper = SrtHelper(sock)
+    helper.run()
 
 if __name__ == '__main__':
     main()
