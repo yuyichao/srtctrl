@@ -1,12 +1,11 @@
 cmake_minimum_required(VERSION 2.6)
 cmake_policy(SET CMP0017 OLD)
-project(srtctrl)
+project(srtctrl C)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake
   ${CMAKE_MODULE_PATH})
 
 include(PythonMacros)
 include(CheckAll)
-include(GObjectIntrospection)
 include(AddRun)
 
 option(ENABLE_TEST "Test build" Off)

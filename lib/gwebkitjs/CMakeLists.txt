@@ -1,3 +1,5 @@
+include(GObjectIntrospection)
+
 check_all_modules(GWEBKITJS
   GLIB2 REQUIRED glib-2.0
   GOBJECT2 REQUIRED gobject-2.0
