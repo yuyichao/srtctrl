@@ -16,7 +16,16 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-srt_modules_path = "@SRT_MODULES_PATH@"
-srt_config_path = "@SRT_CONFIG_PATH@"
-srt_initializer = "@SRT_INITIALIZER@"
-srt_helper_path = "@SRT_HELPER_PATH@"
+from srt_comm import *
+
+def dispatch_line(buff):
+    (extra, pkg, left) = get_line(buff)
+    return (pkg, left)
+
+iface.dispatch.line = dispatch_line
+
+def dispatch_json(buff):
+    (extra, pkg, left) = get_json(buff)
+    return (pkg, left)
+
+iface.dispatch.json = dispatch_json

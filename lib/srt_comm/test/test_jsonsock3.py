@@ -1,4 +1,4 @@
-# coding=utf-8
+#!/usr/bin/env python
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,7 +16,26 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-srt_modules_path = "@SRT_MODULES_PATH@"
-srt_config_path = "@SRT_CONFIG_PATH@"
-srt_initializer = "@SRT_INITIALIZER@"
-srt_helper_path = "@SRT_HELPER_PATH@"
+from srt_comm import *
+
+conn = exec_n_conn('./test_jsonchild3.py', n=1, gtype=JSONSock)[0]
+
+print(conn)
+
+mainloop = GLib.MainLoop()
+
+def timeout_cb(conn):
+    print('timeout')
+    conn.send({"type": 'EXIT'})
+    return True
+
+def disconn_cb(conn):
+    print('parent exit.')
+    mainloop.quit()
+
+conn.connect('disconn', disconn_cb)
+conn.start_send()
+GLib.timeout_add_seconds(1, timeout_cb, conn)
+conn.send({"type": 'EXIT'})
+
+mainloop.run()

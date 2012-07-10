@@ -18,9 +18,12 @@
 
 from srt_comm import *
 
+print(config.srt_modules_path)
 plugins = SrtPlugins()
 print(plugins._files)
 print('plugin created')
 print(plugins.test.func1())
 print(plugins.test.func2(4))
 print(plugins.test2.func3())
+print(plugins.test3['aaa'])
+print(plugins.initializer['default'])

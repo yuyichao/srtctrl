@@ -1,4 +1,4 @@
-# coding=utf-8
+#!/usr/bin/env python
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,7 +16,23 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-srt_modules_path = "@SRT_MODULES_PATH@"
-srt_config_path = "@SRT_CONFIG_PATH@"
-srt_initializer = "@SRT_INITIALIZER@"
-srt_helper_path = "@SRT_HELPER_PATH@"
+from srt_comm import *
+
+conn = get_passed_conns(gtype=JSONSock)[0]
+
+print(conn)
+
+mainloop = GLib.MainLoop()
+
+def recv_cb(self, msg):
+    print(repr(msg))
+    if msg['type'] == 'EXIT':
+        print('exit')
+        mainloop.quit()
+
+conn.start_recv()
+conn.connect('got-obj', recv_cb)
+
+mainloop.run()
+
+conn.close()

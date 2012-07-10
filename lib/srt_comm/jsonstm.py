@@ -78,6 +78,8 @@ def _j_find_pair(jstr, start=0):
     return start, start
 
 def get_json(jstr, start=0):
+    if not len(jstr):
+        return ('', '', '')
     start = start % len(jstr)
     (start1, i) = _j_find_pair(jstr, start=start)
     return (jstr[start:start1], jstr[start1:i], jstr[i:])

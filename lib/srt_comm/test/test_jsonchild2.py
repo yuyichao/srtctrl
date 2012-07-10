@@ -1,4 +1,4 @@
-# coding=utf-8
+#!/usr/bin/env python
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,12 +16,31 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os, socket, fcntl
-from time import sleep
+import os, sys, time
 
-from gi.repository import Gio
+if os.fork():
+    exit()
+
+(port, i) = sys.argv[1:]
+port = int(port)
+_id = int(i)
+
+from gi.repository import GLib
 from srt_comm import *
 
-class SrtRemote(SrtConn):
-    def __init__(init=config.srt_initializer):
-        pass
+mainloop = GLib.MainLoop()
+
+time.sleep(.5)
+def recv_cb(self, msg):
+    print(repr(msg))
+    if 'EXIT' == msg['type']:
+        print('exit')
+        mainloop.quit()
+
+conn = JSONSock()
+conn.conn_recv(('localhost', port), None)
+conn.connect('got-obj', recv_cb)
+
+mainloop.run()
+
+conn.close()

@@ -51,7 +51,6 @@ class SrtPlugins:
         return True
     def _get_iface(self, key, name):
         while not (key in self._ftable and name in self._ftable[key]):
-            print(self._ftable)
             if not self._load_next():
                 break
         try:
@@ -67,3 +66,5 @@ class SrtPlugins:
         # def _setter(key2, value):
         #     self.__setter__(key1, key2, value)
         return new_wrapper(_getter, None)
+    def __getitem__(self, key):
+        return self.__getattr__(key)

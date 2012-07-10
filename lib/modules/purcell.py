@@ -16,7 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-srt_modules_path = "@SRT_MODULES_PATH@"
-srt_config_path = "@SRT_CONFIG_PATH@"
-srt_initializer = "@SRT_INITIALIZER@"
-srt_helper_path = "@SRT_HELPER_PATH@"
+class Purcell:
+    def __init__(self, remote):
+        pass
+
+iface.protocol.purcell = Purcell
