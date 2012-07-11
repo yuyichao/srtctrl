@@ -88,10 +88,10 @@ class SrtRemote(SrtConn):
     def busy(self):
         self.emit('error', SRTERR_BUSY, 'remote server busy')
     def unknown(self, reply=''):
-        self.emit('error', SRTERR_UNKOWN_REPLY,
+        self.emit('error', SRTERR_UNKNOWN_REPLY,
                   'unknown reply %s from server' % str(reply))
     def unknown_req(self, req=''):
-        self.emit('error', SRTERR_UNKOWN_CMD,
+        self.emit('error', SRTERR_UNKNOWN_CMD,
                   'unknown command %s from user' % str(req))
     def ready(self):
         self.emit('ready')

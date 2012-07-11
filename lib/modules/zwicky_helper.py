@@ -27,8 +27,8 @@ class ZwickyHelper:
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.zwicky
         self._motor = self.plugins.motor(self)
+        self._radio = self.plugins.radio(self)
         self.get_config("station")
-        self.get_config("curv_corr")
         self._reset_coor()
     def _reset_coor(self):
         self._motor.reset()
@@ -86,7 +86,6 @@ class ZwickyHelper:
             self._motor.move(direct, count, edge)
             return obj
         elif objtype == "radio":
-            # TODO
             return obj
         return
     def send(self, obj):
@@ -95,9 +94,19 @@ class ZwickyHelper:
     def send_signal(self, name, value):
         self._helper.send_signal(name, value)
     def send_move(self, direct, count):
-        self.send({"type": "move", "direct": direct, "count": count})
+        count = int(count)
+        count = count if count >= 0 else 0
+        return self.send({"type": "move", "direct": int(direct),
+                          "count": count})
     def send_source(self, on):
-        self.send({"type": "source", "on": on})
+        return self.send({"type": "source", "on": on})
+    def send_radio(self, freq, mode):
+        self._motor.pos_chk()
+        reply = self.send({"type": "radio", "freq": freq, "mode": mode})
+        rtype, data = get_dict_fields(reply, ["type", "data"])
+        if None in [rtype, data]:
+            return
+        return self._radio.corr_radio(data, mode)
     def reset(self):
         self.send_move(0, 5000)
         self.send_move(2, 5000)
@@ -107,9 +116,13 @@ class ZwickyHelper:
         self._helper.wait_ready()
         self.reset()
         self._helper.send_ready()
+        self._motor.set_pos(15, 15)
+        self._motor.set_pos(10, 10)
+        self.send_radio(30000, 1)
         # while True:
         #     sid, obj = self.recv_slave()
         #     # do real work here...
+        self.reset()
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)

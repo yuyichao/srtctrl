@@ -27,5 +27,33 @@ gray_corr_half = [1.000000, 1.006274, 1.022177, 1.040125, 1.051102, 1.048860,
                   0.972605, 0.986673, 1.012158, 1.032996, 1.025913, 0.968784,
                   0.851774, 0.684969, 0.496453, 0.320612, 0.183547, 0.094424,
                   0.046729, 0.026470, 0.021300]
-gray_corr = r_[gray_corr_half[31::-1], gray_corr_half[1:32]]
+gray_corr = gray_corr_half[31::-1] + gray_corr_half[1:32]
 gray_corr = gray_corr[rolloff:-rolloff]
+
+def fsep_from_mode(mode):
+    if mode == 3:
+        return base_freqsep / 4
+    elif mode == 2:
+        return base_freqsep / 2
+    return base_freqsep
+
+class ZwickyRadio:
+    def __init__(self, zwicky):
+        self._zwicky = zwicky
+        self._zwicky.get_config("curv_corr")
+        self.configs = self._zwicky.configs
+    def corr_radio(self, data, mode):
+        if len(data) != 64:
+            return
+        if not mode in [1, 2, 3]:
+            return
+        freqsep = fsep_from_mode(mode)
+        reply = data[-63:][rolloff:-rolloff]
+        reply = reply[::-1]
+        curv_corr_c = [.4 * freqsep * i
+                       for i in range(rolloff - 31, 32 - rolloff)]
+        return [(reply[i] / gray_corr[i] *
+                 (1 + self.configs.curv_corr * curv_corr_c[i]**2))
+                for i in range(len(reply))]
+
+iface.zwicky.radio = ZwickyRadio
