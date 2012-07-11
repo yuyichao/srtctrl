@@ -50,7 +50,7 @@ class SrtPlugins:
             execfile(fname, g, l)
             g.update(l)
         except Exception as err:
-            print(err)
+            print("load_next: %s" % fname, err)
         return True
     def _get_iface(self, key, name):
         while not (key in self._ftable and name in self._ftable[key]):
@@ -59,7 +59,7 @@ class SrtPlugins:
         try:
             return self._ftable[key][name]
         except KeyError as err:
-            print(err)
+            print("get_iface:", err)
             return
     def __getattr__(self, key1):
         if key1.startswith('_'):

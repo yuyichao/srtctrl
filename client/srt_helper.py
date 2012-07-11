@@ -39,8 +39,11 @@ class SrtHelper(GObject.Object):
         self._sock = sock
         self._name = None
         self._ready = False
-        self._plugins = SrtPlugins()
+        self.plugins = SrtPlugins()
         self._config_cache = {}
+        self.configs = new_wrapper2(lambda field, name:
+                                    self.get_config(field, name, non_null=False),
+                                    None)
         self._pkg_queue = []
     def wait_types(self, types):
         if isinstance(types, str):
@@ -86,7 +89,7 @@ class SrtHelper(GObject.Object):
         if name is None:
             return
         try:
-            self._plugins.helper[name](self)
+            self.plugins.helper[name](self)
         except Exception as err:
             print(err)
             self._send({"type": "error", "errno": SRTERR_PLUGIN,

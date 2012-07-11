@@ -21,31 +21,23 @@ from srt_comm import *
 class ZwickyHelper:
     def __init__(self, helper):
         self._helper = helper
-        self._reset_coor()
         self._helper.connect("config", self._config_update_cb)
         self._helper.connect("get", self._get_cb)
         self._config_dict = {}
-        self._config = new_wrapper(self._config_getter, None)
-        self._helper.get_config("zwicky", "az_lim")
-        self._helper.get_config("zwicky", "el_lim")
-        self._helper.get_config("zwicky", "az_c_per_deg")
-        self._helper.get_config("zwicky", "el_c_per_deg")
-        self._helper.get_config("zwicky", "pushrod")
-        self._helper.get_config("zwicky", "rod_l1")
-        self._helper.get_config("zwicky", "rod_l2")
-        self._helper.get_config("zwicky", "rod_l3")
-        self._helper.get_config("zwicky", "rod_t0")
-        self._helper.get_config("zwicky", "rod_crate")
-        self._helper.get_config("zwicky", "station")
-        self._helper.get_config("zwicky", "curv_corr")
+        self.configs = self._helper.configs.zwicky
+        self.plugins = self._helper.plugins.zwicky
+        self._motor = self.plugins.motor(self)
+        self.get_config("station")
+        self.get_config("curv_corr")
+        self._reset_coor()
     def _reset_coor(self):
-        self._az_c = 0
-        self._el_c = 0
+        self._motor.reset()
         self._source = False
     def _config_update_cb(self, helper, field, name, value):
         self._config_dict[name] = value
-    def _config_getter(self, key):
-        return get_dict_fields(self._config_dict, key)
+    def get_config(self, key, notify=True, non_null=True):
+        return self._helper.get_config("zwicky", key,
+                                       notify=notify, non_null=non_null)
     def _get_cb(self, helper, name, sid):
         pass
     def recv(self):
