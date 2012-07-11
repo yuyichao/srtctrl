@@ -132,8 +132,13 @@ def new_wrapper2(getter, setter):
         return new_wrapper(__getter, __setter)
     return new_wrapper(_getter, None)
 
-def get_dict_fields(d, *fields):
+def get_dict_fields(d, fields):
     res = []
+    if isinstance(fields, str):
+        try:
+            return d[fields]
+        except:
+            return
     for field in fields:
         try:
             res.append(d[field])

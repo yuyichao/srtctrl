@@ -52,7 +52,7 @@ class SrtHelper(GObject.Object):
             pkg = self._sock.recv()
             if not pkg:
                 exit()
-            (pkgtype,) = get_dict_fields(pkg, "type")
+            pkgtype = get_dict_fields(pkg, "type")
             if pkgtype is None:
                 continue
             elif pkgtype == "quit":
@@ -63,15 +63,15 @@ class SrtHelper(GObject.Object):
                 self._ready = True
             elif pkgtype == "config":
                 field, name, notify, value = get_dict_fields(pkg,
-                                                             "field", "name",
-                                                             "notify", "value")
-                if None in (field, name, notify, value):
+                                                             ["field", "name",
+                                                              "notify", "value"])
+                if None in (field, name, notify):
                     continue
                 if notify:
                     self._cache_config(field, name, value)
                 self.emit("config", field, name, value)
             elif pkgtype == "prop":
-                name, sid = get_dict_fields(pkg, "name", "sid")
+                name, sid = get_dict_fields(pkg, ["name", "sid"])
                 if None in (name, sid):
                     continue
                 self.emit("prop", field, name)
@@ -82,7 +82,7 @@ class SrtHelper(GObject.Object):
             self._pkg_queue.append(pkg)
     def _start(self):
         pkg = self.wait_types("init")
-        (name,) = get_dict_fields(pkg, "name")
+        name = get_dict_fields(pkg, "name")
         if name is None:
             return
         try:
@@ -118,7 +118,7 @@ class SrtHelper(GObject.Object):
 
     def _cache_config(self, field, name, value):
         set_2_level(self._config_cache, field, name, value)
-    def get_config(self, field, name, notify=True):
+    def get_config(self, field, name, notify=True, non_null=True):
         try:
             return self._config_cache[field][name]
         except:
@@ -126,6 +126,9 @@ class SrtHelper(GObject.Object):
         self._send({"type": "config", "field": field, "name": name,
                     "notify": bool(notify)})
         pkg = self.wait_types("config")
+        value = pkg["value"]
+        if value is None and non_null:
+            raise KeyError("config %s.%s not found" % (field, name))
         return pkg["value"]
 
 def main():
