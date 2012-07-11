@@ -16,6 +16,13 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from math import *
+
+DIRECT_HDEC = 0
+DIRECT_HINC = 1
+DIRECT_DOWN = 2
+DIRECT_UP = 3
+
 class ZwickyMoter:
     def __init__(self, zwicky):
         self._zwicky = zwicky
@@ -23,8 +30,66 @@ class ZwickyMoter:
                     "pushrod", "rod_l1", "rod_l2", "rod_l3", "rod_t0",
                     "rod_crate"]:
             self._zwicky.get_config(key)
+        self.configs = self._zwicky.configs
     def reset(self):
         self._az_c = 0
         self._el_c = 0
+        self.move_signal()
+    def move(self, direct, count, edge):
+        if direct == DIRECT_HDEC:
+            self._az_c -= count
+        elif direct == DIRECT_HINC:
+            self._az_c += count
+        elif direct == DIRECT_DOWN:
+            self._el_c -= count
+        elif direct == DIRECT_UP:
+            self._el_c += count
+        if self._az_c < 0 or edge == DIRECT_HDEC:
+            self._az_c = 0
+        if self._el_c < 0 or edge == DIRECT_DOWN:
+            self._el_c = 0
+        self.move_signal()
+    def __getattr__(self, key):
+        if key == "az":
+            return self.az_c2d(self._az_c)
+        elif key == "el":
+            return self.el_c2d(self._el_c)
+        else:
+            raise AttributeError(key)
+    def move_signal(self):
+        self._zwicky.send_signal("move", [self.az, self.el])
+    def l_rod(self, degree=None):
+        if degree == None:
+            degree = self.configs.el_lim[0]
+        l2 = (self.configs.rod_l1**2 + self.configs.rod_l2**2
+              - self.configs.rod_l3**2
+              - 2 * self.configs.rod_l1 * self.configs.rod_l2
+              * cos((self.configs.rod_t0 - degree) * (pi / 180)))
+        return sqrt(l2 if l2 > 0 else 0)
+    def degree_at_l(self, l_rod):
+        if l_rod < 0:
+            l_rod = 0
+        l2 = l_rod**2 + self.configs.rod_l3**2
+        c = ((self.configs.rod_l1**2 + self.configs.rod_l2**2 - l2) /
+             (2 * self.configs.rod_l1 * self.configs.rod_l2))
+        if c > 1:
+            c = 1
+        if c < -1:
+            c = -1
+        return self.configs.rod_t0 - acos(c) * (180 / pi)
+    def az_c2d(self, count):
+        degree = count / self.configs.az_c_per_deg + self.configs.az_lim[0]
+        if degree > self.configs.az_lim[1]:
+            return self.configs.az_lim[1]
+        return degree
+    def el_c2d(self, count):
+        if self.configs.pushrod:
+            L0 = self.l_rod()
+            degree = self.degree_at_l(L0 - count / self.configs.rod_crate)
+        else:
+            degree = count / self.configs.el_c_per_deg + self.configs.el_lim[0]
+        if degree > self.configs.el_lim[1]:
+            return self.configs.el_lim[1]
+        return degree
 
 iface.zwicky.motor = ZwickyMoter

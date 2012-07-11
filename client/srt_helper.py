@@ -30,7 +30,7 @@ class SrtHelper(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_STRING, GObject.TYPE_STRING,
                     GObject.TYPE_PYOBJECT)),
-        "get": (GObject.SignalFlags.RUN_FIRST,
+        "prop": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
                  (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
     }
@@ -73,14 +73,14 @@ class SrtHelper(GObject.Object):
                 if notify:
                     self._cache_config(field, name, value)
                 self.emit("config", field, name, value)
-            elif pkgtype == "get":
+            elif pkgtype == "prop":
                 name, sid = get_dict_fields(pkg, ["name", "sid"])
                 if None in (name, sid):
                     continue
-                self.emit("get", field, name)
+                self.emit("prop", field, name)
             if pkgtype in types:
                 return pkg
-            if pkgtype in ["config", "get", "ready", "init", "error"]:
+            if pkgtype in ["config", "prop", "ready", "init", "error"]:
                 continue
             self._pkg_queue.append(pkg)
     def _start(self):
@@ -88,12 +88,13 @@ class SrtHelper(GObject.Object):
         name = get_dict_fields(pkg, "name")
         if name is None:
             return
-        try:
-            self.plugins.helper[name](self)
-        except Exception as err:
-            print(err)
-            self._send({"type": "error", "errno": SRTERR_PLUGIN,
-                        "msg": "error running helper [%s]" % name})
+        self.plugins.helper[name](self)
+        # try:
+        #     self.plugins.helper[name](self)
+        # except Exception as err:
+        #     print(err)
+        #     self._send({"type": "error", "errno": SRTERR_PLUGIN,
+        #                 "msg": "error running helper [%s]" % name})
         return
     def wait_ready(self):
         if self._ready:
@@ -114,10 +115,13 @@ class SrtHelper(GObject.Object):
     #     self._send({"type": "busy", "sid": sid})
     def send_ready(self):
         self._send({"type": "ready"})
-    def reply_get(self, sid, value):
-        self._send({"type": "reply-get", "sid": sid, "value": value})
+    def send_prop(self, sid, name, value):
+        self._send({"type": "prop", "sid": sid,
+                    "name": name, "value": value})
     def send_quit(self):
         self._send({"type": "quit"})
+    def send_signal(self, name, value):
+        self._send({"type": "signal", "name": name, "value": value})
 
     def _cache_config(self, field, name, value):
         set_2_level(self._config_cache, field, name, value)
@@ -137,10 +141,11 @@ class SrtHelper(GObject.Object):
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    try:
-        helper._start()
-    except Exception as err:
-        print(err)
+    helper._start()
+    # try:
+    #     helper._start()
+    # except Exception as err:
+    #     print(err)
 
 if __name__ == '__main__':
     main()

@@ -22,7 +22,7 @@ class ZwickyHelper:
     def __init__(self, helper):
         self._helper = helper
         self._helper.connect("config", self._config_update_cb)
-        self._helper.connect("get", self._get_cb)
+        self._helper.connect("prop", self._get_prop_cb)
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.zwicky
@@ -38,7 +38,7 @@ class ZwickyHelper:
     def get_config(self, key, notify=True, non_null=True):
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)
-    def _get_cb(self, helper, name, sid):
+    def _get_prop_cb(self, helper, name, sid):
         pass
     def recv(self):
         while True:
@@ -47,7 +47,10 @@ class ZwickyHelper:
                 obj = pkg["obj"]
             except:
                 continue
-            return self.handle_remote(obj)
+            obj = self.handle_remote(obj)
+            if obj is None:
+                continue
+            return obj
     def recv_slave(self):
         while True:
             pkg = self._helper.wait_types(["remote", "slave"])
@@ -59,22 +62,46 @@ class ZwickyHelper:
                     pass
                 continue
             elif pkgtype == "slave":
-                sid, obj = dict_get_fields(pkg, "sid", "obj")
+                sid, obj = get_dict_fields(pkg, ["sid", "obj"])
                 if None in [sid, obj]:
                     continue
                 self._helper.send_got_cmd(sid)
                 return (sid, obj)
 
     def handle_remote(self, obj):
-        # update coordinate etc and return processed data
-        pass
+        objtype = get_dict_fields(obj, "type")
+        if objtype is None:
+            return
+        if objtype == "beep":
+            return
+        elif objtype == "source":
+            self._source = bool(get_dict_fields(obj, "on"))
+            self.send_signal("source", self._source)
+            return obj
+        elif objtype == "move":
+            direct, count, edge = get_dict_fields(obj,
+                                                  ["direct", "count", "edge"])
+            if None in [direct, count, edge]:
+                return
+            self._motor.move(direct, count, edge)
+            return obj
+        elif objtype == "radio":
+            # TODO
+            return obj
+        return
     def send(self, obj):
         self._helper.send(obj)
         return self.recv()
+    def send_signal(self, name, value):
+        self._helper.send_signal(name, value)
+    def send_move(self, direct, count):
+        self.send({"type": "move", "direct": direct, "count": count})
+    def send_source(self, on):
+        self.send({"type": "source", "on": on})
     def reset(self):
-        self.send({"type": "move", "direct": 0, "count": 5000})
-        self.send({"type": "move", "direct": 2, "count": 5000})
-        self.send({"type": "source", "on": False})
+        self.send_move(0, 5000)
+        self.send_move(2, 5000)
+        self.send_source(False)
         self._reset_coor()
     def run(self):
         self._helper.wait_ready()

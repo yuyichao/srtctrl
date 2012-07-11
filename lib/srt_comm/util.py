@@ -149,4 +149,4 @@ def get_dict_fields(d, fields):
 def set_2_level(d, key1, key2, value):
     if not key1 in d:
         d[key1] = {}
-    d[key1] = value
+    d[key1][key2] = value
