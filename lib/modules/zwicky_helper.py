@@ -19,9 +19,8 @@
 class ZwickyHelper:
     def __init__(self, helper):
         self._helper = helper
-        self._ready = helper.ready
-        self._pending_slave = None
         self._reset_coor()
+        print(self._helper.get_config("zwicky", "az_lim"))
         # init config here
     def _reset_coor(self):
         self._az_c = 0
@@ -29,50 +28,32 @@ class ZwickyHelper:
         self._source = False
     def recv(self):
         while True:
-            pkg = self._helper.recv()
-            pkgtype = pkg["type"]
-            if pkgtype == "ready":
-                continue
-            elif pkgtype == "remote":
+            pkg = self._helper.wait_types("remote")
+            try:
                 obj = pkg["obj"]
-                return self.handle_remote(obj)
-            elif pkgtype == "slave":
-                self.handle_slave(pkg["sid"], pkg["obj"])
-            else:
+            except:
                 continue
+            return self.handle_remote(obj)
     def recv_slave(self):
-        if not self._pending_slave is None:
-            sid, obj = self._pending_slave
-            self._pending_slave = None
-            self._helper.send_got_cmd(sid)
-            return sid, obj
-        else:
-            while True:
-                pkg = self._helper.recv()
-                pkgtype = pkg["type"]
-                if pkgtype == "ready":
-                    continue
-                elif pkgtype == "remote":
+        while True:
+            pkg = self._helper.wait_types(["remote", "slave"])
+            pkgtype = pkg["type"]
+            if pkgtype == "remote":
+                try:
                     self.handle_remote(pkg["obj"])
+                except:
+                    pass
+                continue
+            elif pkgtype == "slave":
+                sid, obj = dict_get_fields(pkg, "sid", "obj")
+                if None in [sid, obj]:
                     continue
-                elif pkgtype == "slave":
-                    sid, obj = pkg["sid"], pkg["obj"]
-                    self._helper.send_got_cmd(sid)
-                    return (sid, obj)
-                else:
-                    continue
+                self._helper.send_got_cmd(sid)
+                return (sid, obj)
 
     def handle_remote(self, obj):
         # update coordinate etc and return processed data
         pass
-    def handle_slave(self, sid, obj):
-        if obj["type"] == "prop":
-            self.handle_prop(sid, obj)
-        else:
-            if self._pending_slave is None:
-                self._pending_slave = (sid, obj)
-                return
-            self._helper.send_busy(sid)
     def handle_prop(self, sid, obj):
         pass
     def send(self, obj):
@@ -83,16 +64,8 @@ class ZwickyHelper:
         self.send({"type": "move", "direct": 2, "count": 5000})
         self.send({"type": "source", "on": False})
         self._reset_coor()
-    def wait_ready(self):
-        if self._helper.ready:
-            return
-        while True:
-            pkg = self._helper.recv()
-            pkgtype = pkg["type"]
-            if pkgtype == "ready":
-                return
     def run(self):
-        self.wait_ready()
+        self._helper.wait_ready()
         self.reset()
         self._helper.send_ready()
         # while True:

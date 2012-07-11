@@ -26,6 +26,7 @@ class SrtConf(GObject.Object):
                     (GObject.TYPE_STRING, GObject.TYPE_STRING)),
     }
     def __init__(self, path=config.srt_config_path):
+        super().__init__()
         paths = path.split(':')
         self._config = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')

@@ -106,9 +106,9 @@ class SrtCenter(GObject.Object):
         elif pkgtype == "slave":
             # TODO send to host
             pass
-        elif pkgtype == "busy":
-            # TODO send to host
-            pass
+        # elif pkgtype == "busy":
+        #     # TODO send to host
+        #     pass
         elif pkgtype == "ready":
             self.emit('ready')
         elif pkgtype == "got-cmd":
@@ -124,13 +124,13 @@ class SrtCenter(GObject.Object):
                 return
             value = self._get_config(field, name, notify,
                                      self._helper_config_notify_cb)
-            self._helper.send({"type": "config", "field": field, "name": name
+            self._helper.send({"type": "config", "field": field, "name": name,
                                "value": value, "notify": notify})
             return
         else:
             return
     def _helper_config_notify_cb(self, field, name, value):
-        self._helper.send({"type": "config", "field": field, "name": name
+        self._helper.send({"type": "config", "field": field, "name": name,
                            "value": value, "notify": True})
     def _helper_disconn_cb(self, helper):
         self.emit('error', SRTERR_HELPER_QUIT, "Helper quit")
