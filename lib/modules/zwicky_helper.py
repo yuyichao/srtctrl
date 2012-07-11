@@ -23,7 +23,7 @@ class ZwickyHelper:
         self._helper = helper
         self._reset_coor()
         self._helper.connect("config", self._config_update_cb)
-        self._helper.connect("prop", self._get_prop_cb)
+        self._helper.connect("get", self._get_cb)
         self._config_dict = {}
         self._config = new_wrapper(self._config_getter, None)
         self._helper.get_config("zwicky", "az_lim")
@@ -46,7 +46,7 @@ class ZwickyHelper:
         self._config_dict[name] = value
     def _config_getter(self, key):
         return get_dict_fields(self._config_dict, key)
-    def _get_prop_cb(self, helper, name, sid):
+    def _get_cb(self, helper, name, sid):
         pass
     def recv(self):
         while True:
@@ -75,8 +75,6 @@ class ZwickyHelper:
 
     def handle_remote(self, obj):
         # update coordinate etc and return processed data
-        pass
-    def handle_prop(self, sid, obj):
         pass
     def send(self, obj):
         self._helper.send(obj)

@@ -127,6 +127,9 @@ class SrtCenter(GObject.Object):
             self._helper.send({"type": "config", "field": field, "name": name,
                                "value": value, "notify": notify})
             return
+        elif pkgtype == "reply-get":
+            # TODO send to host
+            pass
         else:
             return
     def _helper_config_notify_cb(self, field, name, value):

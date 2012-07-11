@@ -30,7 +30,7 @@ class SrtHelper(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_STRING, GObject.TYPE_STRING,
                     GObject.TYPE_PYOBJECT)),
-        "prop": (GObject.SignalFlags.RUN_FIRST,
+        "get": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
                  (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
     }
@@ -70,14 +70,14 @@ class SrtHelper(GObject.Object):
                 if notify:
                     self._cache_config(field, name, value)
                 self.emit("config", field, name, value)
-            elif pkgtype == "prop":
+            elif pkgtype == "get":
                 name, sid = get_dict_fields(pkg, ["name", "sid"])
                 if None in (name, sid):
                     continue
-                self.emit("prop", field, name)
+                self.emit("get", field, name)
             if pkgtype in types:
                 return pkg
-            if pkgtype in ["config", "prop", "ready", "init", "error"]:
+            if pkgtype in ["config", "get", "ready", "init", "error"]:
                 continue
             self._pkg_queue.append(pkg)
     def _start(self):
@@ -111,8 +111,8 @@ class SrtHelper(GObject.Object):
     #     self._send({"type": "busy", "sid": sid})
     def send_ready(self):
         self._send({"type": "ready"})
-    def send_prop(self, sid, value):
-        self._send({"type": "prop", "sid": sid, "value": value})
+    def reply_get(self, sid, value):
+        self._send({"type": "reply-get", "sid": sid, "value": value})
     def send_quit(self):
         self._send({"type": "quit"})
 
