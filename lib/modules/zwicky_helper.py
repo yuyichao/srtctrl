@@ -21,9 +21,12 @@ class ZwickyHelper:
         self._helper = helper
         self._ready = helper.ready
         self._pending_slave = None
+        self._reset_coor()
+        # init config here
+    def _reset_coor(self):
         self._az_c = 0
         self._el_c = 0
-        # init config here
+        self._source = False
     def recv(self):
         while True:
             pkg = self._helper.recv()
@@ -79,7 +82,7 @@ class ZwickyHelper:
         self.send({"type": "move", "direct": 0, "count": 5000})
         self.send({"type": "move", "direct": 2, "count": 5000})
         self.send({"type": "source", "on": False})
-        # init coordinate here
+        self._reset_coor()
     def wait_ready(self):
         if self._helper.ready:
             return
@@ -99,6 +102,5 @@ class ZwickyHelper:
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
     zwicky.run()
-    print("exit")
 
 iface.helper.zwicky = StartZwicky

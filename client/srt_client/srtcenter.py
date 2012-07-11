@@ -59,6 +59,16 @@ class SrtCenter(GObject.Object):
                     pass
         except:
             pass
+        self._config_notify = {}
+        self._config.connect("updated", self._config_updated_cb)
+    def _config_updated_cb(self, field, name):
+        try:
+            cbargs = self._config_notify[field][name]
+        except:
+            return
+        value = self._config._get_config(field, name)
+        for cb, args in cbs:
+            call_catch(cb, field, name, value, *args)
     def __init_remote__(self):
         if self._remote_err_id:
             self._remote.disconnect(self._remote_err_id)
@@ -107,8 +117,21 @@ class SrtCenter(GObject.Object):
         elif pkgtype == "quit":
             self._quit()
             return
+        elif pkgtype == "config":
+            try:
+                field, name, notify = pkg["field"], pkg["name"], pkg["notify"]
+            except KeyError:
+                return
+            value = self._get_config(field, name, notify,
+                                     self._helper_config_notify_cb)
+            self._helper.send({"type": "config", "field": field, "name": name
+                               "value": value, "notify": notify})
+            return
         else:
             return
+    def _helper_config_notify_cb(self, field, name, value):
+        self._helper.send({"type": "config", "field": field, "name": name
+                           "value": value, "notify": True})
     def _helper_disconn_cb(self, helper):
         self.emit('error', SRTERR_HELPER_QUIT, "Helper quit")
         self._quit()
@@ -152,6 +175,16 @@ class SrtCenter(GObject.Object):
             self._mainloop.run()
         except:
             self._quit()
+    def _get_config(self, field, name, notify, cb, *args):
+        value = self._config._get_config(field, name)
+        if not notify:
+            return value
+        if not field in self._config_notify:
+            self._config_notify[field] = {}
+        if not name in self._config_notify[field]:
+            self._config_notify[field][name] = []
+        self._config_notify[field][name].append([cb, args])
+        return value
     def _start_remote(self):
         host = str(self._config.generic.host)
         port = int(self._config.generic.port)
