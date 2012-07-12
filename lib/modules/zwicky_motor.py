@@ -31,15 +31,16 @@ class ZwickyMoter:
                     "rod_crate"]:
             self._zwicky.get_config(key)
         self.configs = self._zwicky.configs
-        self.set_offset(0, 0)
         self.reset()
     def reset(self):
         self._az_c = 0
         self._el_c = 0
-        self._az_c_set = 0
-        self._el_c_set = 0
+        self._az_set = 0
+        self._el_set = 0
         self._az_edge = -1
         self._el_edge = -1
+        self._offaz = 0
+        self._offel = 0
         self.move_signal()
     def move(self, direct, count, edge):
         if direct == DIRECT_HDEC:
@@ -74,6 +75,10 @@ class ZwickyMoter:
             return self.az_c2d(self._az_c)
         elif key == "el":
             return self.el_c2d(self._el_c)
+        elif key == "az_c_set":
+            return int(self.az_d2c(self._az_set))
+        elif key == "el_c_set":
+            return int(self.el_d2c(self._el_set))
         else:
             raise AttributeError(key)
     def move_signal(self):
@@ -119,7 +124,7 @@ class ZwickyMoter:
             return self.configs.az_lim[1]
         return degree
     def az_d2c(self, degree):
-        degree = self.az_chk(degree)
+        degree = self.az_chk(degree + self._offaz)
         return (degree - self.configs.az_lim[0]) * self.configs.az_c_per_deg
     def el_chk(self, degree):
         if degree > self.configs.el_lim[1] or degree > 90:
@@ -128,7 +133,7 @@ class ZwickyMoter:
             return self.configs.el_lim[0]
         return degree
     def el_d2c(self, degree):
-        degree = self.el_chk(degree)
+        degree = self.el_chk(degree + self._offel)
         if self.configs.pushrod:
             L0 = self.l_rod()
             L1 = self.l_rod(degree)
@@ -137,23 +142,23 @@ class ZwickyMoter:
             return (degree - self.configs.el_lim[0]) * self.configs.el_c_per_deg
 
     def pos_chk(self):
-        if self._el_c_set > self._el_c and not self._el_edge == 1:
-            self._zwicky.send_move(DIRECT_UP, self._el_c_set - self._el_c)
-        if self._az_c_set > self._az_c and not self._az_edge == 1:
-            self._zwicky.send_move(DIRECT_HINC, self._az_c_set - self._az_c)
-        if self._az_c_set < self._az_c and not self._az_edge == -1:
-            self._zwicky.send_move(DIRECT_HDEC, self._az_c - self._az_c_set)
-        if self._el_c_set < self._el_c and not self._el_edge == -1:
-            self._zwicky.send_move(DIRECT_DOWN, self._el_c - self._el_c_set)
+        if self.el_c_set > self._el_c and not self._el_edge == 1:
+            self._zwicky.send_move(DIRECT_UP, self.el_c_set - self._el_c)
+        if self.az_c_set > self._az_c and not self._az_edge == 1:
+            self._zwicky.send_move(DIRECT_HINC, self.az_c_set - self._az_c)
+        if self.az_c_set < self._az_c and not self._az_edge == -1:
+            self._zwicky.send_move(DIRECT_HDEC, self._az_c - self.az_c_set)
+        if self.el_c_set < self._el_c and not self._el_edge == -1:
+            self._zwicky.send_move(DIRECT_DOWN, self._el_c - self.el_c_set)
     def set_pos(self, az, el):
-        self._az_c_set = int(self.az_d2c(float(az)))
-        self._el_c_set = int(self.el_d2c(float(el)))
+        self._az_set = float(az)
+        self._el_set = float(el)
         self.pos_chk()
         self.pos_chk()
-    # TODO
     def set_offset(self, offaz, offel):
         self._offaz = offaz
         self._offel = offel
+        self.pos_chk()
     def get_offset(self):
         return [self._offaz, self._offel]
 
