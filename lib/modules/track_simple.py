@@ -19,10 +19,10 @@
 class TrackSimple:
     def __init__(self, args):
         try:
-            self._az, self._el = args:
+            self._az, self._el = args
         except:
             self._az, self._el = [0, 0]
-    def __call__(self, time):
+    def __call__(self, station, time):
         return self._az, self._el
 
 iface.tracker.simple = TrackSimple

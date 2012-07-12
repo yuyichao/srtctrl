@@ -142,8 +142,8 @@ class SrtCenter(GObject.Object):
                 self._helper_tracker = SrtTracker(**pkg)
                 self._helper_tracker.connect("update", self._helper_track_cb)
             except:
-                # TODO Error message....
-                pass
+                # send a empty request to indecate a error
+                self._helper.send({"type": "track"})
         return
     def _helper_track_cb(self, tracker, az, el):
         self._helper.send({"type": "track", "az": az, "el": el})

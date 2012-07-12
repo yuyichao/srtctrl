@@ -91,20 +91,23 @@ class SrtHelper(GObject.Object):
                     continue
                 self.emit("prop", name, sid)
             elif pkgtype == "track":
-                az, el = get_dict_fields(pkg, "az", "el")
-                if None in [az, el]:
-                    continue
-                try:
-                    az = float(az)
-                    el = float(el)
-                except:
-                    continue
-                self.emit("track", az, el)
+                self._handle_track(pkg)
             if pkgtype in types:
                 return pkg
             if pkgtype in ["config", "prop", "ready", "init", "error", "track"]:
                 continue
             self._pkg_queue.append(pkg)
+    def _handle_track(self, pkg):
+        print("handle_track", pkg)
+        az, el = get_dict_fields(pkg, ["az", "el"])
+        if None in [az, el]:
+            return
+        try:
+            az = float(az)
+            el = float(el)
+            self.emit("track", az, el)
+        except:
+            pass
     def _start(self):
         pkg = self.wait_types("init")
         name = get_dict_fields(pkg, "name")
@@ -144,10 +147,10 @@ class SrtHelper(GObject.Object):
         self._send({"type": "quit"})
     def send_signal(self, name, value):
         self._send({"type": "signal", "name": name, "value": value})
-    def send_track(self, name, offset, time, abstime, track, args):
+    def send_track(self, name, offset, time, abstime, track, args, station):
         self._send({"type": "track", "name": name, "offset": offset,
                     "time": time, "abstime": bool(abstime),
-                    "track": bool(track), "args": args})
+                    "track": bool(track), "args": args, "station": station})
 
     def _cache_config(self, field, name, value):
         set_2_level(self._config_cache, field, name, value)

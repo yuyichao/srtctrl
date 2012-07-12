@@ -140,7 +140,8 @@ class ZwickyHelper:
     def send_source(self, on):
         return self.send({"type": "source", "on": on})
     def send_track(self, name, offset, time, abstime, track, args):
-        self._helper.send_track(name, offset, time, abstime, track, args)
+        self._helper.send_track(name, offset, time, abstime, track, args,
+                                self.configs.station)
     def send_radio(self, freq, mode):
         self._tracker.update_pos()
         self._motor.pos_chk()
@@ -158,8 +159,7 @@ class ZwickyHelper:
         self._helper.wait_ready()
         self.reset()
         self._helper.send_ready()
-        # self.move(15, 15)
-        self.move(10, 10)
+        self.track(args=[15, 15])
         print(self.radio())
         print(self.calib(3))
         print(self.radio())
@@ -179,7 +179,8 @@ class ZwickyHelper:
     def calib(self, count):
         return self._radio.calib(count)
     def track(self, **kwargs):
-        return self._tracker.track(**kwargs)
+        self._tracker.track(**kwargs)
+        self._helper.wait_types("track")
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)

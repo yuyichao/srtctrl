@@ -113,8 +113,8 @@ class ZwickyMoter:
         return degree
 
     def az_chk(self, degree):
-        degree = ((degree - self.configs.az_lim[0]) % 360
-                  + self.configs.az_lim[0])
+        if degree < self.configs.az_lim[0]:
+            degree = self.configs.az_lim[0]
         if degree > self.configs.az_lim[1]:
             return self.configs.az_lim[1]
         return degree

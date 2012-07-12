@@ -26,19 +26,26 @@ class SrtTracker(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_DOUBLE, GObject.TYPE_DOUBLE)),
     }
-    def __init__(self, name='', offset=[0, 0], time=0,
-                 abstime=False, track=False, args=None, **kwargs):
+    def __init__(self, name='', offset=[0, 0], time=0, abstime=False,
+                 track=False, args=None, station=[0, 0], **kwargs):
         super().__init__()
         if not name:
             name = "simple"
         self._plugin = SrtPlugins().tracker[name](args)
         self._name = name
-        self._off_az, self._off_el = offset
+        try:
+            self._off_az, self._off_el = offset
+            self._off_az, self._off_el = float(self._off_az), float(self._off_el)
+        except:
+            self._off_az, self._off_el = [0, 0]
         if abstime:
             self._offtime = time - _time.time()
         else:
             self._offtime = float(time)
         self._track = bool(track)
+        self._station_az, self._station_el = station
+        self._station_az, self._station_el = (float(self._station_az),
+                                              float(self._station_el))
         if self._track:
             GLib.timeout_add_seconds(1, self._update_cb)
         else:
@@ -48,8 +55,11 @@ class SrtTracker(GObject.Object):
         if not self._active:
             return False
         time = _time.time() + self._offtime
-        az, el = self._plugin(time)
-        # TODO add offset
+        station = [self._station_az, self._station_el]
+        az, el = self._plugin(station, time)
+        # TODO better offset
+        az += self._off_az
+        el += self._off_el
         self.emit("update", az, el)
         return self._track
     def stop(self):

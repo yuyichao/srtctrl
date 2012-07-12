@@ -14,6 +14,7 @@ set(srt_comm_py
   module.py
   error.py
   jsonsock.py
+  tracker.py
   )
 
 python_install_module(srt_comm ${srt_comm_py})
