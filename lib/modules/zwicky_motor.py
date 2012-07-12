@@ -31,6 +31,7 @@ class ZwickyMoter:
                     "rod_crate"]:
             self._zwicky.get_config(key)
         self.configs = self._zwicky.configs
+        self.set_offset(0, 0)
         self.reset()
     def reset(self):
         self._az_c = 0
@@ -149,5 +150,11 @@ class ZwickyMoter:
         self._el_c_set = int(self.el_d2c(float(el)))
         self.pos_chk()
         self.pos_chk()
+    # TODO
+    def set_offset(self, offaz, offel):
+        self._offaz = offaz
+        self._offel = offel
+    def get_offset(self):
+        return [self._offaz, self._offel]
 
 iface.zwicky.motor = ZwickyMoter

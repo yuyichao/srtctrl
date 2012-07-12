@@ -39,7 +39,32 @@ class ZwickyHelper:
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)
     def _get_prop_cb(self, helper, name, sid):
-        pass
+        value = self.get_prop(name)
+        helper.send_prop(sid, name, value)
+    def get_prop(self, name):
+        if name == "pos":
+            return [self._motor.az, self._motor.el]
+        elif name == "track":
+            # TODO
+            pass
+        elif name == "freq":
+            return self._radio.get_freq()
+        elif name == "calib":
+            return self._radio.get_calib()
+        elif name == "sys_tmp":
+            return self._radio.get_sys_tmp()
+        elif name == "offset":
+            return self._motor.get_offset()
+        elif name == "gala_pos":
+            pass
+        elif name == "time":
+            pass
+        elif name == "source":
+            return self._source
+        return
+    def get_all_props(self):
+        prop_names = ["pos", "track", "freq", "calib", "sys_tmp", "offset",
+                      "gala_pos", "time", "source"]
     def recv(self):
         while True:
             pkg = self._helper.wait_types("remote")
@@ -116,13 +141,26 @@ class ZwickyHelper:
         self._helper.wait_ready()
         self.reset()
         self._helper.send_ready()
-        self._motor.set_pos(15, 15)
-        self._motor.set_pos(10, 10)
-        self.send_radio(30000, 1)
+        # self.move(15, 15)
+        self.move(10, 10)
+        print(self.radio())
+        print(self.calib(3))
+        print(self.radio())
         # while True:
         #     sid, obj = self.recv_slave()
         #     # do real work here...
         self.reset()
+
+    def move(self, az, el):
+        self._motor.set_pos(az, el)
+    def set_freq(self, freq, mode):
+        self._radio.set_freq(freq, mode)
+    def get_freq(self):
+        return self._radio.get_freq()
+    def radio(self):
+        return self._radio.radio()
+    def calib(self, count):
+        return self._radio.calib(count)
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
