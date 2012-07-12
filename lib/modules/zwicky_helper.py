@@ -17,20 +17,24 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from srt_comm import *
+import time as _time
 
 class ZwickyHelper:
     def __init__(self, helper):
         self._helper = helper
         self._helper.connect("config", self._config_update_cb)
         self._helper.connect("prop", self._get_prop_cb)
+        self._helper.connect("track", self._track_cb)
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.zwicky
         self._motor = self.plugins.motor(self)
         self._radio = self.plugins.radio(self)
+        self._tracker = self.plugins.tracker(self)
         self.get_config("station")
         self._reset_coor()
     def _reset_coor(self):
+        self._tracker.reset()
         self._motor.reset()
         self._source = False
     def _config_update_cb(self, helper, field, name, value):
@@ -41,13 +45,15 @@ class ZwickyHelper:
     def _get_prop_cb(self, helper, name, sid):
         value = self.get_prop(name)
         helper.send_prop(sid, name, value)
+    def _track_cb(self, helper, az, el):
+        self._tracker.set_pos(az, el)
     def get_prop(self, name):
         if name == "pos":
             return [self._motor.az, self._motor.el]
         elif name == "track":
             # TODO
             pass
-        elif name == "freq":
+        elif name == "freq_mode":
             return self._radio.get_freq()
         elif name == "calib":
             return self._radio.get_calib()
@@ -58,13 +64,19 @@ class ZwickyHelper:
         elif name == "gala_pos":
             pass
         elif name == "time":
-            pass
+            return _time.time()
         elif name == "source":
             return self._source
+        elif name == "frange":
+            pass
         return
     def get_all_props(self):
-        prop_names = ["pos", "track", "freq", "calib", "sys_tmp", "offset",
-                      "gala_pos", "time", "source"]
+        prop_names = ["pos", "track", "freq_mode", "calib", "sys_tmp", "offset",
+                      "gala_pos", "time", "source", "frange"]
+        props = {}
+        for pname in prop_names:
+            props[pname] = self.get_prop(pname)
+        return props
     def recv(self):
         while True:
             pkg = self._helper.wait_types("remote")
@@ -78,7 +90,7 @@ class ZwickyHelper:
             return obj
     def recv_slave(self):
         while True:
-            pkg = self._helper.wait_types(["remote", "slave"])
+            pkg = self._helper.wait_types(["remote", "slave", "track"])
             pkgtype = pkg["type"]
             if pkgtype == "remote":
                 try:
@@ -92,6 +104,8 @@ class ZwickyHelper:
                     continue
                 self._helper.send_got_cmd(sid)
                 return (sid, obj)
+            elif pkgtype == "track":
+                self._tracker.update_pos()
 
     def handle_remote(self, obj):
         objtype = get_dict_fields(obj, "type")
@@ -125,7 +139,10 @@ class ZwickyHelper:
                           "count": count})
     def send_source(self, on):
         return self.send({"type": "source", "on": on})
+    def send_track(self, name, offset, time, abstime, track, args):
+        self._helper.send_track(name, offset, time, abstime, track, args)
     def send_radio(self, freq, mode):
+        self._tracker.update_pos()
         self._motor.pos_chk()
         reply = self.send({"type": "radio", "freq": freq, "mode": mode})
         rtype, data = get_dict_fields(reply, ["type", "data"])
@@ -161,6 +178,8 @@ class ZwickyHelper:
         return self._radio.radio()
     def calib(self, count):
         return self._radio.calib(count)
+    def track(self, **kwargs):
+        return self._tracker.track(**kwargs)
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)

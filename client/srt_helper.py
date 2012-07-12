@@ -33,6 +33,9 @@ class SrtHelper(GObject.Object):
         "prop": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
                  (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
+        "track": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_DOUBLE, GObject.TYPE_DOUBLE)),
     }
     def __init__(self, sock):
         super().__init__()
@@ -70,6 +73,11 @@ class SrtHelper(GObject.Object):
                                                               "notify", "value"])
                 if None in (field, name, notify):
                     continue
+                try:
+                    field = str(field)
+                    name = str(name)
+                except:
+                    continue
                 if notify:
                     self._cache_config(field, name, value)
                 self.emit("config", field, name, value)
@@ -77,10 +85,24 @@ class SrtHelper(GObject.Object):
                 name, sid = get_dict_fields(pkg, ["name", "sid"])
                 if None in (name, sid):
                     continue
-                self.emit("prop", field, name)
+                try:
+                    name = str(name)
+                except:
+                    continue
+                self.emit("prop", name, sid)
+            elif pkgtype == "track":
+                az, el = get_dict_fields(pkg, "az", "el")
+                if None in [az, el]:
+                    continue
+                try:
+                    az = float(az)
+                    el = float(el)
+                except:
+                    continue
+                self.emit("track", az, el)
             if pkgtype in types:
                 return pkg
-            if pkgtype in ["config", "prop", "ready", "init", "error"]:
+            if pkgtype in ["config", "prop", "ready", "init", "error", "track"]:
                 continue
             self._pkg_queue.append(pkg)
     def _start(self):
@@ -122,6 +144,10 @@ class SrtHelper(GObject.Object):
         self._send({"type": "quit"})
     def send_signal(self, name, value):
         self._send({"type": "signal", "name": name, "value": value})
+    def send_track(self, name, offset, time, abstime, track, args):
+        self._send({"type": "track", "name": name, "offset": offset,
+                    "time": time, "abstime": bool(abstime),
+                    "track": bool(track), "args": args})
 
     def _cache_config(self, field, name, value):
         set_2_level(self._config_cache, field, name, value)

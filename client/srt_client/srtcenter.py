@@ -133,6 +133,9 @@ class SrtCenter(GObject.Object):
         elif pkgtype == "signal":
             # TODO send to host
             pass
+        elif pkgtype == "track":
+            # TODO send to track
+            pass
         else:
             return
     def _helper_config_notify_cb(self, field, name, value):
