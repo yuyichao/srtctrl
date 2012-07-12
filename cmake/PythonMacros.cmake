@@ -82,11 +82,16 @@ macro(_PYTHON_COMPILE SOURCE_FILE)
   string(LENGTH "${_pro_src_abs}" __src_length)
   math(EXPR __tmp_length "${__src_length} + 1")
   string(SUBSTRING "${_basepath}/" 0 ${__tmp_length} __src_found)
+  string(LENGTH "${_basepath}" __base_path_length)
 
   if("${__bin_found}" STREQUAL "${_pro_bin_abs}/")
-    string(SUBSTRING "${_basepath}" ${__bin_length} -1 __tmp_base_path)
+    math(EXPR __tmp_length "${__base_path_length} - ${__bin_length}")
+    string(SUBSTRING "${_basepath}" ${__bin_length} ${__tmp_length}
+      __tmp_base_path)
   elseif("${__src_found}" STREQUAL "${_pro_src_abs}/")
-    string(SUBSTRING "${_basepath}" ${__src_length} -1 __tmp_base_path)
+    math(EXPR __tmp_length "${__base_path_length} - ${__src_length}")
+    string(SUBSTRING "${_basepath}" ${__src_length} ${__tmp_length}
+      __tmp_base_path)
   endif()
 
   set(_basepath "./${__tmp_base_path}")
