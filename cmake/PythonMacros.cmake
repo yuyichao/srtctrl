@@ -77,14 +77,21 @@ macro(_PYTHON_COMPILE SOURCE_FILE)
   get_filename_component(_pro_src_abs "${PROJECT_SOURCE_DIR}" ABSOLUTE)
 
   string(LENGTH "${_pro_bin_abs}" __bin_length)
-  string(FIND "${_basepath}/" "${_pro_bin_abs}/" __bin_found)
+  math(EXPR __tmp_length "${__bin_length} + 1")
+  string(SUBSTRING "${_basepath}/" 0 ${__tmp_length} __bin_found)
   string(LENGTH "${_pro_src_abs}" __src_length)
-  string(FIND "${_basepath}/" "${_pro_src_abs}/" __src_found)
+  math(EXPR __tmp_length "${__src_length} + 1")
+  string(SUBSTRING "${_basepath}/" 0 ${__tmp_length} __src_found)
+  string(LENGTH "${_basepath}" __base_path_length)
 
-  if(${__bin_found} EQUAL 0)
-    string(SUBSTRING "${_basepath}" ${__bin_length} -1 __tmp_base_path)
-  elseif(${__src_found} EQUAL 0)
-    string(SUBSTRING "${_basepath}" ${__src_length} -1 __tmp_base_path)
+  if("${__bin_found}" STREQUAL "${_pro_bin_abs}/")
+    math(EXPR __tmp_length "${__base_path_length} - ${__bin_length}")
+    string(SUBSTRING "${_basepath}" ${__bin_length} ${__tmp_length}
+      __tmp_base_path)
+  elseif("${__src_found}" STREQUAL "${_pro_src_abs}/")
+    math(EXPR __tmp_length "${__base_path_length} - ${__src_length}")
+    string(SUBSTRING "${_basepath}" ${__src_length} ${__tmp_length}
+      __tmp_base_path)
   endif()
 
   set(_basepath "./${__tmp_base_path}")
