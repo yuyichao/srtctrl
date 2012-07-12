@@ -84,6 +84,7 @@ class SrtCenter(GObject.Object):
         self._helper.start_recv()
         self._helper.connect('disconn', self._helper_disconn_cb)
         self._helper.connect('got-obj', self._helper_got_obj_cb)
+        self._helper_tracker = None
 
     def _helper_got_obj_cb(self, helper, pkg):
         try:
@@ -134,10 +135,18 @@ class SrtCenter(GObject.Object):
             # TODO send to host
             pass
         elif pkgtype == "track":
-            # TODO send to track
-            pass
-        else:
-            return
+            if not self._helper_tracker is None:
+                self._helper_tracker.stop()
+                self._helper_tracker = None
+            try:
+                self._helper_tracker = SrtTracker(**pkg)
+                self._helper_tracker.connect("update", self._helper_track_cb)
+            except:
+                # TODO Error message....
+                pass
+        return
+    def _helper_track_cb(self, tracker, az, el):
+        self._helper.send({"type": "track", "az": az, "el": el})
     def _helper_config_notify_cb(self, field, name, value):
         self._helper.send({"type": "config", "field": field, "name": name,
                            "value": value, "notify": True})
