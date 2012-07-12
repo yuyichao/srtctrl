@@ -17,6 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from .module import SrtPlugins
+from .time import *
 from gi.repository import GObject, GLib
 import time as _time
 
@@ -26,8 +27,8 @@ class SrtTracker(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_DOUBLE, GObject.TYPE_DOUBLE)),
     }
-    def __init__(self, name='', offset=[0, 0], time=0, abstime=False,
-                 track=False, args=None, station=[0, 0], **kwargs):
+    def __init__(self, name='', offset=[0, 0], time=0, track=True,
+                 args=None, station=[0, 0], **kwargs):
         super().__init__()
         if not name:
             name = "simple"
@@ -38,11 +39,18 @@ class SrtTracker(GObject.Object):
             self._off_az, self._off_el = float(self._off_az), float(self._off_el)
         except:
             self._off_az, self._off_el = [0, 0]
-        if abstime:
-            self._offtime = time - _time.time()
-        else:
-            self._offtime = float(time)
         self._track = bool(track)
+        if self._track:
+            try:
+                self._time = guess_interval(time)
+            except:
+                self._time = 0
+        else:
+            try:
+                self._time = guess_time(time)
+            except:
+                self._time = _time.time()
+
         self._station_az, self._station_el = station
         self._station_az, self._station_el = (float(self._station_az),
                                               float(self._station_el))
@@ -54,7 +62,10 @@ class SrtTracker(GObject.Object):
     def _update_cb(self):
         if not self._active:
             return False
-        time = _time.time() + self._offtime
+        if self._track:
+            time = _time.time() + self._time
+        else:
+            time = self._time
         station = [self._station_az, self._station_el]
         az, el = self._plugin(station, time)
         # TODO better offset

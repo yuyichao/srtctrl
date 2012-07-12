@@ -80,11 +80,7 @@ class ZwickyHelper:
     def recv(self):
         while True:
             pkg = self._helper.wait_types("remote")
-            try:
-                obj = pkg["obj"]
-            except:
-                continue
-            obj = self.handle_remote(obj)
+            obj = self.handle_remote(pkg["obj"])
             if obj is None:
                 continue
             return obj
@@ -93,37 +89,42 @@ class ZwickyHelper:
             pkg = self._helper.wait_types(["remote", "slave", "track"])
             pkgtype = pkg["type"]
             if pkgtype == "remote":
-                try:
-                    self.handle_remote(pkg["obj"])
-                except:
-                    pass
+                self.handle_remote(**pkg)
                 continue
             elif pkgtype == "slave":
-                sid, obj = get_dict_fields(pkg, ["sid", "obj"])
-                if None in [sid, obj]:
-                    continue
+                sid, obj = pkg["sid"], pkg["obj"]
                 self._helper.send_got_cmd(sid)
                 return (sid, obj)
             elif pkgtype == "track":
                 self._tracker.update_pos()
 
-    def handle_remote(self, obj):
+    def _handle_source(self, on=None, **kw):
+        self._source = bool(on)
+        self.send_signal("source", self._source)
+        return {"type": "source", "on": self._source}
+    def _handle_move(self, direct=None, count=None, edge=None, **kw):
+        if None in [direct, count, edge]:
+            return
+        try:
+            direct = int(direct)
+            count = int(count)
+            edge = int(edge)
+        except:
+            return
+        self._motor.move(direct, count, edge)
+        return {"type": "move", "direct": direct, "count": count, "edge": edge}
+    def handle_remote(self, obj=None, **kw):
+        if obj is None:
+            return
         objtype = get_dict_fields(obj, "type")
         if objtype is None:
             return
         if objtype == "beep":
             return
         elif objtype == "source":
-            self._source = bool(get_dict_fields(obj, "on"))
-            self.send_signal("source", self._source)
-            return obj
+            return self._handle_source(**obj)
         elif objtype == "move":
-            direct, count, edge = get_dict_fields(obj,
-                                                  ["direct", "count", "edge"])
-            if None in [direct, count, edge]:
-                return
-            self._motor.move(direct, count, edge)
-            return obj
+            return self._handle_move(**obj)
         elif objtype == "radio":
             return obj
         return
@@ -139,8 +140,8 @@ class ZwickyHelper:
                           "count": count})
     def send_source(self, on):
         return self.send({"type": "source", "on": on})
-    def send_track(self, name, offset, time, abstime, track, args):
-        self._helper.send_track(name, offset, time, abstime, track, args,
+    def send_track(self, name, offset, time, track, args):
+        self._helper.send_track(name, offset, time, track, args,
                                 self.configs.station)
     def send_radio(self, freq, mode):
         self._tracker.update_pos()
@@ -167,9 +168,9 @@ class ZwickyHelper:
         #     sid, obj = self.recv_slave()
         #     # do real work here...
         self.reset()
-
     def move(self, az, el):
         self._motor.set_pos(az, el)
+
     def set_freq(self, freq, mode):
         self._radio.set_freq(freq, mode)
     def get_freq(self):
@@ -179,8 +180,15 @@ class ZwickyHelper:
     def calib(self, count):
         return self._radio.calib(count)
     def track(self, **kwargs):
-        self._tracker.track(**kwargs)
-        self._helper.wait_types("track")
+        if self._tracker.track(**kwargs):
+            pkg = self._helper.wait_types("track")
+            return check_track(**pkg)
+        return False
+
+def check_track(az=None, el=None, **kw):
+    if None in [az, el]:
+        return False
+    return True
 
 def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)

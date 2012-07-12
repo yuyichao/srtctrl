@@ -26,6 +26,7 @@ from srt_comm import config
 from srt_comm.module import *
 from srt_comm.error import *
 from srt_comm.tracker import *
+from srt_comm.time import *
 
 import locale
 locale.setlocale(locale.LC_ALL, '')

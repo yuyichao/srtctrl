@@ -16,6 +16,9 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import time as _time
+from srt_comm import *
+
 class ZwickyTracker:
     def __init__(self, zwicky):
         self._zwicky = zwicky
@@ -30,13 +33,38 @@ class ZwickyTracker:
     def update_pos(self):
         self._zwicky.move(self._az, self._el)
     def track(self, name="", offset=[0, 0], time=0, abstime=False, track=False,
-              args=None, **kwargs):
-        self._track(name, offset, time, abstime, track, args)
-        self._zwicky.send_signal("track", self._track_obj)
+              args=None, **kw):
+        if self._track(name, offset, time, abstime, track, args):
+            self._zwicky.send_signal("track", self._track_obj)
+            return True
+        return False
     def _track(self, name, offset, time, abstime, track, args):
+        if track:
+            if abstime:
+                try:
+                    time = guess_time(time) - _time.time()
+                except:
+                    time = 0
+            else:
+                try:
+                    time = guess_interval(time)
+                except:
+                    time = 0
+        else:
+            if abstime:
+                try:
+                    time = guess_time(time)
+                except:
+                    time = _time.time()
+            else:
+                try:
+                    time = guess_interval(time) + _time.time()
+                except:
+                    time = _time.time()
         self._track_obj = {"name": name, "offset": offset, "time": time,
-                           "abstime": abstime, "track": track, "args": args}
-        self._zwicky.send_track(name, offset, time, abstime, track, args)
+                           "track": track, "args": args}
+        self._zwicky.send_track(name, offset, time, track, args)
+        return True
     def get_track(self):
         return self._track_obj
 
