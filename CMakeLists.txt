@@ -1,5 +1,10 @@
-cmake_minimum_required(VERSION 2.6)
-cmake_policy(SET CMP0017 OLD)
+cmake_minimum_required(VERSION 2.8)
+if(CMAKE_VERSION VERSION_LESS 2.8.4)
+  set(FALLBACK_CMAKE283 1)
+else()
+  set(FALLBACK_CMAKE283 0)
+  cmake_policy(SET CMP0017 OLD)
+endif()
 project(srtctrl C)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake
   ${CMAKE_MODULE_PATH})
