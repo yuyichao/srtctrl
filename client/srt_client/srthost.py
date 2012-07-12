@@ -23,20 +23,24 @@ from gi.repository import GObject
 
 class SrtHost(GObject.Object):
     __gsignals__ = {
+        "quit": (GObject.SignalFlags.RUN_FIRST,
+                 GObject.TYPE_NONE,
+                 ()),
         "prop": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
-                 (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
+                 (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING)),
         "cmd": (GObject.SignalFlags.RUN_FIRST,
                 GObject.TYPE_NONE,
-                (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
+                (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
                  GObject.TYPE_PYOBJECT)),
         "config": (GObject.SignalFlags.RUN_FIRST,
                    GObject.TYPE_NONE,
-                   (GObject.TYPE_STRING, GObject.TYPE_STRING,
-                    GObject.TYPE_BOOLEAN)),
+                   (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
+                    GObject.TYPE_STRING, GObject.TYPE_BOOLEAN)),
     }
     def __init__(self):
         super().__init__()
+        self._plugins = SrtPlugins()
         self._slaves = {}
         self._lock = -1
         self._cmd_queue = []
@@ -48,7 +52,68 @@ class SrtHost(GObject.Object):
         sock.connect('got-obj', self._slave_got_obj_cb)
         sock.connect('disconn', self._slave_disconn_cb)
         self._slaves[id(sock)] = {"sock": sock}
+        return True
+    def create_slave_by_name(self, name, args):
+        try:
+            if self._plugins.slave[name](**args):
+                return True
+        except:
+            pass
+        return False
     def _slave_got_obj_cb(self, slave, pkg):
+        pkgtype = get_dict_fields(pkg, "type")
+        # connect, config, start, name, prop, cmd, lock
+        res = None
+        if pkgtype == "connect":
+            res = self._handle_connect(slave, **pkg)
+        elif pkgtype == "config":
+            res = self._handle_config(slave, **pkg)
+        elif pkgtype == "start":
+            res = self._handle_start(slave, **pkg)
+        elif pkgtype == "name":
+            res = self._handle_name(slave, **pkg)
+        elif pkgtype == "prop":
+            res = self._handle_prop(slave, **pkg)
+        elif pkgtype == "cmd":
+            res = self._handle_cmd(slave, **pkg)
+        elif pkgtype == "lock":
+            res = self._handle_lock(slave, **pkg)
+        elif pkgtype == "quit":
+            res = self._handle_lock(slave, **pkg)
+        if res is None:
+            slave.send({"type": "error", "errno": SRTERR_UNKNOWN_CMD,
+                        "msg": "invalid request"})
+    def _handle_quit(self, slave, **kw):
+        pass
+    def _handle_lock(self, slave, **kw):
+        pass
+    def _handle_cmd(self, slave, **kw):
+        pass
+    def _handle_prop(self, slave, **kw):
+        pass
+    def _handle_name(self, slave, **kw):
+        pass
+    def _handle_start(self, slave, **kw):
+        pass
+    def _handle_config(self, slave, **kw):
+        pass
+    def _handle_connect(self, slave, **kw):
         pass
     def _slave_disconn_cb(self, slave):
+        try:
+            del self._slaves[id(slave)]
+        except:
+            pass
+        # TODO recheck
+    def feed_prop(self, sid, name, value):
+        pass
+    def feed_got_cmd(self, sid):
+        pass
+    def feed_config(self, sid, field, key, value, notify):
+        pass
+    def feed_res(self, sid, obj):
+        pass
+    def feed_signal(self, name, args):
+        pass
+    def quit(self):
         pass

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# coding=utf-8
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,27 +16,22 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
 from srt_comm import *
 
-conn = exec_n_conn('python', args=['python', './test_jsonchild3.py'],
-                   n=1, gtype=JSONSock)[0]
+def main():
+    pass
 
-print(conn)
+def start_slave(host, fname=None, **kw):
+    if fname is None:
+        return False
+    fname = str(fname)
+    conn = exec_n_conn(sys.executable,
+                       args=[sys.executable, __file__, fname],
+                       n=1, gtype=JSONSock)[0]
+    return host.add_slave_from_jsonsock(self, sock)
 
-mainloop = GLib.MainLoop()
-
-def timeout_cb(conn):
-    print('timeout')
-    conn.send({"type": 'EXIT'})
-    return True
-
-def disconn_cb(conn):
-    print('parent exit.')
-    mainloop.quit()
-
-conn.connect('disconn', disconn_cb)
-conn.start_send()
-GLib.timeout_add_seconds(1, timeout_cb, conn)
-conn.send({"type": 'EXIT'})
-
-mainloop.run()
+if __name__ == '__main__':
+    main()
+else:
+    iface.slave.python = start_slave

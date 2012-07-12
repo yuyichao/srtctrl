@@ -44,6 +44,13 @@ class SrtCenter(GObject.Object):
         self.__init_config__(config)
         self.__init_remote__()
         self.__init_helper__()
+        self.__init_host__()
+
+    def __init_host__(self):
+        self._host = SrtHost()
+        self._host.connect("prop", self._host_prop_cb)
+        self._host.connect("cmd", self._host_cmd_cb)
+        self._host.connect("config", self._host_config_cb)
 
     def __init_config__(self, config):
         self._config = SrtConf()
@@ -85,6 +92,12 @@ class SrtCenter(GObject.Object):
         self._helper.connect('disconn', self._helper_disconn_cb)
         self._helper.connect('got-obj', self._helper_got_obj_cb)
         self._helper_tracker = None
+    def _host_prop_cb(self, host, sid, name):
+        pass
+    def _host_cmd_cb(self, host, sid, name, args):
+        pass
+    def _host_config_cb(self, host, sid, field, key, notify):
+        pass
 
     def _helper_got_obj_cb(self, helper, pkg):
         try:
