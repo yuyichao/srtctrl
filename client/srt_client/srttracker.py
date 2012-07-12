@@ -16,17 +16,15 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm.srtaddr import *
-from srt_comm.srtconn import SrtConn
-from srt_comm.jsonsock import JSONSock
-from srt_comm.jsonstm import get_json
-from srt_comm.ps import *
-from srt_comm.util import *
-from srt_comm import config
-from srt_comm.module import *
-from srt_comm.error import *
-from srt_comm.tracker import *
-from srt_comm.time import *
+from gi.repository import GObject, GLib
 
-import locale
-locale.setlocale(locale.LC_ALL, '')
+class SrtTracker(GObject.Object):
+    __gsignals__ = {
+        "update": (GObject.SignalFlags.RUN_FIRST,
+                   GObject.TYPE_NONE,
+                   (GObject.TYPE_PYOBJECT,)),
+    }
+    def __init__(self):
+        super().__init__()
+    def set_track(self, name, offset, time, track):
+        pass

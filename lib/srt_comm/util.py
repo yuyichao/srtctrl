@@ -131,3 +131,22 @@ def new_wrapper2(getter, setter):
             setter(key1, key2, value)
         return new_wrapper(__getter, __setter)
     return new_wrapper(_getter, None)
+
+def get_dict_fields(d, fields):
+    res = []
+    if isinstance(fields, str):
+        try:
+            return d[fields]
+        except:
+            return
+    for field in fields:
+        try:
+            res.append(d[field])
+        except:
+            res.append(None)
+    return res
+
+def set_2_level(d, key1, key2, value):
+    if not key1 in d:
+        d[key1] = {}
+    d[key1][key2] = value

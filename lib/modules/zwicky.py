@@ -103,7 +103,7 @@ class Zwicky:
                 remote.unknown(pkg)
                 return
             try:
-                data = [int(p) for p in pkg[1:65]]
+                data = [int(p) for p in seq[1:65]]
             except ValueError:
                 remote.unknown(pkg)
                 return
