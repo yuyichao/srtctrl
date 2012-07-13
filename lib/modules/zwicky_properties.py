@@ -16,6 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import time as _time
+
 def zwicky_pos(zwicky):
     return [zwicky.motor.az, zwicky.motor.el]
 
@@ -25,3 +27,45 @@ def zwicky_track(zwicky):
     return zwicky.tracker.get_track()
 
 setiface.props.zwicky.track = zwicky_track
+
+def zwicky_freq_mode(zwicky):
+    return zwicky.radio.get_freq()
+
+setiface.props.zwicky.freq_mode = zwicky_freq_mode
+
+def zwicky_calib(zwicky):
+    return zwicky.radio.get_calib()
+
+setiface.props.zwicky.calib = zwicky_calib
+
+def zwicky_sys_tmp(zwicky):
+    return zwicky.radio.get_sys_tmp()
+
+setiface.props.zwicky.sys_tmp = zwicky_sys_tmp
+
+def zwicky_offset(zwicky):
+    return zwicky.motor.get_offset()
+
+setiface.props.zwicky.offset = zwicky_offset
+
+def zwicky_gala_pos(zwicky):
+    az, el = zwicky_pos(zwicky)
+    # TODO
+
+setiface.props.zwicky.gala_pos = zwicky_gala_pos
+
+def zwicky_time(zwicky):
+    return _time.time()
+
+setiface.props.zwicky.time = zwicky_time
+
+def zwicky_source_on(zwicky):
+    return zwicky.source_on
+
+setiface.props.zwicky.source_on = zwicky_source_on
+
+def zwicky_frange(zwicky):
+    # TODO
+    return
+
+setiface.props.zwicky.frange = zwicky_frange

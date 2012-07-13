@@ -28,6 +28,7 @@ class ZwickyHelper:
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky
+        self.properties = self._helper.plugins.props.zwicky
         self.motor = self.plugins.motor(self)
         self.radio = self.plugins.radio(self)
         self.tracker = self.plugins.tracker(self)
@@ -48,32 +49,13 @@ class ZwickyHelper:
     def _track_cb(self, helper, az, el):
         self.tracker.set_pos(az, el)
     def get_prop(self, name):
-        if name == "pos":
-            return [self.motor.az, self.motor.el]
-        elif name == "track":
-            return self.tracker.get_track()
-        elif name == "freq_mode":
-            return self.radio.get_freq()
-        elif name == "calib":
-            return self.radio.get_calib()
-        elif name == "sys_tmp":
-            return self.radio.get_sys_tmp()
-        elif name == "offset":
-            return self.motor.get_offset()
-        elif name == "gala_pos":
-            pass
-        elif name == "time":
-            return _time.time()
-        elif name == "source":
-            return self.source_on
-        elif name == "frange":
-            pass
-        return
+        try:
+            return self.properties[name](self)
+        except:
+            return
     def get_all_props(self):
-        prop_names = ["pos", "track", "freq_mode", "calib", "sys_tmp", "offset",
-                      "gala_pos", "time", "source", "frange"]
         props = {}
-        for pname in prop_names:
+        for pname in self.properties:
             props[pname] = self.get_prop(pname)
         return props
     def recv(self):

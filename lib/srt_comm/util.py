@@ -121,6 +121,8 @@ def new_wrapper(getter, setter, direr=None):
             if direr is None:
                 return []
             return direr()
+        def __iter__(self):
+            return self.__dir__().__iter__()
     return _wrapper()
 
 def new_wrapper2(getter, setter):
