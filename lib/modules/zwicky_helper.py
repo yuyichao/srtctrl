@@ -92,9 +92,8 @@ class ZwickyHelper:
                 self.handle_remote(**pkg)
                 continue
             elif pkgtype == "slave":
-                sid, obj = pkg["sid"], pkg["obj"]
-                self._helper.send_got_cmd(sid)
-                return (sid, obj)
+                self._helper.send_got_cmd(pkg["sid"])
+                return pkg
             elif pkgtype == "track":
                 self._tracker.update_pos()
 

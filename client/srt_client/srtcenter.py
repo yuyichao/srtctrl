@@ -75,8 +75,14 @@ class SrtCenter(GObject.Object):
         except:
             return
         value = self._config._get_config(field, name)
+        ress = []
         for cb, args in cbs:
-            call_catch(cb, field, name, value, *args)
+            ress.append(bool(call_catch(cb, field, name, value, *args)))
+        ncbargs = []
+        for i in range(len(ress)):
+            if ress[i]:
+                ncbargs.append(cbs[i])
+        self._config_notify[field][name] = ncbargs
     def __init_remote__(self):
         if self._remote_err_id:
             self._remote.disconnect(self._remote_err_id)
@@ -94,11 +100,25 @@ class SrtCenter(GObject.Object):
         self._helper.connect('got-obj', self._helper_got_obj_cb)
         self._helper_tracker = None
     def _host_prop_cb(self, host, sid, name):
-        pass
-    def _host_cmd_cb(self, host, sid, name, args):
-        pass
-    def _host_config_cb(self, host, sid, field, key, notify):
-        pass
+        self._helper.send({"type": "prop", "sid": sid, "name": name})
+    def _host_cmd_cb(self, host, sid, name, args, kwargs):
+        try:
+            args = list(args)
+        except:
+            args = []
+        try:
+            kwargs = dict(kwargs)
+        except:
+            kwargs = {}
+        self._helper.send({"type": "slave", "sid": sid, "name": name,
+                           "args": args, "kwargs": kwargs})
+    def _host_config_cb(self, host, sid, field, name, notify):
+        value = self._get_config(field, name, notify,
+                                 self._host_config_notify_cb, sid)
+        self._helper.send({"type": "config", "field": field, "name": name,
+                           "value": value, "notify": notify})
+    def _host_config_notify_cb(self, field, name, value, sid):
+        return self._host.feed_config(sid, field, name, value, True)
 
     def _helper_got_obj_cb(self, helper, pkg):
         pkgtype = get_dict_fields(pkg, "type")
@@ -108,13 +128,14 @@ class SrtCenter(GObject.Object):
             self._helper_handle_remote(**pkg)
             return
         elif pkgtype == "slave":
-            # TODO send to host
-            pass
+            self._helper_handle_slave(**pkg)
+            return
         elif pkgtype == "ready":
             self.emit('ready')
+            return
         elif pkgtype == "got-cmd":
-            # TODO send to host
-            pass
+            self._helper_handle_got_cmd(**pkg)
+            return
         elif pkgtype == "quit":
             self._quit()
             return
@@ -122,11 +143,11 @@ class SrtCenter(GObject.Object):
             self._helper_handle_config(**pkg)
             return
         elif pkgtype == "prop":
-            # TODO send to host
-            pass
+            self._helper_handle_prop(**pkg)
+            return
         elif pkgtype == "signal":
-            # TODO send to host
-            pass
+            self._helper_handle_signal(**pkg)
+            return
         elif pkgtype == "track":
             if not self._helper_tracker is None:
                 self._helper_tracker.stop()
@@ -137,7 +158,22 @@ class SrtCenter(GObject.Object):
             except:
                 # send a empty request to indecate a error
                 self._helper.send({"type": "track"})
+            return
         return
+    def _helper_handle_signal(self, name=None, value=None, **kw):
+        if None in [name, value]:
+            return
+        self._host.feed_signal(name, value)
+    def _helper_handle_prop(self, sid=None, name=None, value=None, **kw):
+        if None in [name, value]:
+            return
+        self._host.feed_prop(sid, name, value)
+    def _helper_handle_got_cmd(self, sid=None, **kw):
+        self._host.feed_got_cmd(sid)
+    def _helper_handle_slave(self, sid=None, obj=None, **kw):
+        if obj is None:
+            return
+        self._host.feed_res(sid, obj)
     def _helper_handle_config(self, field=None, name=None, notify=False, **kw):
         if None in [field, name]:
             return
@@ -160,6 +196,7 @@ class SrtCenter(GObject.Object):
     def _helper_config_notify_cb(self, field, name, value):
         self._helper.send({"type": "config", "field": field, "name": name,
                            "value": value, "notify": True})
+        return True
     def _helper_disconn_cb(self, helper):
         self.emit('error', SRTERR_HELPER_QUIT, "Helper quit")
         self._quit()

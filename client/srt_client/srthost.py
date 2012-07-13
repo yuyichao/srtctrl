@@ -111,8 +111,11 @@ class SrtHost(GObject.Object):
         pass
     def feed_got_cmd(self, sid):
         pass
-    def feed_config(self, sid, field, key, value, notify):
-        pass
+    def feed_config(self, sid, field, name, value, notify):
+        if not sid in self._slaves:
+            return False
+        # TODO
+        return True
     def feed_res(self, sid, obj):
         pass
     def feed_signal(self, name, value):
