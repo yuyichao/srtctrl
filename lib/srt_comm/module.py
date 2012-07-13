@@ -24,51 +24,60 @@ class SrtPlugins:
         self._ftable = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')
         self._loaded_index = -1
-        self._wrapper = new_wrapper2(self.__getter__, self.__setter__)
-    def __getter__(self, key1, key2):
-        iface = self._get_iface(key1, key2)
-        if iface is None:
-            raise AttributeError("Interface %s of type %s not found" %
-                                 (key1, key2))
-        return iface
-    def __setter__(self, key1, key2, value):
-        if not key1 in self._ftable:
-            self._ftable[key1] = {}
-        if not key2 in self._ftable[key1]:
-            self._ftable[key1][key2] = value
+        self._getter = new_wrapper_tree(self.__getter__, None)
+        self._setter = new_wrapper_tree(None, self.__setter__)
+    def _check_iface(self, *keys):
+        try:
+            self._try_get_iface(*keys)
+            return True
+        except KeyError:
+            return False
+    def __getter__(self, *keys):
+        try:
+            res = self._try_get_iface(*keys)
+            if isinstance(res, dict):
+                raise TreeHasChild
+            return res
+        except KeyError:
+            pass
+        while not self._check_iface(*keys):
+            if not self._load_next():
+                break
+        res = self._try_get_iface(*keys)
+        if isinstance(res, dict):
+            raise TreeHasChild
+        return res
+    def __setter__(self, value, *keys):
+        ftable = self._ftable
+        for key in keys[:-1]:
+            if not key in ftable:
+                ftable[key] = {}
+            ftable = ftable[key]
+        if not keys[-1] in ftable:
+            ftable[keys[-1]] = value
         else:
-            raise AttributeError("Interface %s of type %s cannot be overloaded" %
-                                 (key1, key2))
+            raise AttributeError("Interface %s cannot be overloaded" % str(keys))
     def _load_next(self):
         self._loaded_index += 1
         if self._loaded_index >= len(self._files):
             return False
         fname = self._files[self._loaded_index]
         try:
-            l = {'iface': self._wrapper}
-            g = {'iface': self._wrapper}
+            l = {'setiface': self._setter, 'getiface': self._getter}
+            g = {'setiface': self._setter, 'getiface': self._getter}
             execfile(fname, g, l)
             g.update(l)
         except Exception as err:
             print("load_next: %s" % fname, err)
         return True
-    def _get_iface(self, key, name):
-        while not (key in self._ftable and name in self._ftable[key]):
-            if not self._load_next():
-                break
-        try:
-            return self._ftable[key][name]
-        except KeyError as err:
-            print("get_iface:", err)
-            return
-    def __getattr__(self, key1):
-        if key1.startswith('_'):
+    def _try_get_iface(self, *keys):
+        ftable = self._ftable
+        for key in keys:
+            ftable = ftable[key]
+        return ftable
+    def __getattr__(self, key):
+        if key.startswith('_'):
             raise AttributeError("Attribute %s not found" % key)
-        def _getter(key2):
-            return self.__getter__(key1, key2)
-        # disable setting iface from host for now.
-        # def _setter(key2, value):
-        #     self.__setter__(key1, key2, value)
-        return new_wrapper(_getter, None)
+        return self._getter[key]
     def __getitem__(self, key):
         return self.__getattr__(key)

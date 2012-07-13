@@ -20,4 +20,4 @@ class Purcell:
     def __init__(self, remote):
         pass
 
-iface.protocol.purcell = Purcell
+setiface.protocol.purcell = Purcell

@@ -21,7 +21,7 @@ from gi.repository import GLib
 class Zwicky:
     def __init__(self, remote):
         self._remote = remote
-        self._remote.set_dispatch(iface.dispatch.line)
+        self._remote.set_dispatch(getiface.dispatch.line)
         self._remote.connect('package', self._package_cb)
         self._remote.connect('request', self._request_cb)
     def _reask_busy(self):
@@ -157,4 +157,4 @@ class Zwicky:
             remote.unknown_req(obj)
             return
 
-iface.protocol.zwicky = Zwicky
+setiface.protocol.zwicky = Zwicky

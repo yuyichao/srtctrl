@@ -34,4 +34,4 @@ def start_slave(host, fname=None, **kw):
 if __name__ == '__main__':
     main()
 else:
-    iface.slave.python = start_slave
+    setiface.slave.python = start_slave

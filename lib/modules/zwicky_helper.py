@@ -193,4 +193,4 @@ def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
     zwicky.run()
 
-iface.helper.zwicky = StartZwicky
+setiface.helper.zwicky = StartZwicky

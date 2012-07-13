@@ -25,4 +25,4 @@ class TrackSimple:
     def __call__(self, station, time):
         return self._az, self._el
 
-iface.tracker.simple = TrackSimple
+setiface.tracker.simple = TrackSimple
