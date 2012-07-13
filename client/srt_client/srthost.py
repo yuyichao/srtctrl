@@ -46,6 +46,7 @@ class SrtHost(GObject.Object):
         self._lookup_id = {}
         self._name = None
         self._ready = False
+        self._sig_connect = {}
         self.__init_cmd__()
     def __init_cmd__(self):
         self._lock = -1
@@ -80,6 +81,7 @@ class SrtHost(GObject.Object):
             pass
         return False
     def _check_queue(self):
+        # TODO
         pass
     def _slave_got_obj_cb(self, slave, pkg):
         pkgtype = get_dict_fields(pkg, "type")
@@ -87,7 +89,6 @@ class SrtHost(GObject.Object):
         if sid is None:
             self._send_invalid(slave)
             return
-        # connect, config, start, name, prop, cmd, lock
         res = None
         if pkgtype == "connect":
             res = self._handle_connect(sid, **pkg)
@@ -95,8 +96,8 @@ class SrtHost(GObject.Object):
             res = self._handle_config(sid, **pkg)
         elif pkgtype == "start":
             res = self._handle_start(sid, **pkg)
-        elif pkgtype == "name":
-            res = self._handle_name(sid, **pkg)
+        # elif pkgtype == "name":
+        #     res = self._handle_name(sid, **pkg)
         elif pkgtype == "prop":
             res = self._handle_prop(sid, **pkg)
         elif pkgtype == "cmd":
@@ -104,7 +105,10 @@ class SrtHost(GObject.Object):
         elif pkgtype == "lock":
             res = self._handle_lock(sid, **pkg)
         elif pkgtype == "quit":
-            res = self._handle_lock(sid, **pkg)
+            res = self._handle_quit(sid, **pkg)
+        # TODO make tracking a plugin
+        elif pkgtype == "track":
+            res = self._handle_track(sid, **pkg)
         if res is None:
             self._send_invalid(slave)
     def _send_invalid(self, slave):
@@ -127,6 +131,9 @@ class SrtHost(GObject.Object):
                 pass
     def _handle_quit(self, sid, **kw):
         self.emit("quit")
+        return True
+    def _handle_track(self, sid, **kw):
+        # TODO
         return True
     def _try_lock(self, sid):
         if self._lock == sid:
@@ -169,6 +176,8 @@ class SrtHost(GObject.Object):
         self._check_queue()
         return True
     def _handle_prop(self, sid, name=None, **kw):
+        if not isinstance(name, str):
+            return
         if name == "name":
             self._send_sid(sid, {"type": "prop", "name": "name",
                                  "value": self._name})
@@ -177,15 +186,26 @@ class SrtHost(GObject.Object):
             self._send_sid(sid, {"type": "prop", "name": "ready",
                                  "value": self._ready})
             return True
-        # FIXME
+        self.emit("prop", sid, name)
         return True
-    def _handle_name(self, slave, **kw):
+    # def _handle_name(self, sid, **kw):
+    #     return True
+    def _handle_start(self, sid, name=None, args={}, **kw):
+        if name is None:
+            return
+        if not self.create_slave_by_name(name, args):
+            return
         return True
-    def _handle_start(self, slave, **kw):
+    def _handle_config(self, sid, field=None, name=None, notify=False, **kw):
+        if None in [field, name]:
+            return
+        if not isinstance(field, str) or not isinstance(name, str):
+            return
+        notify = bool(notify)
+        self.emit("prop", sid, field, name, notify)
         return True
-    def _handle_config(self, slave, **kw):
-        return True
-    def _handle_connect(self, slave, **kw):
+    def _handle_connect(self, sid, name=None, **kw):
+        # TODO
         return True
     def _slave_disconn_cb(self, slave):
         try:
@@ -203,6 +223,7 @@ class SrtHost(GObject.Object):
             self._lock = -1
         self._check_queue()
     def feed_prop(self, sid, name, value):
+        # TODO
         pass
     def feed_got_cmd(self, sid):
         self._processing = False
@@ -213,8 +234,10 @@ class SrtHost(GObject.Object):
         return self._send_sid(sid, {"type": "config", "name": name,
                                     "value": value, "notify": notify})
     def feed_res(self, sid, obj):
+        # TODO
         pass
     def feed_signal(self, name, value):
+        # TODO
         pass
     # DO NOT emit "quit" signal here
     def quit(self):
