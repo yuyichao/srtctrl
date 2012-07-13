@@ -44,6 +44,8 @@ class SrtHost(GObject.Object):
         self._slaves = {}
         self._lock = -1
         self._cmd_queue = []
+        self._name = None
+        self._ready = False
     def add_slave_from_jsonsock(self, sock):
         if not isinstance(sock, JSONSock):
             return False
@@ -113,7 +115,16 @@ class SrtHost(GObject.Object):
         pass
     def feed_res(self, sid, obj):
         pass
-    def feed_signal(self, name, args):
+    def feed_signal(self, name, value):
         pass
     def quit(self):
-        pass
+        for sid, slave in self._slaves.items():
+            try:
+                slave.send({"type": "quit"})
+                slave.wait_send()
+            except:
+                pass
+    def init(self, name):
+        self._name = name
+    def ready(self):
+        self._ready = True
