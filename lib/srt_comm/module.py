@@ -24,7 +24,8 @@ class SrtPlugins:
         self._ftable = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')
         self._loaded_index = -1
-        self._getter = new_wrapper_tree(self.__getter__, None)
+        self._getter = new_wrapper_tree(self.__getter__, None,
+                                        direr=self.__direr__)
         self._setter = new_wrapper_tree(None, self.__setter__)
     def _check_iface(self, *keys):
         try:
@@ -32,11 +33,9 @@ class SrtPlugins:
             return True
         except KeyError:
             return False
-    def __getter__(self, *keys):
+    def _get_iface(self, *keys):
         try:
             res = self._try_get_iface(*keys)
-            if isinstance(res, dict):
-                raise TreeHasChild
             return res
         except KeyError:
             pass
@@ -44,6 +43,11 @@ class SrtPlugins:
             if not self._load_next():
                 break
         res = self._try_get_iface(*keys)
+        return res
+    def __direr__(self, *keys):
+        return list(dict.keys(self._get_iface(*keys)))
+    def __getter__(self, *keys):
+        res = self._get_iface(*keys)
         if isinstance(res, dict):
             raise TreeHasChild
         return res
