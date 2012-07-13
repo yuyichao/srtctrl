@@ -27,7 +27,7 @@ class ZwickyHelper:
         self._helper.connect("track", self._track_cb)
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
-        self.plugins = self._helper.plugins.zwicky
+        self.plugins = self._helper.plugins.device.zwicky
         self._motor = self.plugins.motor(self)
         self._radio = self.plugins.radio(self)
         self._tracker = self.plugins.tracker(self)
@@ -92,9 +92,8 @@ class ZwickyHelper:
                 self.handle_remote(**pkg)
                 continue
             elif pkgtype == "slave":
-                sid, obj = pkg["sid"], pkg["obj"]
-                self._helper.send_got_cmd(sid)
-                return (sid, obj)
+                self._helper.send_got_cmd(pkg["sid"])
+                return pkg
             elif pkgtype == "track":
                 self._tracker.update_pos()
 
@@ -194,4 +193,4 @@ def StartZwicky(helper):
     zwicky = ZwickyHelper(helper)
     zwicky.run()
 
-iface.helper.zwicky = StartZwicky
+setiface.helper.zwicky = StartZwicky

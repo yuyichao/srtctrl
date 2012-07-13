@@ -21,11 +21,11 @@ import os, sys, re, os.path
 
 def call_cb(cb, *args):
     if hasattr(cb, '__call__'):
-        cb(*args)
+        return cb(*args)
 
 def call_catch(cb, *args):
     try:
-        call_cb(cb, *args)
+        return call_cb(cb, *args)
     except:
         return
 
@@ -150,3 +150,26 @@ def set_2_level(d, key1, key2, value):
     if not key1 in d:
         d[key1] = {}
     d[key1][key2] = value
+
+class TreeHasChild(Exception):
+    pass
+
+def new_wrapper_tree(getter, setter):
+    def _getter(key):
+        try:
+            if not getter is None:
+                return getter(key)
+        except TreeHasChild:
+            pass
+        def __getter_(*keys):
+            return getter(key, *keys)
+        if getter is None:
+            __getter = None
+        else:
+            __getter = __getter_
+        def __setter(value, *keys):
+            setter(value, key, *keys)
+        return new_wrapper_tree(__getter, __setter)
+    def _setter(key, value):
+        setter(value, key)
+    return new_wrapper(_getter, _setter)

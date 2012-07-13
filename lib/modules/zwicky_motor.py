@@ -162,4 +162,4 @@ class ZwickyMoter:
     def get_offset(self):
         return [self._offaz, self._offel]
 
-iface.zwicky.motor = ZwickyMoter
+setiface.device.zwicky.motor = ZwickyMoter

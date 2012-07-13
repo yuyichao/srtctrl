@@ -26,14 +26,14 @@ class DefaultInit:
         if not buff:
             return ('', '')
         if buff[0].isalpha():
-            self._remote.set_dispatch(iface.dispatch.line)
+            self._remote.set_dispatch(getiface.dispatch.line)
             self._remote.set_name('zwicky')
-            return iface.dispatch.line(buff)
+            return getiface.dispatch.line(buff)
         if buff[0] in '([{':
-            pkg, left = iface.dispatch.json(buff)
+            pkg, left = getiface.dispatch.json(buff)
             if not pkg:
                 return pkg, left
-            self._remote.set_dispatch(iface.dispatch.json)
+            self._remote.set_dispatch(getiface.dispatch.json)
             import json
             try:
                 obj = json.loads(pkg)
@@ -49,4 +49,4 @@ class DefaultInit:
         self._remote.set_name(None)
         return super()._do_dispatch(buff)
 
-iface.initializer.default = DefaultInit
+setiface.initializer.default = DefaultInit

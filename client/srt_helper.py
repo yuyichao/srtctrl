@@ -72,7 +72,8 @@ class SrtHelper(GObject.Object):
             elif pkgtype == "track":
                 self._handle_track(**pkg)
             elif pkgtype == "slave":
-                if self._handle_slave(**pkg) is None:
+                pkg = self._handle_slave(**pkg)
+                if pkg is None:
                     continue
             elif pkgtype == "remote":
                 if self._handle_remote(**pkg) is None:
@@ -83,10 +84,19 @@ class SrtHelper(GObject.Object):
                 continue
             self._pkg_queue.append(pkg)
 
-    def _handle_slave(self, obj=None, **kw):
-        if obj is None:
+    def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
+        if name is None:
             return
-        return True
+        try:
+            args = list(args)
+        except:
+            args = []
+        try:
+            kwargs = dict(kwargs)
+        except:
+            kwargs = {}
+        return {"type": "slave", "name": name, "sid": sid,
+                "args": args, "kwargs": kwargs}
     def _handle_remote(self, obj=None, **kw):
         if obj is None:
             return
@@ -152,8 +162,6 @@ class SrtHelper(GObject.Object):
         self._send({"type": "slave", "sid": sid, "obj": obj})
     def send_got_cmd(self, sid):
         self._send({"type": "got-cmd", "sid": sid})
-    # def send_busy(self, sid):
-    #     self._send({"type": "busy", "sid": sid})
     def send_ready(self):
         self._send({"type": "ready"})
     def send_prop(self, sid, name, value):

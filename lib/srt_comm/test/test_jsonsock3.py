@@ -18,7 +18,8 @@
 
 from srt_comm import *
 
-conn = exec_n_conn('./test_jsonchild3.py', n=1, gtype=JSONSock)[0]
+conn = exec_n_conn('python', args=['python', './test_jsonchild3.py'],
+                   n=1, gtype=JSONSock)[0]
 
 print(conn)
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# coding=utf-8
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -17,23 +17,21 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-from os import path
+from srt_comm import *
 
-test_dir = path.dirname(__file__)
-if test_dir == '':
-    test_dir = '.'
-test_dir = path.abspath(test_dir)
-__base = path.basename(__file__)
+def main():
+    pass
 
-src_dir = path.abspath("%s/.." % test_dir)
-
-sys.path.insert(0, src_dir)
-
-from srt_client.srtconn import *
-
-def test():
-    srtconn = SrtConnBase()
-    print(srtconn.conf)
+def start_slave(host, fname=None, **kw):
+    if fname is None:
+        return False
+    fname = str(fname)
+    conn = exec_n_conn(sys.executable,
+                       args=[sys.executable, __file__, fname],
+                       n=1, gtype=JSONSock)[0]
+    return host.add_slave_from_jsonsock(self, sock)
 
 if __name__ == '__main__':
-    test()
+    main()
+else:
+    setiface.slave.python = start_slave
