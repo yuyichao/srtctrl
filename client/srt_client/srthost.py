@@ -46,7 +46,6 @@ class SrtHost(GObject.Object):
         self._lookup_id = {}
         self._name = None
         self._ready = False
-        self._sig_connect = {}
         self.__init_cmd__()
     def __init_cmd__(self):
         self._lock = -1
@@ -70,7 +69,7 @@ class SrtHost(GObject.Object):
         sock.connect('got-obj', self._slave_got_obj_cb)
         sock.connect('disconn', self._slave_disconn_cb)
         sid = self._new_usid()
-        self._slaves[sid] = {"sock": sock}
+        self._slaves[sid] = {"sock": sock, "signals": {}}
         self._lookup_id[id(sock)] = sid
         return True
     def create_slave_by_name(self, name, args):
@@ -239,7 +238,9 @@ class SrtHost(GObject.Object):
         self.emit("prop", sid, field, name, notify)
         return True
     def _handle_connect(self, sid, name=None, **kw):
-        # TODO
+        if not isinstance(name, str):
+            return
+        self._slaves[sid]["signals"][name] = name
         return True
     def _slave_disconn_cb(self, slave):
         try:
@@ -270,8 +271,10 @@ class SrtHost(GObject.Object):
     def feed_res(self, sid, obj):
         return self._send_sid(sid, {"type": "res", "obj": obj})
     def feed_signal(self, name, value):
-        # TODO
-        pass
+        for sid, slave in self._slaves.items():
+            if name in slave["signals"]:
+                self._send_sid(sid, {"type": "signal", "name": name,
+                                     "value": value})
     # DO NOT emit "quit" signal here
     def quit(self):
         self._broadcast({"type": "quit"}, wait=True)

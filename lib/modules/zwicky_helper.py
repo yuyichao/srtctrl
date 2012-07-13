@@ -28,15 +28,15 @@ class ZwickyHelper:
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky
-        self._motor = self.plugins.motor(self)
-        self._radio = self.plugins.radio(self)
-        self._tracker = self.plugins.tracker(self)
+        self.motor = self.plugins.motor(self)
+        self.radio = self.plugins.radio(self)
+        self.tracker = self.plugins.tracker(self)
         self.get_config("station")
         self._reset_coor()
     def _reset_coor(self):
-        self._tracker.reset()
-        self._motor.reset()
-        self._source = False
+        self.tracker.reset()
+        self.motor.reset()
+        self.source_on = False
     def _config_update_cb(self, helper, field, name, value):
         self._config_dict[name] = value
     def get_config(self, key, notify=True, non_null=True):
@@ -46,27 +46,26 @@ class ZwickyHelper:
         value = self.get_prop(name)
         helper.send_prop(sid, name, value)
     def _track_cb(self, helper, az, el):
-        self._tracker.set_pos(az, el)
+        self.tracker.set_pos(az, el)
     def get_prop(self, name):
         if name == "pos":
-            return [self._motor.az, self._motor.el]
+            return [self.motor.az, self.motor.el]
         elif name == "track":
-            # TODO
-            pass
+            return self.tracker.get_track()
         elif name == "freq_mode":
-            return self._radio.get_freq()
+            return self.radio.get_freq()
         elif name == "calib":
-            return self._radio.get_calib()
+            return self.radio.get_calib()
         elif name == "sys_tmp":
-            return self._radio.get_sys_tmp()
+            return self.radio.get_sys_tmp()
         elif name == "offset":
-            return self._motor.get_offset()
+            return self.motor.get_offset()
         elif name == "gala_pos":
             pass
         elif name == "time":
             return _time.time()
         elif name == "source":
-            return self._source
+            return self.source_on
         elif name == "frange":
             pass
         return
@@ -95,12 +94,12 @@ class ZwickyHelper:
                 self._helper.send_got_cmd(pkg["sid"])
                 return pkg
             elif pkgtype == "track":
-                self._tracker.update_pos()
+                self.tracker.update_pos()
 
     def _handle_source(self, on=None, **kw):
-        self._source = bool(on)
-        self.send_signal("source", self._source)
-        return {"type": "source", "on": self._source}
+        self.source_on = bool(on)
+        self.send_signal("source", self.source_on)
+        return {"type": "source", "on": self.source_on}
     def _handle_move(self, direct=None, count=None, edge=None, **kw):
         if None in [direct, count, edge]:
             return
@@ -110,7 +109,7 @@ class ZwickyHelper:
             edge = int(edge)
         except:
             return
-        self._motor.move(direct, count, edge)
+        self.motor.move(direct, count, edge)
         return {"type": "move", "direct": direct, "count": count, "edge": edge}
     def handle_remote(self, obj=None, **kw):
         if obj is None:
@@ -143,13 +142,13 @@ class ZwickyHelper:
         self._helper.send_track(name, offset, time, track, args,
                                 self.configs.station)
     def send_radio(self, freq, mode):
-        self._tracker.update_pos()
-        self._motor.pos_chk()
+        self.tracker.update_pos()
+        self.motor.pos_chk()
         reply = self.send({"type": "radio", "freq": freq, "mode": mode})
         rtype, data = get_dict_fields(reply, ["type", "data"])
         if None in [rtype, data]:
             return
-        return self._radio.corr_radio(data, mode)
+        return self.radio.corr_radio(data, mode)
     def reset(self):
         self.send_move(0, 5000)
         self.send_move(2, 5000)
@@ -160,26 +159,24 @@ class ZwickyHelper:
         self.reset()
         self._helper.send_ready()
         self.track(args=[15, 15])
-        print(self.radio())
+        print(self.radio.radio())
         print(self.calib(3))
-        print(self.radio())
+        print(self.radio.radio())
         # while True:
         #     sid, obj = self.recv_slave()
         #     # do real work here...
         self.reset()
     def move(self, az, el):
-        self._motor.set_pos(az, el)
+        self.motor.set_pos(az, el)
 
     def set_freq(self, freq, mode):
-        self._radio.set_freq(freq, mode)
+        self.radio.set_freq(freq, mode)
     def get_freq(self):
-        return self._radio.get_freq()
-    def radio(self):
-        return self._radio.radio()
+        return self.radio.get_freq()
     def calib(self, count):
-        return self._radio.calib(count)
+        return self.radio.calib(count)
     def track(self, **kwargs):
-        if self._tracker.track(**kwargs):
+        if self.tracker.track(**kwargs):
             pkg = self._helper.wait_types("track")
             return check_track(**pkg)
         return False

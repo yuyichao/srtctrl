@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# coding=utf-8
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,19 +16,12 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm import *
+def zwicky_pos(zwicky):
+    return [zwicky.motor.az, zwicky.motor.el]
 
-print(config.srt_modules_path)
-plugins = SrtPlugins()
-print(plugins._files)
-print('plugin created')
-# print(plugins.test.f2.fd.jk.ji)
-# print(plugins.test)
-# print(plugins.test.func1())
-# print(plugins.test.func2(4))
-# print(plugins.test2.func3())
-# print(plugins.test3['aaa'])
-# print(plugins.initializer['default'])
+setiface.props.zwicky.pos = zwicky_pos
 
-print(plugins.a.d)
-print(dir(plugins.props.zwicky))
+def zwicky_track(zwicky):
+    return zwicky.tracker.get_track()
+
+setiface.props.zwicky.track = zwicky_track

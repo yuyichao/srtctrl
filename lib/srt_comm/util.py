@@ -103,7 +103,7 @@ def try_to_int(s):
     except ValueError:
         pass
 
-def new_wrapper(getter, setter):
+def new_wrapper(getter, setter, direr=None):
     class _wrapper:
         def __getattr__(self, key):
             if key.startswith('_') or not hasattr(getter, '__call__'):
@@ -117,6 +117,10 @@ def new_wrapper(getter, setter):
             return self.__getattr__(key)
         def __setitem__(self, key, value):
             self.__setattr__(key, value)
+        def __dir__(self):
+            if direr is None:
+                return []
+            return direr()
     return _wrapper()
 
 def new_wrapper2(getter, setter):
@@ -154,7 +158,7 @@ def set_2_level(d, key1, key2, value):
 class TreeHasChild(Exception):
     pass
 
-def new_wrapper_tree(getter, setter):
+def new_wrapper_tree(getter, setter, direr=None):
     def _getter(key):
         try:
             if not getter is None:
@@ -163,13 +167,16 @@ def new_wrapper_tree(getter, setter):
             pass
         def __getter_(*keys):
             return getter(key, *keys)
-        if getter is None:
-            __getter = None
-        else:
-            __getter = __getter_
+        __getter = None if getter is None else __getter_
         def __setter(value, *keys):
             setter(value, key, *keys)
-        return new_wrapper_tree(__getter, __setter)
+        def __direr_(*keys):
+            return direr(key, *keys)
+        __direr = None if direr is None else __direr_
+        return new_wrapper_tree(__getter, __setter, direr=__direr)
     def _setter(key, value):
         setter(value, key)
-    return new_wrapper(_getter, _setter)
+    def _direr_():
+        return direr()
+    _direr = None if direr is None else _direr_
+    return new_wrapper(_getter, _setter, direr=_direr)
