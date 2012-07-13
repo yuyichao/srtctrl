@@ -21,11 +21,11 @@ import os, sys, re, os.path
 
 def call_cb(cb, *args):
     if hasattr(cb, '__call__'):
-        cb(*args)
+        return cb(*args)
 
 def call_catch(cb, *args):
     try:
-        call_cb(cb, *args)
+        return call_cb(cb, *args)
     except:
         return
 

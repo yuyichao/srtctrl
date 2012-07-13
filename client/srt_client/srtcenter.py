@@ -52,6 +52,7 @@ class SrtCenter(GObject.Object):
         self._host.connect("prop", self._host_prop_cb)
         self._host.connect("cmd", self._host_cmd_cb)
         self._host.connect("config", self._host_config_cb)
+        self._host.connect("quit", self._host_quit_cb)
 
     def __init_config__(self, config):
         self._config = SrtConf()
@@ -75,14 +76,8 @@ class SrtCenter(GObject.Object):
         except:
             return
         value = self._config._get_config(field, name)
-        ress = []
-        for cb, args in cbs:
-            ress.append(bool(call_catch(cb, field, name, value, *args)))
-        ncbargs = []
-        for i in range(len(ress)):
-            if ress[i]:
-                ncbargs.append(cbs[i])
-        self._config_notify[field][name] = ncbargs
+        cbargs[:] = [[cb, args] for [cb, args] in cbargs
+                     if call_catch(cb, field, name, value, *args)]
     def __init_remote__(self):
         if self._remote_err_id:
             self._remote.disconnect(self._remote_err_id)
@@ -112,6 +107,8 @@ class SrtCenter(GObject.Object):
             kwargs = {}
         self._helper.send({"type": "slave", "sid": sid, "name": name,
                            "args": args, "kwargs": kwargs})
+    def _host_quit_cb(self, host):
+        self.emit("quit")
     def _host_config_cb(self, host, sid, field, name, notify):
         value = self._get_config(field, name, notify,
                                  self._host_config_notify_cb, sid)
