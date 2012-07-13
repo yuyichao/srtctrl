@@ -27,7 +27,7 @@ class ZwickyHelper:
         self._helper.connect("track", self._track_cb)
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
-        self.plugins = self._helper.plugins.zwicky
+        self.plugins = self._helper.plugins.device.zwicky
         self._motor = self.plugins.motor(self)
         self._radio = self.plugins.radio(self)
         self._tracker = self.plugins.tracker(self)

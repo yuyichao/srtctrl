@@ -68,4 +68,4 @@ class ZwickyTracker:
     def get_track(self):
         return self._track_obj
 
-setiface.zwicky.tracker = ZwickyTracker
+setiface.device.zwicky.tracker = ZwickyTracker

@@ -157,4 +157,4 @@ class ZwickyRadio:
         self._calib = (on_mean - off_mean) / 115.
         return {"calib": self._calib, "sys_tmp": self._sys_tmp}
 
-setiface.zwicky.radio = ZwickyRadio
+setiface.device.zwicky.radio = ZwickyRadio
