@@ -80,9 +80,44 @@ class SrtHost(GObject.Object):
         except:
             pass
         return False
+    def _process_cmd(self, type=None, sid=None, lock=False,
+                     name=None, args=None, kwargs=None, **kw):
+        if self._processing:
+            return
+        if None in [type, sid]:
+            return
+        if self._lock >= 0 and sid != self._lock:
+            return
+        if type == "lock":
+            if lock:
+                self._lock = sid
+                self._send_sid(sid, {"type": "lock", "res": True})
+                self._check_queue()
+            else:
+                self._lock = -1
+                self._check_queue()
+            return True
+        elif type == "cmd":
+            if name is None:
+                return
+            self.emit("cmd", sid, name, args, kwargs)
+            return True
+        return
     def _check_queue(self):
-        # TODO
-        pass
+        if self._processing:
+            return
+        if not self._cmd_queue:
+            return
+        if self._lock < 0:
+            if self._process_cmd(**self._cmd_queue.pop(0)) is None:
+                self._check_queue()
+            return
+        for i in range(len(self._cmd_queue)):
+            cmd = self._cmd_queue[i]
+            if cmd["sid"] == self._lock:
+                if self._process_cmd(**self._cmd_queue.pop(i)) is None:
+                    self._check_queue()
+                return
     def _slave_got_obj_cb(self, slave, pkg):
         pkgtype = get_dict_fields(pkg, "type")
         sid = self._find_sid(slave)
@@ -152,7 +187,7 @@ class SrtHost(GObject.Object):
             return
         if not lock:
             self._cmd_queue.append({"type": "lock", "sid": sid,
-                                    "lock": False, "wait": bool(wait)})
+                                    "lock": False})
             self._check_queue()
             return True
         wait = bool(wait)
@@ -162,8 +197,7 @@ class SrtHost(GObject.Object):
         if not wait:
             self._send_sid(sid, {"type": "lock", "res": False})
             return True
-        self._cmd_queue.append({"type": "lock", "sid": sid, "lock": True,
-                                "wait": bool(wait)})
+        self._cmd_queue.append({"type": "lock", "sid": sid, "lock": True})
         self._check_queue()
         return True
     def _handle_cmd(self, sid, name=None, args=None, kwargs=None, **kw):
@@ -223,8 +257,8 @@ class SrtHost(GObject.Object):
             self._lock = -1
         self._check_queue()
     def feed_prop(self, sid, name, value):
-        # TODO
-        pass
+        return self._send_sid(sid, {"type": "prop",
+                                    "name": name, "value": value})
     def feed_got_cmd(self, sid):
         self._processing = False
         res = self._send_sid(sid, {"type": "cmd"})
@@ -234,8 +268,7 @@ class SrtHost(GObject.Object):
         return self._send_sid(sid, {"type": "config", "name": name,
                                     "value": value, "notify": notify})
     def feed_res(self, sid, obj):
-        # TODO
-        pass
+        return self._send_sid(sid, {"type": "res", "obj": obj})
     def feed_signal(self, name, value):
         # TODO
         pass
