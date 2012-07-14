@@ -19,8 +19,16 @@
 import sys
 from srt_comm import *
 
+def send(conn, **kwargs):
+    conn.send(kwargs)
+
+def send_quit(conn):
+    send(conn, type="quit")
+
 def main():
-    pass
+    fname = sys.argv[1]
+    conn = get_passed_conns(gtype=JSONSock)[0]
+
 
 def start_slave(host, fname=None, **kw):
     if fname is None:
