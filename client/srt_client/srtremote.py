@@ -40,11 +40,14 @@ class SrtRemote(SrtConn):
                       GObject.TYPE_NONE,
                       ()),
     }
-    def __init__(self):
+    def __init__(self, plugins=None):
         super().__init__()
         self._dispatch = None
         self._name = None
-        self._plugins = SrtPlugins()
+        if not plugins is None:
+            self._plugins = plugins
+        else:
+            self._plugins = SrtPlugins()
     def _disconn_cb(self):
         self.emit('error', SRTERR_CONN, 'disconnected')
     def _conn_cb(self, success, init):

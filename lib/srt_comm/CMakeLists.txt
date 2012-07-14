@@ -14,7 +14,6 @@ set(srt_comm_py
   module.py
   error.py
   jsonsock.py
-  tracker.py
   time.py
   )
 
