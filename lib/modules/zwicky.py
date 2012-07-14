@@ -136,7 +136,7 @@ class Zwicky:
                 remote.unknown_req(obj)
                 return
             direct = 7 if on else 6
-            remote.send('move %d %d  \n' % (direct, 0))
+            remote.send('move %d 0  \n' % direct)
             return
         elif reqtype == 'radio':
             try:

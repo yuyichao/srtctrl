@@ -22,9 +22,9 @@ import time as _time
 
 class SrtTracker(GObject.Object):
     __gsignals__ = {
-        "update": (GObject.SignalFlags.RUN_FIRST,
-                   GObject.TYPE_NONE,
-                   (GObject.TYPE_DOUBLE, GObject.TYPE_DOUBLE)),
+        "alarm": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_PYOBJECT,)),
     }
     def __init__(self, plugins, name='', offset=[0, 0], time=0, track=True,
                  args=None, station=[0, 0], **kwargs):
@@ -70,24 +70,9 @@ class SrtTracker(GObject.Object):
         # TODO better offset
         az += self._off_az
         el += self._off_el
-        self.emit("update", az, el)
+        self.emit("alarm", {"az": az, "el": el})
         return self._track
     def stop(self):
         self._active = False
 
-class WrapTracker(GObject.Object):
-    __gsignals__ = {
-        "alarm": (GObject.SignalFlags.RUN_FIRST,
-                  GObject.TYPE_NONE,
-                  (GObject.TYPE_PYOBJECT,)),
-    }
-    def __init__(self, plugins, **kw):
-        super().__init__()
-        self._tracker = SrtTracker(plugins, **kw)
-        self._tracker.connect("update",
-                              lambda tracker, az, el:
-                              self.emit("alarm", {"az": az, "el": el}))
-    def __del__(self):
-        self._tracker.stop()
-
-setiface.alarm.track = WrapTracker
+setiface.alarm.track = SrtTracker

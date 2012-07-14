@@ -167,6 +167,10 @@ class SrtCenter(GObject.Object):
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
                                "alarm": None})
             return
+        try:
+            self._helper_alarm[name][nid].stop()
+        except:
+            pass
         self._helper_alarm[name][nid] = alarm
     def _helper_alarm_cb(self, obj, alarm, name, nid):
         if not isinstance(alarm, dict):
