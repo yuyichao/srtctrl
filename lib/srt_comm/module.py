@@ -54,6 +54,8 @@ class SrtPlugins:
     def __setter__(self, value, *keys):
         ftable = self._ftable
         for key in keys[:-1]:
+            if not (isinstance(key, str) and key.isidentifier()):
+                raise AttributeError("key %s is not a valid indentifier" % key)
             if not key in ftable:
                 ftable[key] = {}
             ftable = ftable[key]
