@@ -65,7 +65,7 @@ class ZwickyHelper(GObject.Object):
         self.emit("config", field, name, value)
     def _remote_cb(self, helper, obj):
         self._handle_remote(obj)
-    def _notify_cb(self, helper, name, nid, args):
+    def _notify_cb(self, helper, name, nid, notify):
         self.emit("notify::%s" % name.replace('_', '-'),
                   name, nid, notify)
 
@@ -119,11 +119,8 @@ class ZwickyHelper(GObject.Object):
                                  "count": count})
     def send_source(self, on):
         return self.send_remote({"type": "source", "on": on})
-    # def send_track(self, name, offset, time, track, args):
-    #     self._helper.send_track(name, offset, time, track, args,
-    #                             self.configs.station)
     def send_radio(self, freq, mode):
-        # self.tracker.update_pos()
+        self.tracker.update_pos()
         self.motor.pos_chk()
         reply = self.send_remote({"type": "radio", "freq": freq, "mode": mode})
         rtype, data = get_dict_fields(reply, ["type", "data"])
@@ -134,6 +131,8 @@ class ZwickyHelper(GObject.Object):
         self._helper.send_slave(sid, obj)
     def send_invalid(self, sid):
         self._helper.send_invalid(sid)
+    def send_chk_notify(self, name, nid, args):
+        return self._helper.send_chk_notify(self, name, nid, args)
 
     def reset(self):
         self.send_move(0, 5000)
@@ -149,14 +148,6 @@ class ZwickyHelper(GObject.Object):
     def calib(self, count):
         return self.radio.calib(count)
     def track(self, **kwargs):
-        if self.tracker.track(**kwargs):
-            pkg = self._helper.wait_types("track")
-            return check_track(**pkg)
-        return
-
-# def check_track(az=None, el=None, **kw):
-#     if None in [az, el]:
-#         return
-#     return True
+        return self.tracker.track(**kwargs)
 
 setiface.helper.zwicky = ZwickyHelper
