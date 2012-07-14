@@ -21,7 +21,7 @@ from gi.repository import GObject, GLib
 
 class SrtHelper(GObject.Object):
     __gsignals__ = {
-        "config": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
+        "config": (GObject.SignalFlags.RUN_FIRST,
                    GObject.TYPE_NONE,
                    (GObject.TYPE_STRING, GObject.TYPE_STRING,
                     GObject.TYPE_PYOBJECT)),
@@ -112,10 +112,13 @@ class SrtHelper(GObject.Object):
         self.send_prop(sid,  name, value)
         return {"type": "prop", "name": name, "sid": sid}
     def _handle_notify(self, name=None, nid=None, notify=None, **kw):
-        if name is None:
+        if not isinstance(name, str) or not name.isidentifier():
             return
-        self.emit("notify", name, nid, notify)
-        return {"type": "notify", "name": name, "nid": nid, "notify": notify}
+        if not notify is None:
+            self.emit("notify::%s" % name.replace('_', '-'),
+                      name, nid, notify)
+        return {"type": "notify", "name": name, "nid": nid,
+                "notify": notify}
     def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
         if name is None:
             self.send_invalid(sid)
@@ -156,6 +159,19 @@ class SrtHelper(GObject.Object):
         pkg = self.wait_types("slave")
         self.send_got_cmd(pkg["sid"])
         return pkg
+    def send_chk_notify(self, name, nid, args):
+        if not (isinstance(name, str) and name.isidentifier()):
+            return
+        if not isinstance(args, dict):
+            return
+        self.send_notify(name, nid, args)
+        while True:
+            pkg = self.wait_type("notify")
+            if pkg["name"] != name or pkg["nid"] != nid:
+                continue
+            if pkg["notify"] is None:
+                return
+            return pkg
 
     def start(self):
         pkg = self.wait_types("init")
@@ -213,12 +229,8 @@ class SrtHelper(GObject.Object):
                         "props": self.get_all_props()})
         else:
             self._send({"type": "signal", "name": name, "value": value})
-    def send_notify(self):
-        pass
-    # def send_track(self, name, offset, time, track, args, station):
-    #     self._send({"type": "track", "name": name, "offset": offset,
-    #                 "time": time, "track": bool(track),
-    #                 "args": args, "station": station})
+    def send_notify(self, name, nid, args):
+        self._send({"type": "notify", "name": name, "nid": nid, "args": args})
 
     # config
     def _cache_config(self, field, name, value):

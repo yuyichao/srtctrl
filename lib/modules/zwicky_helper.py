@@ -19,8 +19,27 @@
 from srt_comm import *
 import time as _time
 
-class ZwickyHelper:
+from gi.repository import GObject
+
+class ZwickyHelper(GObject.Object):
+    __gsignals__ = {
+        "config": (GObject.SignalFlags.RUN_FIRST,
+                   GObject.TYPE_NONE,
+                   (GObject.TYPE_STRING, GObject.TYPE_STRING,
+                    GObject.TYPE_PYOBJECT)),
+        "notify": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
+                   GObject.TYPE_NONE,
+                   (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
+                    GObject.TYPE_PYOBJECT)),
+        # "remote": (GObject.SignalFlags.RUN_FIRST,
+        #            GObject.TYPE_NONE,
+        #            (GObject.TYPE_PYOBJECT,)),
+        "ready": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  ())
+    }
     def __init__(self, helper):
+        super().__init__()
         self._helper = helper
         self._helper.connect("config", self._config_cb)
         self._helper.connect("ready", self._ready_cb)
@@ -30,22 +49,27 @@ class ZwickyHelper:
         self.plugins = self._helper.plugins.device.zwicky
         self.motor = self.plugins.motor(self)
         self.radio = self.plugins.radio(self)
-        # TODO
         self.tracker = self.plugins.tracker(self)
         self.get_config("station")
         self._reset_coor()
     def _reset_coor(self):
-        # TODO
         self.tracker.reset()
         self.motor.reset()
         self.source_on = False
 
+    # callbacks
     def _ready_cb(self, helper):
         self.reset()
+        self.emit("ready")
     def _config_cb(self, helper, field, name, value):
-        pass
+        self.emit("config", field, name, value)
     def _remote_cb(self, helper, obj):
         self._handle_remote(obj)
+    def _notify_cb(self, helper, name, nid, args):
+        self.emit("notify::%s" % name.replace('_', '-'),
+                  name, nid, notify)
+
+    # handles
     def _handle_remote(self, obj)
         objtype = get_dict_fields(obj, "type")
         if objtype is None:
@@ -83,7 +107,6 @@ class ZwickyHelper:
     def get_config(self, key, notify=True, non_null=True):
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)
-
     def send_remote(self, obj):
         self._helper.send_remote(obj)
         return self._helper.recv_remote()
@@ -111,12 +134,12 @@ class ZwickyHelper:
         self._helper.send_slave(sid, obj)
     def send_invalid(self, sid):
         self._helper.send_invalid(sid)
+
     def reset(self):
         self.send_move(0, 5000)
         self.send_move(2, 5000)
         self.send_source(False)
         self._reset_coor()
-
     def move(self, az, el):
         self.motor.set_pos(az, el)
     def set_freq(self, freq, mode):
