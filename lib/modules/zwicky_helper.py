@@ -28,6 +28,8 @@ class ZwickyHelper:
         self._config_dict = {}
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky
+        self.properties = self._helper.plugins.props.zwicky
+        self.commands = self._helper.plugins.cmds.zwicky
         self.motor = self.plugins.motor(self)
         self.radio = self.plugins.radio(self)
         self.tracker = self.plugins.tracker(self)
@@ -48,32 +50,13 @@ class ZwickyHelper:
     def _track_cb(self, helper, az, el):
         self.tracker.set_pos(az, el)
     def get_prop(self, name):
-        if name == "pos":
-            return [self.motor.az, self.motor.el]
-        elif name == "track":
-            return self.tracker.get_track()
-        elif name == "freq_mode":
-            return self.radio.get_freq()
-        elif name == "calib":
-            return self.radio.get_calib()
-        elif name == "sys_tmp":
-            return self.radio.get_sys_tmp()
-        elif name == "offset":
-            return self.motor.get_offset()
-        elif name == "gala_pos":
-            pass
-        elif name == "time":
-            return _time.time()
-        elif name == "source":
-            return self.source_on
-        elif name == "frange":
-            pass
-        return
+        try:
+            return self.properties[name](self)
+        except:
+            return
     def get_all_props(self):
-        prop_names = ["pos", "track", "freq_mode", "calib", "sys_tmp", "offset",
-                      "gala_pos", "time", "source", "frange"]
         props = {}
-        for pname in prop_names:
+        for pname in self.properties:
             props[pname] = self.get_prop(pname)
         return props
     def recv(self):
@@ -95,7 +78,15 @@ class ZwickyHelper:
                 return pkg
             elif pkgtype == "track":
                 self.tracker.update_pos()
-
+    def _process_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
+        try:
+            res = self.commands[name](self, *args, **kwargs)
+        except:
+            res = None
+        if not res is None:
+            self.send_invalid(sid)
+        else:
+            self.send_reply(sid, res)
     def _handle_source(self, on=None, **kw):
         self.source_on = bool(on)
         self.send_signal("source", self.source_on)
@@ -149,6 +140,11 @@ class ZwickyHelper:
         if None in [rtype, data]:
             return
         return self.radio.corr_radio(data, mode)
+    def send_reply(self, sid, obj):
+        self._helper.reply(sid, obj)
+    def send_invalid(self, sid):
+        self.send_reply(sid, {"type": "error", "errno": SRTERR_UNKNOWN_CMD,
+                              "msg": "invalid request"})
     def reset(self):
         self.send_move(0, 5000)
         self.send_move(2, 5000)
@@ -158,13 +154,9 @@ class ZwickyHelper:
         self._helper.wait_ready()
         self.reset()
         self._helper.send_ready()
-        self.track(args=[15, 15])
-        print(self.radio.radio())
-        print(self.calib(3))
-        print(self.radio.radio())
-        # while True:
-        #     sid, obj = self.recv_slave()
-        #     # do real work here...
+        while True:
+            pkg = self.recv_slave()
+            self._process_cmd(**pkg)
         self.reset()
     def move(self, az, el):
         self.motor.set_pos(az, el)
@@ -179,11 +171,11 @@ class ZwickyHelper:
         if self.tracker.track(**kwargs):
             pkg = self._helper.wait_types("track")
             return check_track(**pkg)
-        return False
+        return
 
 def check_track(az=None, el=None, **kw):
     if None in [az, el]:
-        return False
+        return
     return True
 
 def StartZwicky(helper):

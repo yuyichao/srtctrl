@@ -121,6 +121,8 @@ def new_wrapper(getter, setter, direr=None):
             if direr is None:
                 return []
             return direr()
+        def __iter__(self):
+            return self.__dir__().__iter__()
     return _wrapper()
 
 def new_wrapper2(getter, setter):
@@ -180,3 +182,19 @@ def new_wrapper_tree(getter, setter, direr=None):
         return direr()
     _direr = None if direr is None else _direr_
     return new_wrapper(_getter, _setter, direr=_direr)
+
+def std_arg(default, arg, fallback=True):
+    if not isinstance(arg, type(default)):
+        if isinstance(default, float) and isinstance(arg, int):
+            return float(arg)
+        if fallback:
+            return default
+        raise ValueError
+    if not isinstance(arg, list) and not isinstance(arg, tuple):
+        return arg
+    if not len(arg) == len(default):
+        if fallback:
+            return default
+        raise ValueError
+    return type(arg)(std_arg(d, a, fallback=fallback)
+                     for (d, a) in zip(default, arg))

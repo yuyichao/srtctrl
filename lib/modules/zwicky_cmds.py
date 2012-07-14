@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# coding=utf-8
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -16,21 +16,15 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm import *
+def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
+                track=True, args=None, *w, **kw):
+    name = std_arg("", name)
+    offset = std_arg([0., 0.], offset)
+    abstime = std_arg(False, abstime)
+    track = std_arg(False, track)
+    if not zwicky.track(name=name, offset=offset, time=time,
+                        abstime=abstime, track=track, args=args):
+        return
+    return {"type": "move", "res": True}
 
-print(config.srt_modules_path)
-plugins = SrtPlugins()
-print(plugins._files)
-print('plugin created')
-# print(plugins.test.f2.fd.jk.ji)
-# print(plugins.test)
-# print(plugins.test.func1())
-# print(plugins.test.func2(4))
-# print(plugins.test2.func3())
-# print(plugins.test3['aaa'])
-# print(plugins.initializer['default'])
-
-print(plugins.a.d)
-print(dir(plugins.props.zwicky))
-for p in plugins.props.zwicky:
-    print(p)
+setiface.cms.zwicky.move = zwicky_move
