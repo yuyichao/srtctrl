@@ -117,44 +117,48 @@ class Zwicky:
             reqtype = obj['type']
         except:
             remote.unknown_req(obj)
+        res = None
         if reqtype == 'move':
-            try:
-                direct = int(obj['direct'])
-                count = int(obj['count'])
-            except:
-                remote.unknown_req(obj)
-                return
-            if (not 0 <= direct <= 3) or count <= 0:
-                remote.unknown_req(obj)
-                return
-            remote.send('move %d %d  \n' % (direct, count))
-            return
+            res = self._handle_move(**obj)
         elif reqtype == 'source':
-            try:
-                on = bool(obj['on'])
-            except:
-                remote.unknown_req(obj)
-                return
-            direct = 7 if on else 6
-            remote.send('move %d 0  \n' % direct)
-            return
+            res = self._handle_source(**obj)
         elif reqtype == 'radio':
-            try:
-                freq = int(obj['freq'])
-                mode = int(obj['mode'])
-            except:
-                remote.unknown_req(obj)
-                return
-            if (not 1 <= mode <= 3) or freq <= 0:
-                remote.unknown_req(obj)
-                return
-            remote.send('radio %d %d  \n' % (freq, mode))
-            return
+            res = self._handle_radio(**obj)
         elif reqtype == 'quit':
             remote.send('bye. \n')
             return
-        else:
+        if res is None:
             remote.unknown_req(obj)
+    def _handle_move(self, direct=None, count=None, **kw):
+        if None in [direct, count]:
             return
+        try:
+            direct = int(direct)
+            count = int(count)
+        except ValueError:
+            return
+        if (not 0 <= direct <= 3) or count <= 0:
+            return
+        self._remote.send('move %d %d  \n' % (direct, count))
+        return True
+    def _handle_source(self, on=None, **kw):
+        if on is None:
+            return
+        on = bool(on)
+        direct = 7 if on else 6
+        self._remote.send('move %d 0  \n' % direct)
+        return True
+    def _handle_radio(self, freq=None, mode=None, **kw):
+        if None in [freq, mode]:
+            return
+        try:
+            freq = int(freq)
+            mode = int(mode)
+        except ValueError:
+            return
+        if (not 1 <= mode <= 3) or freq <= 0:
+            return
+        self._remote.send('radio %d %d  \n' % (freq, mode))
+        return True
 
 setiface.protocol.zwicky = Zwicky
