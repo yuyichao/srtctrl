@@ -66,11 +66,10 @@ class SrtPlugins:
         if self._loaded_index >= len(self._files):
             return False
         fname = self._files[self._loaded_index]
+
         try:
-            l = {'setiface': self._setter, 'getiface': self._getter}
             g = {'setiface': self._setter, 'getiface': self._getter}
-            execfile(fname, g, l)
-            g.update(l)
+            execfile(fname, g, g)
         except Exception as err:
             print("load_next: %s" % fname, err)
         return True

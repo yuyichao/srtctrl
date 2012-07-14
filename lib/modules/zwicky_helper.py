@@ -70,7 +70,7 @@ class ZwickyHelper(GObject.Object):
                   name, nid, alarm)
 
     # handles
-    def _handle_remote(self, obj)
+    def _handle_remote(self, obj):
         objtype = get_dict_fields(obj, "type")
         if objtype is None:
             return

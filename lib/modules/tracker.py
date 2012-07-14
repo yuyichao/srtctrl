@@ -82,7 +82,7 @@ class WrapTracker(GObject.Object):
                   (GObject.TYPE_PYOBJECT,)),
     }
     def __init__(self, plugins, **kw):
-        self._tracker = SrtTracker(plugins, **kw):
+        self._tracker = SrtTracker(plugins, **kw)
         self._tracker.connect("update",
                               lambda az, el:
                               self.emit("alarm", {"az": az, "el": el}))
