@@ -27,10 +27,10 @@ class ZwickyHelper(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_STRING, GObject.TYPE_STRING,
                     GObject.TYPE_PYOBJECT)),
-        "notify": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
-                   GObject.TYPE_NONE,
-                   (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
-                    GObject.TYPE_PYOBJECT)),
+        "alarm": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
+                   GObject.TYPE_PYOBJECT)),
         # "remote": (GObject.SignalFlags.RUN_FIRST,
         #            GObject.TYPE_NONE,
         #            (GObject.TYPE_PYOBJECT,)),
@@ -44,7 +44,7 @@ class ZwickyHelper(GObject.Object):
         self._helper.connect("config", self._config_cb)
         self._helper.connect("ready", self._ready_cb)
         self._helper.connect("remote", self._remote_cb)
-        self._helper.connect("notify", self._notify_cb)
+        self._helper.connect("alarm", self._alarm_cb)
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky
         self.motor = self.plugins.motor(self)
@@ -65,9 +65,9 @@ class ZwickyHelper(GObject.Object):
         self.emit("config", field, name, value)
     def _remote_cb(self, helper, obj):
         self._handle_remote(obj)
-    def _notify_cb(self, helper, name, nid, notify):
-        self.emit("notify::%s" % name.replace('_', '-'),
-                  name, nid, notify)
+    def _alarm_cb(self, helper, name, nid, alarm):
+        self.emit("alarm::%s" % name.replace('_', '-'),
+                  name, nid, alarm)
 
     # handles
     def _handle_remote(self, obj)
@@ -131,8 +131,8 @@ class ZwickyHelper(GObject.Object):
         self._helper.send_slave(sid, obj)
     def send_invalid(self, sid):
         self._helper.send_invalid(sid)
-    def send_chk_notify(self, name, nid, args):
-        return self._helper.send_chk_notify(self, name, nid, args)
+    def send_chk_alarm(self, name, nid, args):
+        return self._helper.send_chk_alarm(self, name, nid, args)
 
     def reset(self):
         self.send_move(0, 5000)

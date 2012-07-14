@@ -25,10 +25,10 @@ class SrtHelper(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_STRING, GObject.TYPE_STRING,
                     GObject.TYPE_PYOBJECT)),
-        "notify": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
-                   GObject.TYPE_NONE,
-                   (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
-                    GObject.TYPE_PYOBJECT)),
+        "alarm": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
+                   GObject.TYPE_PYOBJECT)),
         "remote": (GObject.SignalFlags.RUN_FIRST,
                    GObject.TYPE_NONE,
                    (GObject.TYPE_PYOBJECT,)),
@@ -76,8 +76,8 @@ class SrtHelper(GObject.Object):
                 pkg = self._handle_config(**pkg)
             elif pkgtype == "prop":
                 pkg = self._handle_prop(**pkg)
-            elif pkgtype == "notify":
-                pkg = self._handle_notify(**pkg)
+            elif pkgtype == "alarm":
+                pkg = self._handle_alarm(**pkg)
             elif pkgtype == "slave":
                 pkg = self._handle_slave(**pkg)
             elif pkgtype == "remote":
@@ -111,14 +111,14 @@ class SrtHelper(GObject.Object):
             return
         self.send_prop(sid,  name, value)
         return {"type": "prop", "name": name, "sid": sid}
-    def _handle_notify(self, name=None, nid=None, notify=None, **kw):
+    def _handle_alarm(self, name=None, nid=None, alarm=None, **kw):
         if not isinstance(name, str) or not name.isidentifier():
             return
-        if not notify is None:
-            self.emit("notify::%s" % name.replace('_', '-'),
-                      name, nid, notify)
-        return {"type": "notify", "name": name, "nid": nid,
-                "notify": notify}
+        if not alarm is None:
+            self.emit("alarm::%s" % name.replace('_', '-'),
+                      name, nid, alarm)
+        return {"type": "alarm", "name": name, "nid": nid,
+                "alarm": alarm}
     def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
         if name is None:
             self.send_invalid(sid)
@@ -159,17 +159,20 @@ class SrtHelper(GObject.Object):
         pkg = self.wait_types("slave")
         self.send_got_cmd(pkg["sid"])
         return pkg
-    def send_chk_notify(self, name, nid, args):
+    def send_chk_alarm(self, name, nid, args):
         if not (isinstance(name, str) and name.isidentifier()):
             return
         if not isinstance(args, dict):
             return
-        self.send_notify(name, nid, args)
+        if (isinstance(nid, list) or isinstance(nid, tuple)
+            or isinstance(nid, dict)):
+            return
+        self.send_alarm(name, nid, args)
         while True:
-            pkg = self.wait_type("notify")
+            pkg = self.wait_type("alarm")
             if pkg["name"] != name or pkg["nid"] != nid:
                 continue
-            if pkg["notify"] is None:
+            if pkg["alarm"] is None:
                 return
             return pkg
 
@@ -229,8 +232,8 @@ class SrtHelper(GObject.Object):
                         "props": self.get_all_props()})
         else:
             self._send({"type": "signal", "name": name, "value": value})
-    def send_notify(self, name, nid, args):
-        self._send({"type": "notify", "name": name, "nid": nid, "args": args})
+    def send_alarm(self, name, nid, args):
+        self._send({"type": "alarm", "name": name, "nid": nid, "args": args})
 
     # config
     def _cache_config(self, field, name, value):

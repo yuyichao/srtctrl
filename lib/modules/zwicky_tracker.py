@@ -22,7 +22,7 @@ from srt_comm import *
 class ZwickyTracker:
     def __init__(self, zwicky):
         self._zwicky = zwicky
-        self._zwicky.connect("notify::track", self._track_cb)
+        self._zwicky.connect("alarm::track", self._track_cb)
         self.reset()
     def _track_cb(self, zwicky, name, nid, args):
         az, el = get_dict_fields(args, "az", "el")
@@ -72,7 +72,7 @@ class ZwickyTracker:
                     time = _time.time()
         track_obj = {"name": name, "offset": offset, "time": time,
                      "track": track, "args": args}
-        res = self._zwicky.send_chk_notify("track", "zwicky", self._track_obj)
+        res = self._zwicky.send_chk_alarm("track", "zwicky", self._track_obj)
         if not res:
             self._track_obj = track_obj
         return res
