@@ -41,10 +41,6 @@ class ZwickyHelper(GObject.Object):
     def __init__(self, helper):
         super().__init__()
         self._helper = helper
-        self._helper.connect("config", self._config_cb)
-        self._helper.connect("ready", self._ready_cb)
-        self._helper.connect("remote", self._remote_cb)
-        self._helper.connect("alarm", self._alarm_cb)
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky
         self.motor = self.plugins.motor(self)
@@ -52,6 +48,10 @@ class ZwickyHelper(GObject.Object):
         self.tracker = self.plugins.tracker(self)
         self.get_config("station")
         self._reset_coor()
+        self._helper.connect("config", self._config_cb)
+        self._helper.connect("ready", self._ready_cb)
+        self._helper.connect("remote", self._remote_cb)
+        self._helper.connect("alarm", self._alarm_cb)
     def _reset_coor(self):
         self.tracker.reset()
         self.motor.reset()
@@ -62,6 +62,7 @@ class ZwickyHelper(GObject.Object):
         self.reset()
         self.emit("ready")
     def _config_cb(self, helper, field, name, value):
+        print("config_cb", field, name)
         self.emit("config", field, name, value)
     def _remote_cb(self, helper, obj):
         self._handle_remote(obj)
@@ -132,7 +133,7 @@ class ZwickyHelper(GObject.Object):
     def send_invalid(self, sid):
         self._helper.send_invalid(sid)
     def send_chk_alarm(self, name, nid, args):
-        return self._helper.send_chk_alarm(self, name, nid, args)
+        return self._helper.send_chk_alarm(name, nid, args)
 
     def reset(self):
         self.send_move(0, 5000)

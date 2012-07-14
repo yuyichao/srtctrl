@@ -99,14 +99,15 @@ class SrtHelper(GObject.Object):
             self._cache_config(field, name, value)
         self.emit("config", field, name, value)
         return {"type": "config", "notify": notify,
-                "field": field, "name": name}
+                "field": field, "name": name, "value": value}
     def _handle_prop(self, name=None, sid=None, **kw):
         if not isinstance(name, str) or self._name is None:
             self.send_invalid(sid)
             return
         try:
             value = self.plugins.props[name](self._device)
-        except:
+        except Exception as err:
+            print(err)
             self.send_invalid(sid)
             return
         self.send_prop(sid,  name, value)
@@ -140,12 +141,18 @@ class SrtHelper(GObject.Object):
         return {"type": "remote", "obj": obj}
 
     def get_all_props(self):
-        props = {}
+        if self._name is None or self._device is None:
+            return {}
         try:
-            for name in self.properties:
-                props[name] = self.plugins.props[name](self._device)
-        except:
-            pass
+            props_plugins = self.plugins.props[self._name]
+        except Exception as err:
+            return {}
+        props = {}
+        for name in props_plugins:
+            try:
+                props[name] = props_plugins[name](self._device)
+            except Exception as err:
+                print(err)
         return props
     # receive utils
     def wait_ready(self):
@@ -169,7 +176,7 @@ class SrtHelper(GObject.Object):
             return
         self.send_alarm(name, nid, args)
         while True:
-            pkg = self.wait_type("alarm")
+            pkg = self.wait_types("alarm")
             if pkg["name"] != name or pkg["nid"] != nid:
                 continue
             if pkg["alarm"] is None:
@@ -181,6 +188,7 @@ class SrtHelper(GObject.Object):
         name = get_dict_fields(pkg, "name")
         if name is None:
             return
+        self._name = name
         try:
             self._device = self.plugins.helper[name](self)
         except Exception as err:

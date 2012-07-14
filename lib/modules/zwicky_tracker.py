@@ -25,7 +25,7 @@ class ZwickyTracker:
         self._zwicky.connect("alarm::track", self._track_cb)
         self.reset()
     def _track_cb(self, zwicky, name, nid, args):
-        az, el = get_dict_fields(args, "az", "el")
+        az, el = get_dict_fields(args, ["az", "el"])
         if None in [az, el]:
             return
         try:
@@ -35,7 +35,7 @@ class ZwickyTracker:
     def reset(self):
         self._az = 0
         self._el = 0
-        self.track()
+        self.track(track=False)
     def set_pos(self, az, el):
         self._az = float(az)
         self._el = float(el)
@@ -72,8 +72,8 @@ class ZwickyTracker:
                     time = _time.time()
         track_obj = {"name": name, "offset": offset, "time": time,
                      "track": track, "args": args}
-        res = self._zwicky.send_chk_alarm("track", "zwicky", self._track_obj)
-        if not res:
+        res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
+        if not res is None:
             self._track_obj = track_obj
         return res
     def get_track(self):

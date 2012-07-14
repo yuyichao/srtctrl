@@ -150,7 +150,7 @@ class SrtCenter(GObject.Object):
             self._helper_handle_alarm(**pkg)
             return
         return
-    def _helper_handle_alarm(self, name="", nid=None, args={}):
+    def _helper_handle_alarm(self, name="", nid=None, args={}, **kw):
         if (not (isinstance(name, str) and name.isidentifier()
                  and isinstance(args, dict)) or isinstance(nid, list)
                  or isinstance(nid, dict)):
@@ -162,7 +162,8 @@ class SrtCenter(GObject.Object):
         try:
             alarm = self.plugins.alarm[name](self.plugins, **args)
             alarm.connect("alarm", self._helper_alarm_cb, name, nid)
-        except:
+        except Exception as err:
+            print(err)
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
                                "alarm": None})
             return
