@@ -9,6 +9,7 @@ set(srt_modules_py
   zwicky_radio.py
   zwicky_tracker.py
   track_simple.py
+  tracker.py
   )
 
 install(FILES ${srt_modules_py}

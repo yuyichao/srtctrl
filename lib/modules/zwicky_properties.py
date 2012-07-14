@@ -69,3 +69,8 @@ def zwicky_frange(zwicky):
     return
 
 setiface.props.zwicky.frange = zwicky_frange
+
+def zwicky_station(zwicky):
+    return zwicky.configs.station
+
+setiface.props.zwicky.station = zwicky_station

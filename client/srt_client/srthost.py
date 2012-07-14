@@ -38,9 +38,12 @@ class SrtHost(GObject.Object):
                    (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
                     GObject.TYPE_STRING, GObject.TYPE_BOOLEAN)),
     }
-    def __init__(self):
+    def __init__(self, plugins=None):
         super().__init__()
-        self._plugins = SrtPlugins()
+        if not plugins is None:
+            self._plugins = plugins
+        else:
+            self._plugins = SrtPlugins()
         self._unique_id = 0
         self._slaves = {}
         self._lookup_id = {}
