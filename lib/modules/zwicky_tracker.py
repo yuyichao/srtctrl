@@ -32,7 +32,7 @@ class ZwickyTracker:
         self._el = float(el)
     def update_pos(self):
         self._zwicky.move(self._az, self._el)
-    def track(self, name="", offset=[0, 0], time=0, abstime=False, track=False,
+    def track(self, name="", offset=[0, 0], time=0, abstime=False, track=True,
               args=None, **kw):
         if self._track(name, offset, time, abstime, track, args):
             self._zwicky.send_signal("track", self._track_obj)
