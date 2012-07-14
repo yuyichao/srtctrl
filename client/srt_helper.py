@@ -17,33 +17,40 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from srt_comm import *
-from gi.repository import GObject
+from gi.repository import GObject, GLib
 
 class SrtHelper(GObject.Object):
     __gsignals__ = {
-        "config": (GObject.SignalFlags.RUN_FIRST,
+        "config": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
                    GObject.TYPE_NONE,
                    (GObject.TYPE_STRING, GObject.TYPE_STRING,
                     GObject.TYPE_PYOBJECT)),
-        "prop": (GObject.SignalFlags.RUN_FIRST,
-                 GObject.TYPE_NONE,
-                 (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
-        "track": (GObject.SignalFlags.RUN_FIRST,
+        "notify": (GObject.SignalFlags.RUN_FIRST | GObject.SignalFlags.DETAILED,
+                   GObject.TYPE_NONE,
+                   (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT,
+                    GObject.TYPE_PYOBJECT)),
+        "remote": (GObject.SignalFlags.RUN_FIRST,
+                   GObject.TYPE_NONE,
+                   (GObject.TYPE_PYOBJECT,)),
+        "ready": (GObject.SignalFlags.RUN_FIRST,
                   GObject.TYPE_NONE,
-                  (GObject.TYPE_DOUBLE, GObject.TYPE_DOUBLE)),
+                  ())
     }
     def __init__(self, sock):
         super().__init__()
         self._sock = sock
         self._name = None
         self._ready = False
+        self._device = None
         self.plugins = SrtPlugins()
         self._config_cache = {}
         self.configs = new_wrapper2(lambda field, name:
-                                    self.get_config(field, name, non_null=False),
+                                    self.get_config(field, name, False),
                                     None)
         self._pkg_queue = []
+        self._auto_props = True
 
+    # Main Receive
     def wait_types(self, types):
         if isinstance(types, str):
             types = [types]
@@ -51,7 +58,10 @@ class SrtHelper(GObject.Object):
             if self._pkg_queue[i]["type"] in types:
                 return self._pkg_queue.pop(i)
         while True:
-            pkg = self._sock.recv()
+            try:
+                pkg = self._sock.recv()
+            except GLib.GError:
+                exit()
             if not pkg:
                 exit()
             pkgtype = get_dict_fields(pkg, "type")
@@ -59,33 +69,56 @@ class SrtHelper(GObject.Object):
                 continue
             elif pkgtype == "quit":
                 exit()
-            # elif pkgtype == "error":
-            #     continue
             elif pkgtype == "ready":
                 self._ready = True
+                pkg = {"type": "ready"}
             elif pkgtype == "config":
-                if self._handle_config(**pkg) is None:
-                    continue
+                pkg = self._handle_config(**pkg)
             elif pkgtype == "prop":
-                if self._handle_prop(**pkg) is None:
-                    continue
-            elif pkgtype == "track":
-                self._handle_track(**pkg)
+                pkg = self._handle_prop(**pkg)
+            elif pkgtype == "notify":
+                pkg = self._handle_notify(**pkg)
             elif pkgtype == "slave":
                 pkg = self._handle_slave(**pkg)
-                if pkg is None:
-                    continue
             elif pkgtype == "remote":
-                if self._handle_remote(**pkg) is None:
-                    continue
+                pkg = self._handle_remote(**pkg)
+            if pkg is None:
+                continue
             if pkgtype in types:
                 return pkg
-            if pkgtype in ["config", "prop", "ready", "init", "error", "track"]:
-                continue
-            self._pkg_queue.append(pkg)
+            if pkgtype == "slave":
+                self._pkg_queue.append(pkg)
 
+    # handles
+    def _handle_config(self, field=None, name=None, notify=False,
+                       value=None, **kw):
+        if not isinstance(name, str) or not isinstance(field, str) :
+            return
+        notify = bool(notify)
+        if notify:
+            self._cache_config(field, name, value)
+        self.emit("config", field, name, value)
+        return {"type": "config", "notify": notify,
+                "field": field, "name": name}
+    def _handle_prop(self, name=None, sid=None, **kw):
+        if not isinstance(name, str) or self._name is None:
+            self.send_invalid(sid)
+            return
+        try:
+            value = self.plugins.props[name](self._device)
+        except:
+            self.send_invalid(sid)
+            return
+        self.send_prop(sid,  name, value)
+        return {"type": "prop", "name": name, "sid": sid}
+    def _handle_notify(self, name=None, nid=None, notify=None, **kw):
+        if name is None:
+            return
+        self.emit("notify", name, nid, notify)
+        return {"type": "notify", "name": name, "nid": nid, "notify": notify}
     def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
         if name is None:
+            self.send_invalid(sid)
             return
         try:
             args = list(args)
@@ -100,66 +133,71 @@ class SrtHelper(GObject.Object):
     def _handle_remote(self, obj=None, **kw):
         if obj is None:
             return
-        return True
-    def _handle_track(self, az=None, el=None, **kw):
-        if None in [az, el]:
-            return
-        try:
-            az = float(az)
-            el = float(el)
-        except:
-            return
-        self.emit("track", az, el)
-        return True
-    def _handle_config(self, field=None, name=None, notify=None,
-                       value=None, **kw):
-        if None in (field, name, notify):
-            return
-        try:
-            field = str(field)
-            name = str(name)
-        except:
-            return
-        if notify:
-            self._cache_config(field, name, value)
-        self.emit("config", field, name, value)
-        return True
-    def _handle_prop(self, name=None, sid=None, **kw):
-        if name is None:
-            return
-        try:
-            name = str(name)
-        except:
-            return
-        self.emit("prop", name, sid)
-        return True
+        self.emit("remote", obj)
+        return {"type": "remote", "obj": obj}
 
-    def _start(self):
-        pkg = self.wait_types("init")
-        name = get_dict_fields(pkg, "name")
-        if name is None:
-            return
-        self.plugins.helper[name](self)
-        # try:
-        #     self.plugins.helper[name](self)
-        # except Exception as err:
-        #     print(err)
-        #     self._send({"type": "error", "errno": SRTERR_PLUGIN,
-        #                 "msg": "error running helper [%s]" % name})
-        return
+    def get_all_props(self):
+        props = {}
+        try:
+            for name in self.properties:
+                props[name] = self.plugins.props[name](self._device)
+        except:
+            pass
+        return props
+    # receive utils
     def wait_ready(self):
         if self._ready:
             return
         self.wait_types("ready")
-        return
+    def recv_remote(self):
+        pkg = self.wait_types("remote")
+        return pkg["obj"]
+    def recv_slave(self):
+        pkg = self.wait_types("slave")
+        self.send_got_cmd(pkg["sid"])
+        return pkg
 
+    def start(self):
+        pkg = self.wait_types("init")
+        name = get_dict_fields(pkg, "name")
+        if name is None:
+            return
+        try:
+            self._device = self.plugins.helper[name](self)
+        except Exception as err:
+            print(err)
+            self._send({"type": "error", "errno": SRTERR_PLUGIN,
+                        "msg": "error running helper [%s]" % name})
+        self.wait_ready()
+        self.emit("ready")
+        self.send_ready()
+        while True:
+            pkg = self.recv_slave()
+            self.exec_cmd(**pkg)
+
+    def exec_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
+        try:
+            res = self.plugins.cmds[name](self._device, *args, **kwargs)
+        except:
+            self.send_invalid(sid)
+            return
+        if self._auto_props:
+            self.send_slave(sid, {"res": res,
+                                  "props": self.get_all_props()})
+        else:
+            self.send_slave(sid, {"res": res, "props": None})
+
+    # sends
     def _send(self, obj):
         self._sock.send(obj)
         self._sock.wait_send()
-    def send(self, obj):
+    def send_remote(self, obj):
         self._send({"type": "remote", "obj": obj})
-    def reply(self, sid, obj):
+    def send_slave(self, sid, obj):
         self._send({"type": "slave", "sid": sid, "obj": obj})
+    def send_invalid(self, sid):
+        self.send_slave(sid, {"type": "error", "errno": SRTERR_UNKNOWN_CMD,
+                              "msg": "invalid request"})
     def send_got_cmd(self, sid):
         self._send({"type": "got-cmd", "sid": sid})
     def send_ready(self):
@@ -170,12 +208,19 @@ class SrtHelper(GObject.Object):
     def send_quit(self):
         self._send({"type": "quit"})
     def send_signal(self, name, value):
-        self._send({"type": "signal", "name": name, "value": value})
-    def send_track(self, name, offset, time, track, args, station):
-        self._send({"type": "track", "name": name, "offset": offset,
-                    "time": time, "track": bool(track),
-                    "args": args, "station": station})
+        if self._auto_props:
+            self._send({"type": "signal", "name": name, "value": value,
+                        "props": self.get_all_props()})
+        else:
+            self._send({"type": "signal", "name": name, "value": value})
+    def send_notify(self):
+        pass
+    # def send_track(self, name, offset, time, track, args, station):
+    #     self._send({"type": "track", "name": name, "offset": offset,
+    #                 "time": time, "track": bool(track),
+    #                 "args": args, "station": station})
 
+    # config
     def _cache_config(self, field, name, value):
         set_2_level(self._config_cache, field, name, value)
     def get_config(self, field, name, notify=True, non_null=True):
@@ -190,11 +235,13 @@ class SrtHelper(GObject.Object):
         if value is None and non_null:
             raise KeyError("config %s.%s not found" % (field, name))
         return pkg["value"]
+    def set_auto_props(self, auto_props):
+        self._auto_props = bool(auto_props)
 
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper._start()
+    helper.start()
     # try:
     #     helper._start()
     # except Exception as err:
