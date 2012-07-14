@@ -148,15 +148,6 @@ class SrtCenter(GObject.Object):
             return
         elif pkgtype == "alarm":
             self._helper_handle_alarm(**pkg)
-            if not self._helper_tracker is None:
-                self._helper_tracker.stop()
-                self._helper_tracker = None
-            try:
-                self._helper_tracker = SrtTracker(**pkg)
-                self._helper_tracker.connect("update", self._helper_track_cb)
-            except:
-                # send a empty request to indecate a error
-                self._helper.send({"type": "track"})
             return
         return
     def _helper_handle_alarm(self, name="", nid=None, args={}):
@@ -169,7 +160,7 @@ class SrtCenter(GObject.Object):
         if not name in self._helper_alarm:
             self._helper_alarm[name] = {}
         try:
-            alarm = self.plugins.alarm[name](self, **args)
+            alarm = self.plugins.alarm[name](self.plugins, **args)
             alarm.connect("alarm", self._helper_alarm_cb, name, nid)
         except:
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
@@ -177,6 +168,8 @@ class SrtCenter(GObject.Object):
             return
         self._helper_alarm[name][nid] = alarm
     def _helper_alarm_cb(self, obj, alarm, name, nid):
+        if not isinstance(alarm, dict):
+            return
         self._helper.send({"type": "alarm", "name": name,
                            "nid": nid, "alarm": alarm})
 
@@ -211,8 +204,6 @@ class SrtCenter(GObject.Object):
             self._quit()
             return
         self._remote.request(obj)
-    def _helper_track_cb(self, tracker, az, el):
-        self._helper.send({"type": "track", "az": az, "el": el})
     def _helper_config_notify_cb(self, field, name, value):
         self._helper.send({"type": "config", "field": field, "name": name,
                            "value": value, "notify": True})
