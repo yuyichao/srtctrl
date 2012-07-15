@@ -76,8 +76,13 @@ class ZwickyTracker:
         if res is None:
             return
         self._track_obj = track_obj
-        self._zwicky.wait_alarm()
-        return True
+        while True:
+            res = self._zwicky.wait_alarm()
+            try:
+                if res["name"] == "track" and res["nid"] == "zwicky":
+                    return True
+            except:
+                pass
     def get_track(self):
         return self._track_obj
 
