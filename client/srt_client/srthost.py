@@ -71,8 +71,12 @@ class SrtHost(GObject.Object):
             return False
         sock.connect('got-obj', self._slave_got_obj_cb)
         sock.connect('disconn', self._slave_disconn_cb)
+        if not self._name is None:
+            sock.send({"type": "init", "name": self._name})
+        if self._ready:
+            sock.send({"type": "ready"})
         sid = self._new_usid()
-        self._slaves[sid] = {"sock": sock, "signals": {}, "alarms": {}}
+        self._slaves[sid] = {"sock": sock, "alarms": {}}
         self._lookup_id[id(sock)] = sid
         return True
     def create_slave_by_name(self, name, args):
@@ -127,9 +131,7 @@ class SrtHost(GObject.Object):
             self._send_invalid(slave)
             return
         res = None
-        if pkgtype == "connect":
-            res = self._handle_connect(sid, **pkg)
-        elif pkgtype == "config":
+        if pkgtype == "config":
             res = self._handle_config(sid, **pkg)
         elif pkgtype == "start":
             res = self._handle_start(sid, **pkg)
@@ -239,10 +241,6 @@ class SrtHost(GObject.Object):
             self._send_sid(sid, {"type": "prop", "name": "name",
                                  "value": self._name})
             return True
-        if name == "ready":
-            self._send_sid(sid, {"type": "prop", "name": "ready",
-                                 "value": self._ready})
-            return True
         self.emit("prop", sid, name)
         return True
     # def _handle_name(self, sid, **kw):
@@ -250,6 +248,7 @@ class SrtHost(GObject.Object):
     def _handle_start(self, sid, name=None, args={}, **kw):
         if name is None:
             return
+        args = std_arg({}, args)
         if not self.create_slave_by_name(name, args):
             return
         return True
@@ -259,12 +258,7 @@ class SrtHost(GObject.Object):
         if not isinstance(field, str) or not isinstance(name, str):
             return
         notify = bool(notify)
-        self.emit("prop", sid, field, name, notify)
-        return True
-    def _handle_connect(self, sid, name=None, **kw):
-        if not isinstance(name, str):
-            return
-        self._slaves[sid]["signals"][name] = name
+        self.emit("config", sid, field, name, notify)
         return True
     def _slave_alarm_cb(self, obj, alarm, name, nid, sid):
         if not isinstance(alarm, dict):
@@ -298,12 +292,29 @@ class SrtHost(GObject.Object):
         return self._send_sid(sid, {"type": "config", "name": name,
                                     "value": value, "notify": notify})
     def feed_res(self, sid, obj):
-        return self._send_sid(sid, {"type": "res", "obj": obj})
-    def feed_signal(self, name, value):
-        for sid, slave in self._slaves.items():
-            if name in slave["signals"]:
-                self._send_sid(sid, {"type": "signal", "name": name,
-                                     "value": value})
+        objtype = get_dict_fields(obj, "type")
+        if objtype is None:
+            return
+        elif objtype == "res":
+            self._handle_feed_res(sid, **obj)
+            return
+        elif objtype == "error":
+            self._handle_feed_error(sid, **obj)
+            return
+    def _handle_feed_res(sid, res=None, props={}, **kw):
+        if not isinstance(props, dict):
+            props = {}
+        self._send_sid(sid, {"type": "res", "res": res, "props": props})
+    def _handle_feed_error(sid, errno=None, msg=None, **kw):
+        try:
+            errno = int(errno)
+        except:
+            return
+        msg = std_arg("", msg)
+        self._send_sid(sid, {"type": "error", "errno": errno, "msg": msg})
+    def feed_signal(self, name, value, props):
+        self._broadcast({"type": "signal", "name": name,
+                         "value": value, "props": props})
     # DO NOT emit "quit" signal here
     def quit(self):
         self._broadcast({"type": "quit"}, wait=True)

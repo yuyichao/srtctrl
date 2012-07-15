@@ -219,10 +219,10 @@ class SrtHelper(GObject.Object):
             self.send_invalid(sid)
             return
         if self._auto_props:
-            self.send_slave(sid, {"res": res,
+            self.send_slave(sid, {"type": "res", "res": res,
                                   "props": self.get_all_props()})
         else:
-            self.send_slave(sid, {"res": res, "props": None})
+            self.send_slave(sid, {"type": "res", "res": res})
 
     # sends
     def _send(self, obj):

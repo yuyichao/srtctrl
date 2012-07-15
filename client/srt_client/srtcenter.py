@@ -180,10 +180,10 @@ class SrtCenter(GObject.Object):
         self._helper.send({"type": "alarm", "name": name,
                            "nid": nid, "alarm": alarm})
 
-    def _helper_handle_signal(self, name=None, value=None, **kw):
-        if None in [name, value]:
+    def _helper_handle_signal(self, name=None, value=None, props={}, **kw):
+        if not (isinstance(name, str) and name.isidentifier()):
             return
-        self._host.feed_signal(name, value)
+        self._host.feed_signal(name, value, props)
     def _helper_handle_prop(self, sid=None, name=None, value=None, **kw):
         if None in [name, value]:
             return
