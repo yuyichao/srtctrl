@@ -2,6 +2,7 @@
 
 print('module1 loading')
 # setiface.test.func1 = lambda: [1, 2]
+print(__name__)
 
 def func2(i):
     i = getiface.test2.func2(i)

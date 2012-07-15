@@ -19,11 +19,8 @@
 import sys
 from srt_comm import *
 
-def send(conn, **kwargs):
-    conn.send(kwargs)
-
-def send_quit(conn):
-    send(conn, type="quit")
+# requests: connect, config, start, prop, cmd, lock, quit, alarm
+# reply: error, alarm, lock, prop
 
 def main():
     fname = sys.argv[1]
@@ -41,5 +38,5 @@ def start_slave(host, fname=None, **kw):
 
 if __name__ == '__main__':
     main()
-else:
+elif 'setiface' in globals():
     setiface.slave.python = start_slave

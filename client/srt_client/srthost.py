@@ -172,8 +172,8 @@ class SrtHost(GObject.Object):
         if (not (isinstance(name, str) and name.isidentifier()
                  and isinstance(args, dict)) or isinstance(nid, list)
                  or isinstance(nid, dict)):
-            self.send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
-                                "alarm": None})
+            self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                                 "alarm": None})
             return True
         if not name in self._slaves[sid]["alarm"]:
             self._slaves[sid]["alarm"][name] = {}
@@ -182,8 +182,8 @@ class SrtHost(GObject.Object):
             alarm.connect("alarm", self._slave_alarm_cb, name, nid, sid)
         except Exception as err:
             print(err)
-            self.send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
-                                "alarm": None})
+            self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                                 "alarm": None})
             return True
         try:
             self._slaves[sid]["alarm"][name][nid].stop()
@@ -267,8 +267,8 @@ class SrtHost(GObject.Object):
     def _slave_alarm_cb(self, obj, alarm, name, nid, sid):
         if not isinstance(alarm, dict):
             return
-        self.send_sid(sid, {"type": "alarm", "name": name,
-                            "nid": nid, "alarm": alarm})
+        self._send_sid(sid, {"type": "alarm", "name": name,
+                             "nid": nid, "alarm": alarm})
     def _slave_disconn_cb(self, slave):
         try:
             sid = self._lookup_id[id(slave)]
