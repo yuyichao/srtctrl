@@ -27,4 +27,4 @@ def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
         return
     return {"type": "move", "res": True}
 
-setiface.cms.zwicky.move = zwicky_move
+setiface.cmds.zwicky.move = zwicky_move

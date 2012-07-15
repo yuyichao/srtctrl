@@ -27,6 +27,8 @@ class SrtPlugins:
         self._getter = new_wrapper_tree(self.__getter__, None,
                                         direr=self.__direr__)
         self._setter = new_wrapper_tree(None, self.__setter__)
+        while self._load_next():
+            pass
     def _check_iface(self, *keys):
         try:
             self._try_get_iface(*keys)
@@ -86,3 +88,5 @@ class SrtPlugins:
         return self._getter[key]
     def __getitem__(self, key):
         return self.__getattr__(key)
+    def __dir__(self):
+        return self.__direr__()

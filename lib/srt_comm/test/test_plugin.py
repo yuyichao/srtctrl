@@ -31,6 +31,8 @@ print('plugin created')
 # print(plugins.initializer['default'])
 
 print(plugins.a.d)
+print(dir(plugins))
+print(dir(plugins.cmds))
 print(dir(plugins.props.zwicky))
 for p in plugins.props.zwicky:
     print(p)
