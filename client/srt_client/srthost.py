@@ -72,7 +72,7 @@ class SrtHost(GObject.Object):
         sock.connect('got-obj', self._slave_got_obj_cb)
         sock.connect('disconn', self._slave_disconn_cb)
         sid = self._new_usid()
-        self._slaves[sid] = {"sock": sock, "signals": {}}
+        self._slaves[sid] = {"sock": sock, "signals": {}, "alarms": {}}
         self._lookup_id[id(sock)] = sid
         return True
     def create_slave_by_name(self, name, args):
@@ -143,9 +143,8 @@ class SrtHost(GObject.Object):
             res = self._handle_lock(sid, **pkg)
         elif pkgtype == "quit":
             res = self._handle_quit(sid, **pkg)
-        # TODO make tracking a plugin
-        elif pkgtype == "track":
-            res = self._handle_track(sid, **pkg)
+        elif pkgtype == "alarm":
+            res = self._handle_alarm(sid, **pkg)
         if res is None:
             self._send_invalid(slave)
     def _send_invalid(self, slave):
@@ -169,8 +168,28 @@ class SrtHost(GObject.Object):
     def _handle_quit(self, sid, **kw):
         self.emit("quit")
         return True
-    def _handle_track(self, sid, **kw):
-        # TODO
+    def _handle_alarm(self, sid, name="", nid=None, args={}, **kw):
+        if (not (isinstance(name, str) and name.isidentifier()
+                 and isinstance(args, dict)) or isinstance(nid, list)
+                 or isinstance(nid, dict)):
+            self.send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                                "alarm": None})
+            return True
+        if not name in self._slaves[sid]["alarm"]:
+            self._slaves[sid]["alarm"][name] = {}
+        try:
+            alarm = self._plugins.alarm[name](**args)
+            alarm.connect("alarm", self._slave_alarm_cb, name, nid, sid)
+        except Exception as err:
+            print(err)
+            self.send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                                "alarm": None})
+            return True
+        try:
+            self._slaves[sid]["alarm"][name][nid].stop()
+        except:
+            pass
+        self._slaves[sid]["alarm"][name][nid] = alarm
         return True
     def _try_lock(self, sid):
         if self._lock == sid:
@@ -245,6 +264,11 @@ class SrtHost(GObject.Object):
             return
         self._slaves[sid]["signals"][name] = name
         return True
+    def _slave_alarm_cb(self, obj, alarm, name, nid, sid):
+        if not isinstance(alarm, dict):
+            return
+        self.send_sid(sid, {"type": "alarm", "name": name,
+                            "nid": nid, "alarm": alarm})
     def _slave_disconn_cb(self, slave):
         try:
             sid = self._lookup_id[id(slave)]

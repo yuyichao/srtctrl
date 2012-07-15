@@ -17,13 +17,27 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from srt_client import *
+from srt_comm import *
 
 def err_cb(center, errno, msg):
     print(msg)
 
+def get_obj_cb(sock, pkg):
+    print("get_obj_cb", pkg)
+    try:
+        if pkg["type"] == "ready":
+            sock.send({"type": "quit"})
+    except:
+        pass
+
 def main():
     srtcenter = SrtCenter()
     srtcenter.connect('error', err_cb)
+    host, slave = conn_pair(gtype=JSONSock)
+    srtcenter.add_slave_from_jsonsock(host)
+    slave.start_recv()
+    slave.start_send()
+    slave.connect("got-obj", get_obj_cb)
     srtcenter.run()
 
 if __name__ == '__main__':
