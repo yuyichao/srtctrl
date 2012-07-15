@@ -42,14 +42,14 @@ class SrtCenter(GObject.Object):
         super().__init__()
         self._mainloop = GLib.MainLoop()
         self._remote_err_id = 0
-        self.plugins = SrtPlugins()
+        self._plugins = SrtPlugins()
         self.__init_config__(config)
         self.__init_remote__()
         self.__init_helper__()
         self.__init_host__()
 
     def __init_host__(self):
-        self._host = SrtHost(self.plugins)
+        self._host = SrtHost(self._plugins)
         self._host.connect("prop", self._host_prop_cb)
         self._host.connect("cmd", self._host_cmd_cb)
         self._host.connect("config", self._host_config_cb)
@@ -82,7 +82,7 @@ class SrtCenter(GObject.Object):
     def __init_remote__(self):
         if self._remote_err_id:
             self._remote.disconnect(self._remote_err_id)
-        self._remote = SrtRemote(self.plugins)
+        self._remote = SrtRemote(self._plugins)
         self._remote_err_id = self._remote.connect('error', self._remote_err_cb)
         self._remote.connect('initialized', self._remote_init_cb)
         self._remote.connect('ready', self._remote_ready_cb)
@@ -160,13 +160,17 @@ class SrtCenter(GObject.Object):
         if not name in self._helper_alarm:
             self._helper_alarm[name] = {}
         try:
-            alarm = self.plugins.alarm[name](self.plugins, **args)
+            alarm = self._plugins.alarm[name](**args)
             alarm.connect("alarm", self._helper_alarm_cb, name, nid)
         except Exception as err:
             print(err)
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
                                "alarm": None})
             return
+        try:
+            self._helper_alarm[name][nid].stop()
+        except:
+            pass
         self._helper_alarm[name][nid] = alarm
     def _helper_alarm_cb(self, obj, alarm, name, nid):
         if not isinstance(alarm, dict):

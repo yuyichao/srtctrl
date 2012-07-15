@@ -14,7 +14,7 @@ set(srt_comm_py
   module.py
   error.py
   jsonsock.py
-  time.py
+  parsetime.py
   )
 
 python_install_module(srt_comm ${srt_comm_py})
