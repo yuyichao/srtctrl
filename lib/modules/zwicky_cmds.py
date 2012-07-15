@@ -28,3 +28,15 @@ def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
     return {"type": "move", "res": True}
 
 setiface.cmds.zwicky.move = zwicky_move
+
+def zwicky_calib(zwicky, *w, **kw):
+    zwicky.calib()
+    return {"type": "calib", "res": True}
+
+setiface.cmds.zwicky.calib = zwicky_calib
+
+def zwicky_reset(zwicky, *w, **kw):
+    zwicky.reset()
+    return {"type": "reset", "res": True}
+
+setiface.cmds.zwicky.reset = zwicky_reset

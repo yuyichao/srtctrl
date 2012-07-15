@@ -165,8 +165,10 @@ class SrtCenter(GObject.Object):
         except Exception as err:
             print(err)
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
-                               "alarm": None})
+                               "success": False})
             return
+        self._helper.send({"type": "alarm", "name": name, "nid": nid,
+                           "success": True})
         try:
             self._helper_alarm[name][nid].stop()
         except:

@@ -112,9 +112,13 @@ class SrtHelper(GObject.Object):
             return
         self.send_prop(sid,  name, value)
         return {"type": "prop", "name": name, "sid": sid}
-    def _handle_alarm(self, name=None, nid=None, alarm=None, **kw):
+    def _handle_alarm(self, name=None, nid=None, alarm=None,
+                      success=None, **kw):
         if not isinstance(name, str) or not name.isidentifier():
             return
+        if not success is None:
+            return {"type": "alarm", "name": name, "nid": nid,
+                    "success": bool(success)}
         if not alarm is None:
             self.emit("alarm::%s" % name.replace('_', '-'),
                       name, nid, alarm)
@@ -159,6 +163,8 @@ class SrtHelper(GObject.Object):
         if self._ready:
             return
         self.wait_types("ready")
+    def wait_alarm(self):
+        return self.wait_types("alarm")
     def recv_remote(self):
         pkg = self.wait_types("remote")
         return pkg["obj"]
@@ -176,9 +182,13 @@ class SrtHelper(GObject.Object):
             return
         self.send_alarm(name, nid, args)
         while True:
-            pkg = self.wait_types("alarm")
+            pkg = self.wait_alarm()
             if pkg["name"] != name or pkg["nid"] != nid:
                 continue
+            if "success" in pkg:
+                if pkg["success"]:
+                    return pkg
+                return
             if pkg["alarm"] is None:
                 return
             return pkg

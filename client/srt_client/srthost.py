@@ -183,8 +183,10 @@ class SrtHost(GObject.Object):
         except Exception as err:
             print(err)
             self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
-                                 "alarm": None})
+                                 "success": False})
             return True
+        self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                             "success": True})
         try:
             self._slaves[sid]["alarm"][name][nid].stop()
         except:

@@ -73,9 +73,11 @@ class ZwickyTracker:
         track_obj = {"name": name, "offset": offset, "time": time,
                      "track": track, "args": args}
         res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
-        if not res is None:
-            self._track_obj = track_obj
-        return res
+        if res is None:
+            return
+        self._track_obj = track_obj
+        self._zwicky.wait_alarm()
+        return True
     def get_track(self):
         return self._track_obj
 
