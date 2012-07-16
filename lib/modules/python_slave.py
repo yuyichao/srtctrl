@@ -24,6 +24,13 @@ from gi.repository import GObject, GLib
 # reply: error, alarm, lock, prop, init, ready, quit, config, cmd, res, signal
 
 def new_iface(conn, sync=True):
+    _state = {"ready": False, "name": None}
+    sync = bool(sync)
+    def send(obj):
+        conn.send(obj)
+        if sync:
+            conn.wait_send()
+
     # config
     _config_cache = {}
     def _cache_config(field, name, value):
@@ -43,16 +50,15 @@ def new_iface(conn, sync=True):
             return _config_cache[field][name]
         except:
             pass
-        conn.send({"type": "config", "field": field, "name": name,
-                   "notify": bool(notify)})
+        send({"type": "config", "field": field, "name": name,
+              "notify": bool(notify)})
+        if not sync:
+            return
         pkg = wait_types("config")
         value = pkg["value"]
         if value is None and non_null:
             raise KeyError("config %s.%s not found" % (field, name))
         return pkg["value"]
-
-    _state = {"ready": False, "name": None}
-    sync = bool(sync)
 
     def handle_pkg(pkg):
         if not pkg:
