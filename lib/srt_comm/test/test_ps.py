@@ -23,8 +23,6 @@ conn = exec_n_conn('./test_ps_child.py', n=1)[0]
 
 print(conn)
 
-mainloop = GLib.MainLoop()
-
 def timeout_cb(conn):
     print('timeout')
     conn.send('EXIT')
@@ -32,11 +30,11 @@ def timeout_cb(conn):
 
 def disconn_cb(conn):
     print('parent exit.')
-    mainloop.quit()
+    srt_main_quit()
 
 conn.connect('disconn', disconn_cb)
 conn.start_send()
 GLib.timeout_add_seconds(1, timeout_cb, conn)
 conn.send('EXIT')
 
-mainloop.run()
+srt_main()
