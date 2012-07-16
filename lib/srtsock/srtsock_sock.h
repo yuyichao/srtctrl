@@ -57,7 +57,6 @@ extern "C" {
     SrtSockSock *srtsock_sock_new(GSocketFamily family, GSocketType type,
                                   GSocketProtocol protocol, GError **error);
     SrtSockSock *srtsock_sock_new_from_fd(int fd, GError **error);
-    // SrtSockSock *srtsock_sock_new_from_sock(GSocket *sock);
     gboolean srtsock_sock_init(SrtSockSock *self, GSocketFamily family,
                                GSocketType type, GSocketProtocol protocol,
                                GError **error);

@@ -203,7 +203,7 @@ g_cclosure_marshal_generic(GClosure *closure, GValue *return_gvalue,
     gint *enum_tmpval;
     gboolean tmpval_used = FALSE;
 
-    enum_tmpval = g_alloca (sizeof (gint));
+    enum_tmpval = g_alloca(sizeof(gint));
     if (return_gvalue && G_VALUE_TYPE(return_gvalue)) {
         rtype = value_to_ffi_type(return_gvalue, &rvalue,
                                   enum_tmpval, &tmpval_used);
@@ -236,7 +236,7 @@ g_cclosure_marshal_generic(GClosure *closure, GValue *return_gvalue,
         args[n_args - 1] = &closure->data;
     }
 
-    for (i = 1; i < n_args - 1; i++) {
+    for (i = 1;i < n_args - 1;i++) {
         if (tmpval_used)
             enum_tmpval = g_alloca(sizeof(gint));
 
@@ -251,7 +251,7 @@ g_cclosure_marshal_generic(GClosure *closure, GValue *return_gvalue,
 
     ffi_call(&cif, marshal_data ? marshal_data : cc->callback, rvalue, args);
 
-    if (return_gvalue && G_VALUE_TYPE (return_gvalue))
+    if (return_gvalue && G_VALUE_TYPE(return_gvalue))
         value_from_ffi_type(return_gvalue, rvalue);
 }
 #endif
@@ -667,18 +667,6 @@ srtsock_sock_new_from_sock_with_type(GType type, GSocket *sock)
         srtsock_sock_add_err_src(self, TRUE);
     return self;
 }
-
-/**
- * srtsock_sock_new_from_sock:
- * @sock: (transfer none) (allow-none):
- *
- * Returns: (transfer full) (allow-none):
- **/
-/* static SrtSockSock* */
-/* srtsock_sock_new_from_sock(GSocket *sock) */
-/* { */
-/*     return srtsock_sock_new_from_sock_with_type(SRTSOCK_TYPE_SOCK, sock); */
-/* } */
 
 typedef enum {
     _POLL_IN,
