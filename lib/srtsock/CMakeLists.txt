@@ -4,6 +4,7 @@ check_all_modules(SRTSOCK
   GLIB2 REQUIRED glib-2.0
   GOBJECT2 REQUIRED gobject-2.0
   GIO2 REQUIRED gio-2.0
+  LIBFFI REQUIRED libffi
   )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${SRTSOCK_INCLUDE_DIRS})
 link_directories(${SRTSOCK_LINK_DIRS})

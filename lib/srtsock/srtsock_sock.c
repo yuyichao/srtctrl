@@ -27,6 +27,232 @@
 #  define EMBED_GMUTEX 0
 #endif
 
+
+#if !GLIB_CHECK_VERSION(2, 30, 0)
+/* The following code is copied from glib2-2.32 */
+
+#include <ffi.h>
+static ffi_type*
+value_to_ffi_type(const GValue *gvalue, gpointer *value, gint *enum_tmpval,
+                  gboolean *tmpval_used)
+{
+    ffi_type *rettype = NULL;
+    GType type = g_type_fundamental(G_VALUE_TYPE(gvalue));
+    g_assert(type != G_TYPE_INVALID);
+
+    if (enum_tmpval) {
+        g_assert(tmpval_used != NULL);
+        *tmpval_used = FALSE;
+    }
+
+    switch (type) {
+    case G_TYPE_BOOLEAN:
+    case G_TYPE_CHAR:
+    case G_TYPE_INT:
+        rettype = &ffi_type_sint;
+        *value = (gpointer)&(gvalue->data[0].v_int);
+        break;
+    case G_TYPE_ENUM:
+        /* enums are stored in v_long even though they are integers, which makes
+         * marshalling through libffi somewhat complicated.  They need to be
+         * marshalled as signed ints, but we need to use a temporary int sized
+         * value to pass to libffi otherwise it'll pull the wrong value on
+         * BE machines with 32-bit integers when treating v_long as 32-bit int.
+         */
+        g_assert(enum_tmpval != NULL);
+        rettype = &ffi_type_sint;
+        *enum_tmpval = g_value_get_enum(gvalue);
+        *value = enum_tmpval;
+        *tmpval_used = TRUE;
+        break;
+    case G_TYPE_UCHAR:
+    case G_TYPE_UINT:
+    case G_TYPE_FLAGS:
+        rettype = &ffi_type_uint;
+        *value = (gpointer)&(gvalue->data[0].v_uint);
+        break;
+    case G_TYPE_STRING:
+    case G_TYPE_OBJECT:
+    case G_TYPE_BOXED:
+    case G_TYPE_PARAM:
+    case G_TYPE_POINTER:
+    case G_TYPE_INTERFACE:
+    case G_TYPE_VARIANT:
+        rettype = &ffi_type_pointer;
+        *value = (gpointer)&(gvalue->data[0].v_pointer);
+        break;
+    case G_TYPE_FLOAT:
+        rettype = &ffi_type_float;
+        *value = (gpointer)&(gvalue->data[0].v_float);
+        break;
+    case G_TYPE_DOUBLE:
+        rettype = &ffi_type_double;
+        *value = (gpointer)&(gvalue->data[0].v_double);
+        break;
+    case G_TYPE_LONG:
+        rettype = &ffi_type_slong;
+        *value = (gpointer)&(gvalue->data[0].v_long);
+        break;
+    case G_TYPE_ULONG:
+        rettype = &ffi_type_ulong;
+        *value = (gpointer)&(gvalue->data[0].v_ulong);
+        break;
+    case G_TYPE_INT64:
+        rettype = &ffi_type_sint64;
+        *value = (gpointer)&(gvalue->data[0].v_int64);
+        break;
+    case G_TYPE_UINT64:
+        rettype = &ffi_type_uint64;
+        *value = (gpointer)&(gvalue->data[0].v_uint64);
+        break;
+    default:
+        rettype = &ffi_type_pointer;
+        *value = NULL;
+        g_warning("value_to_ffi_type: Unsupported fundamental type: %s",
+                  g_type_name (type));
+        break;
+    }
+    return rettype;
+}
+
+static void
+value_from_ffi_type(GValue *gvalue, gpointer *value)
+{
+    ffi_arg *int_val = (ffi_arg*)value;
+
+    switch (g_type_fundamental(G_VALUE_TYPE(gvalue))) {
+    case G_TYPE_INT:
+        g_value_set_int(gvalue, (gint)*int_val);
+        break;
+    case G_TYPE_FLOAT:
+        g_value_set_float(gvalue, *(gfloat*)value);
+        break;
+    case G_TYPE_DOUBLE:
+        g_value_set_double(gvalue, *(gdouble*)value);
+        break;
+    case G_TYPE_BOOLEAN:
+        g_value_set_boolean(gvalue, (gboolean)*int_val);
+        break;
+    case G_TYPE_STRING:
+        g_value_set_string(gvalue, *(gchar**)value);
+        break;
+    case G_TYPE_CHAR:
+        g_value_set_schar(gvalue, (gint8)*int_val);
+        break;
+    case G_TYPE_UCHAR:
+        g_value_set_uchar(gvalue, (guchar)*int_val);
+        break;
+    case G_TYPE_UINT:
+        g_value_set_uint(gvalue, (guint)*int_val);
+        break;
+    case G_TYPE_POINTER:
+        g_value_set_pointer(gvalue, *(gpointer*)value);
+        break;
+    case G_TYPE_LONG:
+        g_value_set_long(gvalue, (glong)*int_val);
+        break;
+    case G_TYPE_ULONG:
+        g_value_set_ulong(gvalue, (gulong)*int_val);
+        break;
+    case G_TYPE_INT64:
+        g_value_set_int64(gvalue, (gint64)*int_val);
+        break;
+    case G_TYPE_UINT64:
+        g_value_set_uint64(gvalue, (guint64)*int_val);
+        break;
+    case G_TYPE_BOXED:
+        g_value_set_boxed(gvalue, *(gpointer*)value);
+        break;
+    case G_TYPE_ENUM:
+        g_value_set_enum(gvalue, (gint)*int_val);
+        break;
+    case G_TYPE_FLAGS:
+        g_value_set_flags(gvalue, (guint)*int_val);
+        break;
+    case G_TYPE_PARAM:
+        g_value_set_param(gvalue, *(gpointer*)value);
+        break;
+    case G_TYPE_OBJECT:
+        g_value_set_object(gvalue, *(gpointer*)value);
+        break;
+    case G_TYPE_VARIANT:
+        g_value_set_variant(gvalue, *(gpointer*)value);
+        break;
+    default:
+        g_warning("value_from_ffi_type: Unsupported fundamental type: %s",
+                  g_type_name(g_type_fundamental(G_VALUE_TYPE(gvalue))));
+    }
+}
+
+static void
+g_cclosure_marshal_generic(GClosure *closure, GValue *return_gvalue,
+                           guint n_param_values, const GValue *param_values,
+                           gpointer invocation_hint, gpointer marshal_data)
+{
+    ffi_type *rtype;
+    void *rvalue;
+    int n_args;
+    ffi_type **atypes;
+    void **args;
+    int i;
+    ffi_cif cif;
+    GCClosure *cc = (GCClosure*)closure;
+    gint *enum_tmpval;
+    gboolean tmpval_used = FALSE;
+
+    enum_tmpval = g_alloca (sizeof (gint));
+    if (return_gvalue && G_VALUE_TYPE(return_gvalue)) {
+        rtype = value_to_ffi_type(return_gvalue, &rvalue,
+                                  enum_tmpval, &tmpval_used);
+    } else {
+        rtype = &ffi_type_void;
+    }
+
+    rvalue = g_alloca(MAX(rtype->size, sizeof(ffi_arg)));
+
+    n_args = n_param_values + 1;
+    atypes = g_alloca(sizeof(ffi_type*) * n_args);
+    args =  g_alloca(sizeof(gpointer) * n_args);
+
+    if (tmpval_used)
+        enum_tmpval = g_alloca(sizeof(gint));
+
+    if (G_CCLOSURE_SWAP_DATA(closure)) {
+        atypes[n_args-1] = value_to_ffi_type(param_values + 0,
+                                             &args[n_args-1],
+                                             enum_tmpval,
+                                             &tmpval_used);
+        atypes[0] = &ffi_type_pointer;
+        args[0] = &closure->data;
+    } else {
+        atypes[0] = value_to_ffi_type(param_values + 0,
+                                      &args[0],
+                                      enum_tmpval,
+                                      &tmpval_used);
+        atypes[n_args-1] = &ffi_type_pointer;
+        args[n_args-1] = &closure->data;
+    }
+
+    for (i = 1; i < n_args - 1; i++) {
+        if (tmpval_used)
+            enum_tmpval = g_alloca(sizeof(gint));
+
+        atypes[i] = value_to_ffi_type(param_values + i,
+                                      &args[i],
+                                      enum_tmpval,
+                                      &tmpval_used);
+    }
+
+    if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, n_args, rtype, atypes) != FFI_OK)
+        return;
+
+    ffi_call(&cif, marshal_data ? marshal_data : cc->callback, rvalue, args);
+
+    if (return_gvalue && G_VALUE_TYPE (return_gvalue))
+        value_from_ffi_type(return_gvalue, rvalue);
+}
+#endif
+
 struct _SrtSockSockPrivate {
     GSocket *sock;
 
@@ -75,21 +301,21 @@ enum {
 
 enum
 {
-  PROP_0,
-  PROP_FAMILY,
-  PROP_TYPE,
-  PROP_PROTOCOL,
-  PROP_FD,
-  /* PROP_BLOCKING, */
-  /* PROP_LISTEN_BACKLOG, */
-  /* PROP_KEEPALIVE, */
-  /* PROP_LOCAL_ADDRESS, */
-  /* PROP_REMOTE_ADDRESS, */
-  /* PROP_TIMEOUT, */
-  /* PROP_TTL, */
-  /* PROP_BROADCAST, */
-  /* PROP_MULTICAST_LOOPBACK, */
-  /* PROP_MULTICAST_TTL */
+    PROP_0,
+    PROP_FAMILY,
+    PROP_TYPE,
+    PROP_PROTOCOL,
+    PROP_FD,
+    /* PROP_BLOCKING, */
+    /* PROP_LISTEN_BACKLOG, */
+    /* PROP_KEEPALIVE, */
+    /* PROP_LOCAL_ADDRESS, */
+    /* PROP_REMOTE_ADDRESS, */
+    /* PROP_TIMEOUT, */
+    /* PROP_TTL, */
+    /* PROP_BROADCAST, */
+    /* PROP_MULTICAST_LOOPBACK, */
+    /* PROP_MULTICAST_TTL */
 };
 
 static guint sock_signals[SIGNAL_LAST] = { 0 };
@@ -98,7 +324,7 @@ static guint sock_signals[SIGNAL_LAST] = { 0 };
  * Declarations
  **/
 static void _srtsock_sock_init(SrtSockSock *self,
-                              SrtSockSockClass *klass);
+                               SrtSockSockClass *klass);
 static void srtsock_sock_class_init(SrtSockSockClass *klass,
                                     gpointer data);
 static void srtsock_sock_dispose(GObject *obj);
