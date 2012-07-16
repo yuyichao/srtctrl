@@ -1466,3 +1466,14 @@ srtsock_obj_from_buff(guint len, gchar *buff)
     g_object_set_data(obj, "_length_", GUINT_TO_POINTER(len));
     return obj;
 }
+
+/**
+ * srtsock_mainloop:
+ *
+ * Returns: (transfer full) (allow-none):
+ **/
+GMainLoop*
+srtsock_mainloop()
+{
+    return g_main_loop_new(NULL, FALSE);
+}

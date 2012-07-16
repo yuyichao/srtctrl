@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 import os, sys, time
+from gi.repository import SrtSock
 
 if os.fork():
     exit()
@@ -29,7 +30,7 @@ _id = int(i)
 from gi.repository import Gio, GLib
 from srt_comm import *
 
-mainloop = GLib.MainLoop()
+mainloop = SrtSock.mainloop()
 
 time.sleep(.5)
 
