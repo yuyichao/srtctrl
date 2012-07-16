@@ -17,29 +17,6 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
-from srt_client import *
-from srt_comm import *
 
-from os import path
-dirname = path.dirname(path.abspath(__file__))
-
-def err_cb(center, errno, msg):
-    print(msg)
-
-def get_obj_cb(sock, pkg):
-    print("get_obj_cb", pkg)
-
-def main():
-    srtcenter = SrtCenter()
-    srtcenter.connect('error', err_cb)
-    host, slave = conn_pair(gtype=JSONSock)
-    srtcenter.add_slave_from_jsonsock(host)
-    srtcenter.create_slave_by_name("python",
-                                   {"fname": "%s/test_slave.py" % dirname})
-    slave.start_recv()
-    slave.start_send()
-    slave.connect("got-obj", get_obj_cb)
-    srtcenter.run()
-
-if __name__ == '__main__':
-    main()
+print("TEST SLAVE")
+iface.quit()

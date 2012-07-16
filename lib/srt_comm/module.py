@@ -73,7 +73,8 @@ class SrtPlugins:
         fname = self._files[self._loaded_index]
 
         try:
-            g = {'setiface': self._setter, 'getiface': self._getter}
+            g = {'setiface': self._setter, 'getiface': self._getter,
+                 '__file__': fname}
             execfile(fname, g, g)
         except Exception as err:
             print("load_next: %s" % fname, err)

@@ -82,9 +82,10 @@ class SrtHost(GObject.Object):
         return True
     def create_slave_by_name(self, name, args):
         try:
-            if self._plugins.slave[name](**args):
+            if self._plugins.slave[name](self, **args):
                 return True
-        except:
+        except Exception as err:
+            print(err)
             pass
         return False
     def _process_cmd(self, type=None, sid=None, lock=False,

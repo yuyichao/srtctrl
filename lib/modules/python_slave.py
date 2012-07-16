@@ -160,7 +160,7 @@ def new_iface(conn, sync=True):
             pkg = handle_pkg(pkg)
             if pkg is None:
                 continue
-            if pkgtype in types:
+            if pkg["type"] in types:
                 return pkg
     def _handle_prop(name=None, value=None, **kw):
         iface.emit("prop", name, value)
@@ -216,12 +216,12 @@ def new_iface(conn, sync=True):
         "prop": new_wrapper(send_prop, None) if sync else send_prop,
         "cmd": new_wrapper(lambda name:
                            (lambda *args, **kwargs:
-                            send_cmd(name, *args, **kwargs))),
+                            send_cmd(name, *args, **kwargs)), None),
         "lock": send_lock,
         "quit": send_quit,
         "alarm": new_wrapper(lambda name:
                              (lambda nid, **args:
-                              send_alarm(name, nid, **args)))
+                              send_alarm(name, nid, **args)), None)
     }
     class PythonSlave(GObject.Object):
         __gsignals__ = {
@@ -279,13 +279,19 @@ def new_iface(conn, sync=True):
                 return attr_table[key]
             except KeyError:
                 raise AttributeError(key)
+        def wait_ready(self):
+            if _state["ready"]:
+                return
+            wait_types("ready")
+        def get_name(self):
+            return _state["name"]
     iface = PythonSlave()
     return iface
 
 def main():
-    fname = sys.argv[1]
     sys.argv.pop(0)
     sync = sys.argv.pop(0)
+    fname = sys.argv[0]
     if sync.lower() == 'false':
         sync = False
     else:
@@ -293,6 +299,8 @@ def main():
     conn = get_passed_conns(gtype=JSONSock)[0]
     iface = new_iface(conn, sync)
     g = {"iface": iface, "InvalidRequest": InvalidRequest}
+    if sync:
+        iface.wait_ready()
     execfile(fname, g, g)
 
 def start_slave(host, fname=None, args=[], sync=True, **kw):
@@ -310,7 +318,7 @@ def start_slave(host, fname=None, args=[], sync=True, **kw):
     conn = exec_n_conn(sys.executable,
                        args=[sys.executable, __file__, sync, fname] + args,
                        n=1, gtype=JSONSock)[0]
-    return host.add_slave_from_jsonsock(self, sock)
+    return host.add_slave_from_jsonsock(conn)
 
 if __name__ == '__main__':
     main()
