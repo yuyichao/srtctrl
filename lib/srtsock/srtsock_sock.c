@@ -22,11 +22,14 @@
  ***************************************************************************/
 
 #if GLIB_CHECK_VERSION(2, 32, 0)
-#  define __EMBED_GMUTEX 1
+#  define EMBED_GMUTEX 1
 #else
-#  define __EMBED_GMUTEX 0
+#  define EMBED_GMUTEX 0
 #endif
 
+/**
+ * EMBED_GMUTEX: (skip)
+ **/
 
 #if !GLIB_CHECK_VERSION(2, 30, 0)
 /* The following code is copied from glib2-2.32 */
@@ -264,7 +267,7 @@ struct _SrtSockSockPrivate {
 
     SrtSockBuff *send_buff;
 
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     GMutex out_src_lock;
     GMutex in_src_lock;
     GMutex send_lock;
@@ -372,7 +375,7 @@ _srtsock_sock_init(SrtSockSock *self, SrtSockSockClass *klass)
     priv->out_src = NULL;
     priv->in_src = NULL;
     priv->send_buff = srtsock_buff_new();
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_init(&priv->send_lock);
     g_mutex_init(&priv->in_src_lock);
     g_mutex_init(&priv->out_src_lock);
@@ -579,7 +582,7 @@ static void
 srtsock_sock_finalize(GObject *obj)
 {
     SrtSockSock *self = SRTSOCK_SOCK(obj);
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_clear(&self->priv->send_lock);
     g_mutex_clear(&self->priv->in_src_lock);
     g_mutex_clear(&self->priv->out_src_lock);
@@ -858,14 +861,14 @@ srtsock_sock_update_in_src(SrtSockSock *self)
 {
     gboolean res;
     srtsock_sock_get_sock(self, NULL);
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_lock(&self->priv->in_src_lock);
 #else
     g_mutex_lock(self->priv->in_src_lock);
 #endif
     res = _srtsock_sock_update_in_src(self, self->priv->listening ||
                                       self->priv->receiving);
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_unlock(&self->priv->in_src_lock);
 #else
     g_mutex_unlock(self->priv->in_src_lock);
@@ -881,7 +884,7 @@ srtsock_sock_out_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
         return TRUE;
     } else if (cond & (G_IO_OUT)) {
         if (!
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
             g_mutex_trylock(&self->priv->send_lock)
 #else
             g_mutex_trylock(self->priv->send_lock)
@@ -910,7 +913,7 @@ srtsock_sock_out_cb(GSocket *gsock, GIOCondition cond, SrtSockSock *self)
             }
         }
         srtsock_sock_update_out_src(self);
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
         g_mutex_unlock(&self->priv->send_lock);
 #else
         g_mutex_unlock(self->priv->send_lock);
@@ -957,7 +960,7 @@ srtsock_sock_update_out_src(SrtSockSock *self)
     SrtSockSockPrivate *priv;
     srtsock_sock_get_sock(self, NULL);
     priv = self->priv;
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_lock(&priv->out_src_lock);
 #else
     g_mutex_lock(priv->out_src_lock);
@@ -965,7 +968,7 @@ srtsock_sock_update_out_src(SrtSockSock *self)
     res = _srtsock_sock_update_out_src(self, priv->sending &&
                                        !priv->sync_sending &&
                                        !srtsock_buff_empty(priv->send_buff));
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_unlock(&priv->out_src_lock);
 #else
     g_mutex_unlock(priv->out_src_lock);
@@ -1329,7 +1332,7 @@ srtsock_sock_wait_send(SrtSockSock *self, GError **error)
     priv = self->priv;
     priv->sync_sending = TRUE;
     srtsock_sock_update_out_src(self);
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_lock(&priv->send_lock);
 #else
     g_mutex_lock(priv->send_lock);
@@ -1350,7 +1353,7 @@ srtsock_sock_wait_send(SrtSockSock *self, GError **error)
             break;
         }
     } while (1);
-#if __EMBED_GMUTEX
+#if EMBED_GMUTEX
     g_mutex_unlock(&self->priv->send_lock);
 #else
     g_mutex_unlock(self->priv->send_lock);
