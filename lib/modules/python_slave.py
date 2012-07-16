@@ -26,10 +26,58 @@ from gi.repository import GObject, GLib
 def new_iface(conn, sync=True):
     _state = {"ready": False, "name": None}
     sync = bool(sync)
+    def got_obj_cb(conn, pkg):
+        handle_pkg(pkg)
+    def disconn_cb(conn):
+        iface.emit("quit")
+    if not sync:
+        conn.start_send()
+        conn.start_recv()
+        conn.connect("got-obj", got_obj_cb)
+        conn.connect("disconn", disconn_cb)
     def send(obj):
         conn.send(obj)
         if sync:
             conn.wait_send()
+    def send_start(name, args={}):
+        send({"type": "start", "name": name, "args": args})
+    def send_prop(name):
+        send({"type": "prop", "name": name})
+        if not sync:
+            return
+        return wait_types(["prop", "error"])
+    def send_cmd(name, *args, **kwargs):
+        send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
+        if not sync:
+            return
+        wait_types("cmd")
+        return wait_types(["error", "res"])
+    def send_lock(lock, wait=True):
+        lock = bool(lock)
+        wait = bool(wait)
+        send({"type": "lock", "lock": lock, "wait": wait})
+        if not sync or not lock:
+            return True
+        pkg = wait_types("lock")
+        if "res" in pkg and pkg["res"]:
+            return True
+        return
+    def send_quit():
+        send({"type": "quit"})
+        iface.emit("quit")
+    def send_alarm(name, nid="", **args):
+        send({"type": "alarm", "name": name, "nid": nid, "args": args})
+        if not sync:
+            return
+        while True:
+            pkg = wait_types("alarm")
+            if pkg["name"] != name or pkg["nid"] != nid:
+                continue
+            if "success" in pkg:
+                if pkg["success"]:
+                    return True
+                return
+            return True
 
     # config
     _config_cache = {}
@@ -152,6 +200,19 @@ def new_iface(conn, sync=True):
         iface.emit("signal::%s" % name.replace('_', '-'),
                    name, value, props)
         return {"type": "res", "name": name, "value": value, "props": props}
+    attr_table = {
+        "config": new_wrapper2(get_config, None),
+        "start": send_start,
+        "prop": new_wrapper(send_prop, None) if sync else send_prop,
+        "cmd": new_wrapper(lambda name:
+                           (lambda *args, **kwargs:
+                            send_cmd(name, *args, **kwargs))),
+        "lock": send_lock,
+        "quit": send_quit,
+        "alarm": new_wrapper(lambda name:
+                             (lambda nid, **args:
+                              send_alarm(name, nid, **args)))
+    }
     class PythonSlave(GObject.Object):
         __gsignals__ = {
             "config": (GObject.SignalFlags.RUN_FIRST,
@@ -203,15 +264,26 @@ def new_iface(conn, sync=True):
         def do_quit(self):
             if sync:
                 exit()
+        def __getattr__(self, key):
+            try:
+                return attr_table[key]
+            except KeyError:
+                raise AttributeError(key)
     iface = PythonSlave()
     return iface
 
 def main():
     fname = sys.argv[1]
     sys.argv.pop(0)
+    sync = sys.argv.pop(0)
+    if sync.lower() == 'false':
+        sync = False
+    else:
+        sync = True
     conn = get_passed_conns(gtype=JSONSock)[0]
+    iface = new_iface(conn, sync)
 
-def start_slave(host, fname=None, args=[], **kw):
+def start_slave(host, fname=None, args=[], sync=True, **kw):
     if not isinstance(fname, str):
         return False
     if (isinstance(args, str) or isinstance(args, float)
@@ -222,8 +294,9 @@ def start_slave(host, fname=None, args=[], **kw):
             args = [str(arg) for arg in args]
         except:
             return False
+    sync = str(bool(sync))
     conn = exec_n_conn(sys.executable,
-                       args=[sys.executable, __file__, fname] + args,
+                       args=[sys.executable, __file__, sync, fname] + args,
                        n=1, gtype=JSONSock)[0]
     return host.add_slave_from_jsonsock(self, sock)
 

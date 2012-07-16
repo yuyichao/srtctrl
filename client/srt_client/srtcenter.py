@@ -155,7 +155,7 @@ class SrtCenter(GObject.Object):
                  and isinstance(args, dict)) or isinstance(nid, list)
                  or isinstance(nid, dict)):
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
-                               "alarm": None})
+                               "success": False})
             return
         if not name in self._helper_alarm:
             self._helper_alarm[name] = {}
@@ -175,8 +175,6 @@ class SrtCenter(GObject.Object):
             pass
         self._helper_alarm[name][nid] = alarm
     def _helper_alarm_cb(self, obj, alarm, name, nid):
-        if not isinstance(alarm, dict):
-            return
         self._helper.send({"type": "alarm", "name": name,
                            "nid": nid, "alarm": alarm})
 

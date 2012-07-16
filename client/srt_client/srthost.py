@@ -175,7 +175,7 @@ class SrtHost(GObject.Object):
                  and isinstance(args, dict)) or isinstance(nid, list)
                  or isinstance(nid, dict)):
             self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
-                                 "alarm": None})
+                                 "success": False})
             return True
         if not name in self._slaves[sid]["alarm"]:
             self._slaves[sid]["alarm"][name] = {}

@@ -119,9 +119,8 @@ class SrtHelper(GObject.Object):
         if not success is None:
             return {"type": "alarm", "name": name, "nid": nid,
                     "success": bool(success)}
-        if not alarm is None:
-            self.emit("alarm::%s" % name.replace('_', '-'),
-                      name, nid, alarm)
+        self.emit("alarm::%s" % name.replace('_', '-'),
+                  name, nid, alarm)
         return {"type": "alarm", "name": name, "nid": nid,
                 "alarm": alarm}
     def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
