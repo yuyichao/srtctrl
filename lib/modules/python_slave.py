@@ -23,6 +23,9 @@ from gi.repository import GObject, GLib
 # requests: config, start, prop, cmd, lock, quit, alarm
 # reply: error, alarm, lock, prop, init, ready, quit, config, cmd, res, signal
 
+class InvalidRequest(Exception):
+    pass
+
 def new_iface(conn, sync=True):
     _state = {"ready": False, "name": None}
     sync = bool(sync)
@@ -45,13 +48,19 @@ def new_iface(conn, sync=True):
         send({"type": "prop", "name": name})
         if not sync:
             return
-        return wait_types(["prop", "error"])
+        pkg = wait_types(["prop", "error"])
+        if pkg["typ"] == "error":
+            raise InvalidRequest
+        return pkg
     def send_cmd(name, *args, **kwargs):
         send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
         if not sync:
             return
         wait_types("cmd")
-        return wait_types(["error", "res"])
+        pkg = wait_types(["error", "res"])
+        if pkg["typ"] == "error":
+            raise InvalidRequest
+        return pkg
     def send_lock(lock, wait=True):
         lock = bool(lock)
         wait = bool(wait)
@@ -76,7 +85,7 @@ def new_iface(conn, sync=True):
             if "success" in pkg:
                 if pkg["success"]:
                     return True
-                return
+                raise InvalidRequest
             return True
 
     # config
@@ -282,6 +291,8 @@ def main():
         sync = True
     conn = get_passed_conns(gtype=JSONSock)[0]
     iface = new_iface(conn, sync)
+    g = {"iface": iface, "InvalidRequest": InvalidRequest}
+    execfile(fname, g, g)
 
 def start_slave(host, fname=None, args=[], sync=True, **kw):
     if not isinstance(fname, str):
