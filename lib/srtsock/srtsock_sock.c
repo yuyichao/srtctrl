@@ -112,7 +112,7 @@ value_to_ffi_type(const GValue *gvalue, gpointer *value, gint *enum_tmpval,
         rettype = &ffi_type_pointer;
         *value = NULL;
         g_warning("value_to_ffi_type: Unsupported fundamental type: %s",
-                  g_type_name (type));
+                  g_type_name(type));
         break;
     }
     return rettype;
@@ -221,10 +221,10 @@ g_cclosure_marshal_generic(GClosure *closure, GValue *return_gvalue,
         enum_tmpval = g_alloca(sizeof(gint));
 
     if (G_CCLOSURE_SWAP_DATA(closure)) {
-        atypes[n_args-1] = value_to_ffi_type(param_values + 0,
-                                             &args[n_args-1],
-                                             enum_tmpval,
-                                             &tmpval_used);
+        atypes[n_args - 1] = value_to_ffi_type(param_values + 0,
+                                               &args[n_args - 1],
+                                               enum_tmpval,
+                                               &tmpval_used);
         atypes[0] = &ffi_type_pointer;
         args[0] = &closure->data;
     } else {
@@ -232,8 +232,8 @@ g_cclosure_marshal_generic(GClosure *closure, GValue *return_gvalue,
                                       &args[0],
                                       enum_tmpval,
                                       &tmpval_used);
-        atypes[n_args-1] = &ffi_type_pointer;
-        args[n_args-1] = &closure->data;
+        atypes[n_args - 1] = &ffi_type_pointer;
+        args[n_args - 1] = &closure->data;
     }
 
     for (i = 1; i < n_args - 1; i++) {
