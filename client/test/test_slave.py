@@ -17,6 +17,11 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
+from srt_comm import *
 
 print("TEST SLAVE")
+printr("RES:", iface.cmd.move(offset=[15, 15]))
+printr("RES:", iface.cmd.calib(2))
+printr("RES:", iface.cmd.reset())
+print("TEST QUIT")
 iface.quit()

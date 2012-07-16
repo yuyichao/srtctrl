@@ -106,7 +106,7 @@ class SrtHelper(GObject.Object):
             self.send_invalid(sid)
             return
         try:
-            value = self.plugins.props[name](self._device)
+            value = self.plugins.props[self._name][name](self._device)
         except Exception as err:
             print(err)
             self.send_invalid(sid)
@@ -214,8 +214,10 @@ class SrtHelper(GObject.Object):
 
     def exec_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
         try:
-            res = self.plugins.cmds[name](self._device, *args, **kwargs)
-        except:
+            res = self.plugins.cmds[self._name][name](self._device,
+                                                      *args, **kwargs)
+        except Exception as err:
+            print(err)
             self.send_invalid(sid)
             return
         if self._auto_props:

@@ -223,3 +223,21 @@ else:
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return bool(_name_re.match(s))
+
+def printr(*arg, **kwarg):
+    end = '\n'
+    if 'end' in kwarg:
+        end = kwarg['end']
+    kwarg['end'] = ''
+    print('\033[31;1m', end='')
+    print(*arg, **kwarg)
+    print('\033[0m', end=end)
+
+def printg(*arg, **kwarg):
+    end = '\n'
+    if 'end' in kwarg:
+        end = kwarg['end']
+    kwarg['end'] = ''
+    print('\033[32;1m', end='')
+    print(*arg, **kwarg)
+    print('\033[0m', end=end)

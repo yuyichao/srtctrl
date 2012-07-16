@@ -50,7 +50,7 @@ def new_iface(conn, sync=True):
         if not sync:
             return
         pkg = wait_types(["prop", "error"])
-        if pkg["typ"] == "error":
+        if pkg["type"] == "error":
             raise InvalidRequest
         return pkg
     def send_cmd(name, *args, **kwargs):
@@ -59,7 +59,7 @@ def new_iface(conn, sync=True):
             return
         wait_types("cmd")
         pkg = wait_types(["error", "res"])
-        if pkg["typ"] == "error":
+        if pkg["type"] == "error":
             raise InvalidRequest
         return pkg
     def send_lock(lock, wait=True):
@@ -209,7 +209,8 @@ def new_iface(conn, sync=True):
         props = std_arg({}, props)
         iface.emit("signal::%s" % name.replace('_', '-'),
                    name, value, props)
-        return {"type": "res", "name": name, "value": value, "props": props}
+        return {"type": "signal", "name": name,
+                "value": value, "props": props}
     attr_table = {
         "config": new_wrapper2(get_config, None),
         "start": send_start,
