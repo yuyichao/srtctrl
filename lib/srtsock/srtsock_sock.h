@@ -97,7 +97,8 @@ extern "C" {
                                    gboolean write, GError **error);
     gchar *srtsock_buff_from_obj(GObject *obj, guint *len);
     GObject *srtsock_obj_from_buff(guint len, gchar *buff);
-    GMainLoop *srtsock_mainloop();
+    void srtsock_main();
+    void srtsock_main_quit();
 #ifdef __cplusplus
 }
 #endif

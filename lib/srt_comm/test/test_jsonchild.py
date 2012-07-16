@@ -18,7 +18,6 @@
 
 from __future__ import print_function, division
 import os, sys, time
-from gi.repository import SrtSock
 
 if os.fork():
     exit()
@@ -29,8 +28,6 @@ _id = int(i)
 
 from gi.repository import Gio, GLib
 from srt_comm import *
-
-mainloop = SrtSock.mainloop()
 
 time.sleep(.5)
 
@@ -48,7 +45,7 @@ def timeout_cb(conn):
 
 def disconn_cb(conn):
     print(conn, " Disconnected (child)")
-    mainloop.quit()
+    srt_main_quit()
 
 def do_send(conn, i):
     if i % 2:
@@ -59,7 +56,7 @@ def do_send(conn, i):
         conn.start_send()
         conn.connect('disconn', disconn_cb)
         GLib.timeout_add_seconds(2, timeout_cb, conn)
-        mainloop.run()
+        srt_main()
 
 do_send(conn, _id)
 conn.close()

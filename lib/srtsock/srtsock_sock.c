@@ -1467,13 +1467,27 @@ srtsock_obj_from_buff(guint len, gchar *buff)
     return obj;
 }
 
+static GMainLoop *mainloop = NULL;
+
 /**
- * srtsock_mainloop:
- *
- * Returns: (transfer full) (allow-none):
+ * srtsock_main:
  **/
-GMainLoop*
-srtsock_mainloop()
+void
+srtsock_main()
 {
-    return g_main_loop_new(NULL, FALSE);
+    mainloop = g_main_loop_new(NULL, FALSE);
+    g_main_loop_run(mainloop);
+}
+
+/**
+ * srtsock_main_quit:
+ **/
+void
+srtsock_main_quit()
+{
+    if (!mainloop)
+        return;
+    g_main_loop_quit(mainloop);
+    g_main_loop_unref(mainloop);
+    mainloop = NULL;
 }

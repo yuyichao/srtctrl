@@ -27,6 +27,7 @@ from srt_comm import config
 from srt_comm.module import *
 from srt_comm.error import *
 from srt_comm.parsetime import *
+from gi.repository.SrtSock import main as srt_main, main_quit as srt_main_quit
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
