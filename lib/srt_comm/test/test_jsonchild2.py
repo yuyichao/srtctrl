@@ -26,20 +26,22 @@ if os.fork():
 port = int(port)
 _id = int(i)
 
-from gi.repository import GLib, SrtSock
+from gi.repository import GLib
 from srt_comm import *
+
+mainloop = GLib.MainLoop()
 
 time.sleep(.5)
 def recv_cb(self, msg):
     print(repr(msg))
     if 'EXIT' == msg['type']:
         print('exit')
-        SrtSock.main_quit()
+        mainloop.quit()
 
 conn = JSONSock()
 conn.conn_recv(('localhost', port), None)
 conn.connect('got-obj', recv_cb)
 
-SrtSock.main()
+mainloop.run()
 
 conn.close()

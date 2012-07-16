@@ -29,6 +29,8 @@ _id = int(i)
 from gi.repository import Gio, GLib
 from srt_comm import *
 
+mainloop = GLib.MainLoop()
+
 time.sleep(.5)
 
 conn = JSONSock()
@@ -45,7 +47,7 @@ def timeout_cb(conn):
 
 def disconn_cb(conn):
     print(conn, " Disconnected (child)")
-    srt_main_quit()
+    mainloop.quit()
 
 def do_send(conn, i):
     if i % 2:
@@ -56,7 +58,7 @@ def do_send(conn, i):
         conn.start_send()
         conn.connect('disconn', disconn_cb)
         GLib.timeout_add_seconds(2, timeout_cb, conn)
-        srt_main()
+        mainloop.run()
 
 do_send(conn, _id)
 conn.close()
