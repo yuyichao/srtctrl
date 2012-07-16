@@ -182,7 +182,7 @@ class SrtHelper(GObject.Object):
         self.send_alarm(name, nid, args)
         while True:
             pkg = self.wait_alarm()
-            if pkg["name"] != name or pkg["nid"] != nid:
+            if not (pkg["name"] == name and pkg["nid"] == nid):
                 continue
             if "success" in pkg:
                 if pkg["success"]:

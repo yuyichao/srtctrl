@@ -45,7 +45,7 @@ def js2py(ctx, jsobj, jsthis=None):
         return ctx.to_number(jsobj)
     elif jstype == _gwkjs.ValueType.STRING:
         return ctx.to_string(jsobj)
-    if jstype != _gwkjs.ValueType.OBJECT:
+    if not jstype == _gwkjs.ValueType.OBJECT:
         return None
     if isinstance(jsobj, WKPYObject):
         return jsobj._pyobj

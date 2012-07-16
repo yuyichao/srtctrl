@@ -80,7 +80,7 @@ def new_iface(conn, sync=True):
             return
         while True:
             pkg = wait_types("alarm")
-            if pkg["name"] != name or pkg["nid"] != nid:
+            if not (pkg["name"] == name and pkg["nid"] == nid):
                 continue
             if "success" in pkg:
                 if pkg["success"]:

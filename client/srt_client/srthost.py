@@ -92,7 +92,7 @@ class SrtHost(GObject.Object):
             return
         if None in [type, sid]:
             return
-        if self._lock >= 0 and sid != self._lock:
+        if self._lock >= 0 and not sid == self._lock:
             return
         if type == "lock":
             if lock:
@@ -202,7 +202,7 @@ class SrtHost(GObject.Object):
         if self._processing:
             return False
         for cmd in self._cmd_queue:
-            if cmd["sid"] != sid:
+            if not cmd["sid"] == sid:
                 return False
         self._lock = sid
         return True

@@ -85,7 +85,7 @@ class ZwickyRadio:
         self._calib = 1
         self.set_freq(1420.4, 1)
     def corr_radio(self, data, mode):
-        if len(data) != 64:
+        if not len(data) == 64:
             return
         if not mode in [1, 2, 3]:
             return
