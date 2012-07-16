@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 az_lim = [10., 359.]
 el_lim = [-1., 90.]
 az_c_per_deg = 128 / 27

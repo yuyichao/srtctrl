@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm.srtconn import SrtConn
 from srt_comm.jsonstm import get_json
 from gi.repository import GObject

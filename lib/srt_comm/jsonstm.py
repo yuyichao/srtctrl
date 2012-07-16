@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 def _j_to_str_end(jstr, start):
     l = len(jstr)
     _pass = False

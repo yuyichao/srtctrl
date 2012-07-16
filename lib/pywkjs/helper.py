@@ -14,7 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function
+from __future__ import print_function, division
 from gi.repository import GWebKitJS as _gwkjs, GObject, WebKit
 
 from pywkjs.general import *
@@ -26,7 +26,7 @@ class Helper(GObject.Object):
                                   (WebKit.WebFrame, GObject.TYPE_PYOBJECT))
     }
     def __init__(self, view):
-
+        super(Helper, self).__init__()
         self._helper = _gwkjs.Helper.new(view)
         self._helper.connect("window-object-cleared", self._win_obj_cb)
     def _win_obj_cb(self, helper, frame, ctx, obj):

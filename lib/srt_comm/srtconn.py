@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from gi.repository import SrtSock as _sock, Gio, GLib, GObject
 from srt_comm.srtaddr import *
 from srt_comm import util

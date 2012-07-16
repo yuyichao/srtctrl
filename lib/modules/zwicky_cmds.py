@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
                 track=True, args=None, *w, **kw):
     name = std_arg("", name)

@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 
 conn = exec_n_conn('./test_ps_child.py', n=1)[0]
