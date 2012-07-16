@@ -1,5 +1,6 @@
 # coding=utf-8
 
+from __future__ import print_function, division
 print('module3 loading')
 # setiface.test3.func1 = lambda: [1, 2]
 

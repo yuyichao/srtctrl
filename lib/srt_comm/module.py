@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 
 class SrtPlugins:
@@ -27,6 +28,8 @@ class SrtPlugins:
         self._getter = new_wrapper_tree(self.__getter__, None,
                                         direr=self.__direr__)
         self._setter = new_wrapper_tree(None, self.__setter__)
+        while self._load_next():
+            pass
     def _check_iface(self, *keys):
         try:
             self._try_get_iface(*keys)
@@ -54,7 +57,7 @@ class SrtPlugins:
     def __setter__(self, value, *keys):
         ftable = self._ftable
         for key in keys[:-1]:
-            if not (isinstance(key, str) and key.isidentifier()):
+            if not isidentifier(key):
                 raise AttributeError("key %s is not a valid indentifier" % key)
             if not key in ftable:
                 ftable[key] = {}
@@ -86,3 +89,5 @@ class SrtPlugins:
         return self._getter[key]
     def __getitem__(self, key):
         return self.__getattr__(key)
+    def __dir__(self):
+        return self.__direr__()

@@ -16,7 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm.time import *
+from __future__ import print_function, division
+from srt_comm.parsetime import *
 from gi.repository import GObject, GLib
 import time as _time
 
@@ -28,7 +29,7 @@ class SrtTracker(GObject.Object):
     }
     def __init__(self, name='', offset=[0, 0], time=0, track=True,
                  args=None, station=[0, 0], **kwargs):
-        super().__init__()
+        super(SrtTracker, self).__init__()
         if not name:
             name = "simple"
         self._plugin = getiface.alarm.trackers[name](args)

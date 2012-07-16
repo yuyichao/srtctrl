@@ -1,7 +1,9 @@
 # coding=utf-8
 
+from __future__ import print_function, division
 print('module1 loading')
 # setiface.test.func1 = lambda: [1, 2]
+print(__name__)
 
 def func2(i):
     i = getiface.test2.func2(i)

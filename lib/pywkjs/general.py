@@ -14,6 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from gi.repository import GWebKitJS as _gwkjs, GLib as _GLib
 
 from pywkjs.pywrap import WKPYObject
@@ -45,7 +46,7 @@ def js2py(ctx, jsobj, jsthis=None):
         return ctx.to_number(jsobj)
     elif jstype == _gwkjs.ValueType.STRING:
         return ctx.to_string(jsobj)
-    if jstype != _gwkjs.ValueType.OBJECT:
+    if not jstype == _gwkjs.ValueType.OBJECT:
         return None
     if isinstance(jsobj, WKPYObject):
         return jsobj._pyobj

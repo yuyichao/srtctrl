@@ -17,6 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # Hard code these numbers now.
 
+from __future__ import print_function, division
 base_freqsep = 0.0078125
 mmodsep_c = 9
 mmodsep_bin = 46
@@ -85,7 +86,7 @@ class ZwickyRadio:
         self._calib = 1
         self.set_freq(1420.4, 1)
     def corr_radio(self, data, mode):
-        if len(data) != 64:
+        if not len(data) == 64:
             return
         if not mode in [1, 2, 3]:
             return

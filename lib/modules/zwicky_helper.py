@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 import time as _time
 
@@ -39,7 +40,7 @@ class ZwickyHelper(GObject.Object):
                   ())
     }
     def __init__(self, helper):
-        super().__init__()
+        super(ZwickyHelper, self).__init__()
         self._helper = helper
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky
@@ -105,6 +106,8 @@ class ZwickyHelper(GObject.Object):
             return
         return {"type": "radio", "data": data}
 
+    def wait_alarm(self):
+        return self._helper.wait_alarm()
     def get_config(self, key, notify=True, non_null=True):
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)

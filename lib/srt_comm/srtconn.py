@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from gi.repository import SrtSock as _sock, Gio, GLib, GObject
 from srt_comm.srtaddr import *
 from srt_comm import util
@@ -36,9 +37,9 @@ class SrtConn(_sock.Sock):
             kwargs['type'] = stype
         if not sprotocol is None:
             kwargs['protocol'] = sprotocol
-        super().__init__(**kwargs)
+        super(SrtConn, self).__init__(**kwargs)
         self._buffer = ''
-        self.connect('receive', __class__._receive_cb)
+        self.connect('receive', SrtConn._receive_cb)
     @staticmethod
     def _receive_cb(self, obj):
         self._buffer += _sock.buff_from_obj(obj).decode('utf-8')
@@ -56,7 +57,7 @@ class SrtConn(_sock.Sock):
             package, self._buffer = self._do_dispatch(self._buffer)
             if len(package):
                 return package
-            newbuf = super().recv(65536)
+            newbuf = super(SrtConn, self).recv(65536)
             if not newbuf:
                 return
             self._buffer += newbuf.decode('utf-8')
@@ -66,14 +67,14 @@ class SrtConn(_sock.Sock):
             buff = buff.encode('utf-8')
         except AttributeError:
             pass
-        return super().send(buff)
+        return super(SrtConn, self).send(buff)
     def conn(self, addr):
         family = self.get_family()
         addrs = get_sock_addrs(addr, family)
         err = None
         for addr in addrs:
             try:
-                if super().conn(addr):
+                if super(SrtConn, self).conn(addr):
                     return True
             except GLib.GError as error:
                 err = error
@@ -90,7 +91,7 @@ class SrtConn(_sock.Sock):
         if res:
             util.call_catch(cb, True, *args)
             return
-        __class__._conn_get_addrs_cb(addrs, self, cb, *args)
+        SrtConn._conn_get_addrs_cb(addrs, self, cb, *args)
     @staticmethod
     def _conn_get_addrs_cb(addrs, self, cb, *args):
         try:
@@ -100,13 +101,13 @@ class SrtConn(_sock.Sock):
         except TypeError:
             util.call_catch(cb, False, *args)
             return
-        if super(__class__, self).conn_async(addrs[0], __class__._conn_cb,
-                                             (self, addrs[1:], cb, args)):
+        if super(SrtConn, self).conn_async(addrs[0], SrtConn._conn_cb,
+                                           (self, addrs[1:], cb, args)):
             return
-        __class__._conn_get_addrs_cb(addrs[1:], self, cb, *args)
+        SrtConn._conn_get_addrs_cb(addrs[1:], self, cb, *args)
     def conn_async(self, addr, cb, *args):
         get_sock_addrs_async(addr, self.get_family(),
-                             __class__._conn_get_addrs_cb, self, cb, *args)
+                             SrtConn._conn_get_addrs_cb, self, cb, *args)
     @staticmethod
     def _conn_recv_cb(success, self, cb, *args):
         res = False
@@ -117,13 +118,13 @@ class SrtConn(_sock.Sock):
                 pass
         util.call_catch(cb, res, *args)
     def conn_recv(self, addr, cb, *args):
-        self.conn_async(addr, __class__._conn_recv_cb, self, cb, *args)
+        self.conn_async(addr, SrtConn._conn_recv_cb, self, cb, *args)
     @staticmethod
     def _real_bind(self, addrs):
         err = None
         for addr in addrs:
             try:
-                if super().bind(addr, True):
+                if super(SrtConn, self).bind(addr, True):
                     return True
             except GLib.GError as error:
                 err = error
@@ -133,18 +134,18 @@ class SrtConn(_sock.Sock):
     def bind(self, addr):
         family = self.get_family()
         addrs = get_sock_addrs(addr, family)
-        return __class__._real_bind(self, addrs)
+        return SrtConn._real_bind(self, addrs)
     @staticmethod
     def _bind_get_addrs_cb(addrs, self, cb, *args):
         res = False
         try:
-            res = __class__._real_bind(self, addrs)
+            res = SrtConn._real_bind(self, addrs)
         except GLib.GError:
             pass
         util.call_catch(cb, res, *args)
     def bind_async(self, addr, cb, *args):
         get_sock_addrs_async(addr, self.get_family(),
-                             __class__._bind_get_addrs_cb, self, cb, *args)
+                             SrtConn._bind_get_addrs_cb, self, cb, *args)
     @staticmethod
     def _bind_accept_cb(success, self, cb, *args):
         res = False
@@ -155,4 +156,4 @@ class SrtConn(_sock.Sock):
                 pass
         util.call_catch(cb, res, *args)
     def bind_accept(self, addr, cb, *args):
-        self.bind_async(addr, __class__._bind_accept_cb, self, cb, *args)
+        self.bind_async(addr, SrtConn._bind_accept_cb, self, cb, *args)

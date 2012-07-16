@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 from gi.repository import GObject
 
@@ -39,7 +40,7 @@ class SrtHost(GObject.Object):
                     GObject.TYPE_STRING, GObject.TYPE_BOOLEAN)),
     }
     def __init__(self, plugins=None):
-        super().__init__()
+        super(SrtHost, self).__init__()
         if not plugins is None:
             self._plugins = plugins
         else:
@@ -71,8 +72,12 @@ class SrtHost(GObject.Object):
             return False
         sock.connect('got-obj', self._slave_got_obj_cb)
         sock.connect('disconn', self._slave_disconn_cb)
+        if not self._name is None:
+            sock.send({"type": "init", "name": self._name})
+        if self._ready:
+            sock.send({"type": "ready"})
         sid = self._new_usid()
-        self._slaves[sid] = {"sock": sock, "signals": {}, "alarms": {}}
+        self._slaves[sid] = {"sock": sock, "alarms": {}}
         self._lookup_id[id(sock)] = sid
         return True
     def create_slave_by_name(self, name, args):
@@ -88,7 +93,7 @@ class SrtHost(GObject.Object):
             return
         if None in [type, sid]:
             return
-        if self._lock >= 0 and sid != self._lock:
+        if self._lock >= 0 and not sid == self._lock:
             return
         if type == "lock":
             if lock:
@@ -127,9 +132,7 @@ class SrtHost(GObject.Object):
             self._send_invalid(slave)
             return
         res = None
-        if pkgtype == "connect":
-            res = self._handle_connect(sid, **pkg)
-        elif pkgtype == "config":
+        if pkgtype == "config":
             res = self._handle_config(sid, **pkg)
         elif pkgtype == "start":
             res = self._handle_start(sid, **pkg)
@@ -169,11 +172,10 @@ class SrtHost(GObject.Object):
         self.emit("quit")
         return True
     def _handle_alarm(self, sid, name="", nid=None, args={}, **kw):
-        if (not (isinstance(name, str) and name.isidentifier()
-                 and isinstance(args, dict)) or isinstance(nid, list)
-                 or isinstance(nid, dict)):
-            self.send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
-                                "alarm": None})
+        if (not (isidentifier(name) and isinstance(args, dict))
+            or isinstance(nid, list) or isinstance(nid, dict)):
+            self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                                 "success": False})
             return True
         if not name in self._slaves[sid]["alarm"]:
             self._slaves[sid]["alarm"][name] = {}
@@ -182,9 +184,11 @@ class SrtHost(GObject.Object):
             alarm.connect("alarm", self._slave_alarm_cb, name, nid, sid)
         except Exception as err:
             print(err)
-            self.send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
-                                "alarm": None})
+            self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                                 "success": False})
             return True
+        self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
+                             "success": True})
         try:
             self._slaves[sid]["alarm"][name][nid].stop()
         except:
@@ -199,7 +203,7 @@ class SrtHost(GObject.Object):
         if self._processing:
             return False
         for cmd in self._cmd_queue:
-            if cmd["sid"] != sid:
+            if not cmd["sid"] == sid:
                 return False
         self._lock = sid
         return True
@@ -237,10 +241,6 @@ class SrtHost(GObject.Object):
             self._send_sid(sid, {"type": "prop", "name": "name",
                                  "value": self._name})
             return True
-        if name == "ready":
-            self._send_sid(sid, {"type": "prop", "name": "ready",
-                                 "value": self._ready})
-            return True
         self.emit("prop", sid, name)
         return True
     # def _handle_name(self, sid, **kw):
@@ -248,6 +248,7 @@ class SrtHost(GObject.Object):
     def _handle_start(self, sid, name=None, args={}, **kw):
         if name is None:
             return
+        args = std_arg({}, args)
         if not self.create_slave_by_name(name, args):
             return
         return True
@@ -257,18 +258,13 @@ class SrtHost(GObject.Object):
         if not isinstance(field, str) or not isinstance(name, str):
             return
         notify = bool(notify)
-        self.emit("prop", sid, field, name, notify)
-        return True
-    def _handle_connect(self, sid, name=None, **kw):
-        if not isinstance(name, str):
-            return
-        self._slaves[sid]["signals"][name] = name
+        self.emit("config", sid, field, name, notify)
         return True
     def _slave_alarm_cb(self, obj, alarm, name, nid, sid):
         if not isinstance(alarm, dict):
             return
-        self.send_sid(sid, {"type": "alarm", "name": name,
-                            "nid": nid, "alarm": alarm})
+        self._send_sid(sid, {"type": "alarm", "name": name,
+                             "nid": nid, "alarm": alarm})
     def _slave_disconn_cb(self, slave):
         try:
             sid = self._lookup_id[id(slave)]
@@ -296,12 +292,29 @@ class SrtHost(GObject.Object):
         return self._send_sid(sid, {"type": "config", "name": name,
                                     "value": value, "notify": notify})
     def feed_res(self, sid, obj):
-        return self._send_sid(sid, {"type": "res", "obj": obj})
-    def feed_signal(self, name, value):
-        for sid, slave in self._slaves.items():
-            if name in slave["signals"]:
-                self._send_sid(sid, {"type": "signal", "name": name,
-                                     "value": value})
+        objtype = get_dict_fields(obj, "type")
+        if objtype is None:
+            return
+        elif objtype == "res":
+            self._handle_feed_res(sid, **obj)
+            return
+        elif objtype == "error":
+            self._handle_feed_error(sid, **obj)
+            return
+    def _handle_feed_res(sid, res=None, props={}, **kw):
+        if not isinstance(props, dict):
+            props = {}
+        self._send_sid(sid, {"type": "res", "res": res, "props": props})
+    def _handle_feed_error(sid, errno=None, msg=None, **kw):
+        try:
+            errno = int(errno)
+        except:
+            return
+        msg = std_arg("", msg)
+        self._send_sid(sid, {"type": "error", "errno": errno, "msg": msg})
+    def feed_signal(self, name, value, props):
+        self._broadcast({"type": "signal", "name": name,
+                         "value": value, "props": props})
     # DO NOT emit "quit" signal here
     def quit(self):
         self._broadcast({"type": "quit"}, wait=True)

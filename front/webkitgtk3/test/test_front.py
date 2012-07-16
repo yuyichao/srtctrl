@@ -14,6 +14,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 import srt_wkgtk, sys
 from gi.repository import GLib, Gtk, GObject
 import random
@@ -26,7 +27,7 @@ class FakeSource(GObject.Object):
                   (GObject.TYPE_PYOBJECT,))
     }
     def __init__(self):
-        super().__init__()
+        super(FakeSource, self).__init__()
         self._az = 0
         self._el = 0
         self._fake_events = [self._fake_move_event]

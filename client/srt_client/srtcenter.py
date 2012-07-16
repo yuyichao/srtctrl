@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 from srt_comm import config as glob_conf
 from gi.repository import GObject, GLib
@@ -39,7 +40,7 @@ class SrtCenter(GObject.Object):
                   (GObject.TYPE_INT, GObject.TYPE_STRING)),
     }
     def __init__(self, config={}):
-        super().__init__()
+        super(SrtCenter, self).__init__()
         self._mainloop = GLib.MainLoop()
         self._remote_err_id = 0
         self._plugins = SrtPlugins()
@@ -151,11 +152,10 @@ class SrtCenter(GObject.Object):
             return
         return
     def _helper_handle_alarm(self, name="", nid=None, args={}, **kw):
-        if (not (isinstance(name, str) and name.isidentifier()
-                 and isinstance(args, dict)) or isinstance(nid, list)
-                 or isinstance(nid, dict)):
+        if (not (isidentifier(name) and isinstance(args, dict))
+            or isinstance(nid, list) or isinstance(nid, dict)):
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
-                               "alarm": None})
+                               "success": False})
             return
         if not name in self._helper_alarm:
             self._helper_alarm[name] = {}
@@ -165,23 +165,23 @@ class SrtCenter(GObject.Object):
         except Exception as err:
             print(err)
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
-                               "alarm": None})
+                               "success": False})
             return
+        self._helper.send({"type": "alarm", "name": name, "nid": nid,
+                           "success": True})
         try:
             self._helper_alarm[name][nid].stop()
         except:
             pass
         self._helper_alarm[name][nid] = alarm
     def _helper_alarm_cb(self, obj, alarm, name, nid):
-        if not isinstance(alarm, dict):
-            return
         self._helper.send({"type": "alarm", "name": name,
                            "nid": nid, "alarm": alarm})
 
-    def _helper_handle_signal(self, name=None, value=None, **kw):
-        if None in [name, value]:
+    def _helper_handle_signal(self, name=None, value=None, props={}, **kw):
+        if not isidentifier(name):
             return
-        self._host.feed_signal(name, value)
+        self._host.feed_signal(name, value, props)
     def _helper_handle_prop(self, sid=None, name=None, value=None, **kw):
         if None in [name, value]:
             return

@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 import inspect as _inspect
 import os, sys, re, os.path
 
@@ -198,3 +199,27 @@ def std_arg(default, arg, fallback=True):
         raise ValueError
     return type(arg)(std_arg(d, a, fallback=fallback)
                      for (d, a) in zip(default, arg))
+
+def def_enum(*args):
+    for arg in args:
+        if not isinstance(arg, str):
+            raise TypeError
+    l = _inspect.currentframe().f_back.f_locals
+    for i in range(len(args)):
+        l[args[i]] = i
+
+if sys.version_info[0] >= 3:
+    def isidentifier(s, dotted=False):
+        if not isinstance(s, str):
+            return False
+        if dotted:
+            return all(isidentifier(a) for a in s.split("."))
+        return s.isidentifier()
+else:
+    _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
+    def isidentifier(s, dotted=False):
+        if not isinstance(s, str):
+            return False
+        if dotted:
+            return all(isidentifier(a) for a in s.split("."))
+        return bool(_name_re.match(s))

@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
                 track=True, args=None, *w, **kw):
     name = std_arg("", name)
@@ -27,4 +28,16 @@ def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
         return
     return {"type": "move", "res": True}
 
-setiface.cms.zwicky.move = zwicky_move
+setiface.cmds.zwicky.move = zwicky_move
+
+def zwicky_calib(zwicky, *w, **kw):
+    zwicky.calib()
+    return {"type": "calib", "res": True}
+
+setiface.cmds.zwicky.calib = zwicky_calib
+
+def zwicky_reset(zwicky, *w, **kw):
+    zwicky.reset()
+    return {"type": "reset", "res": True}
+
+setiface.cmds.zwicky.reset = zwicky_reset

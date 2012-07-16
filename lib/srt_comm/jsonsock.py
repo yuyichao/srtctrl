@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm.srtconn import SrtConn
 from srt_comm.jsonstm import get_json
 from gi.repository import GObject
@@ -29,9 +30,9 @@ class JSONSock(SrtConn):
     }
     def __init__(self, sfamily=None, stype=None, sprotocol=None, fd=None,
                  **kwargs):
-        super().__init__(sfamily=sfamily, stype=stype, sprotocol=sprotocol,
-                         fd=fd, **kwargs)
-        self.connect('package', __class__._got_pkg_cb)
+        super(JSONSock, self).__init__(sfamily=sfamily, stype=stype,
+                                       sprotocol=sprotocol, fd=fd, **kwargs)
+        self.connect('package', JSONSock._got_pkg_cb)
     def _do_dispatch(self, buff):
         (extra, pkg, left) = get_json(buff)
         return (pkg, left)
@@ -43,7 +44,7 @@ class JSONSock(SrtConn):
         self.emit('got-obj', obj)
     def recv(self):
         while True:
-            pkg = super().recv()
+            pkg = super(JSONSock, self).recv()
             if not pkg:
                 return
             try:
@@ -55,4 +56,4 @@ class JSONSock(SrtConn):
             pkg = json.dumps(obj)
         except TypeError:
             return
-        super().send(pkg)
+        super(JSONSock, self).send(pkg)

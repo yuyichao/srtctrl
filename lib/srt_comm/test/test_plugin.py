@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 
 print(config.srt_modules_path)
@@ -31,6 +32,8 @@ print('plugin created')
 # print(plugins.initializer['default'])
 
 print(plugins.a.d)
+print(dir(plugins))
+print(dir(plugins.cmds))
 print(dir(plugins.props.zwicky))
 for p in plugins.props.zwicky:
     print(p)

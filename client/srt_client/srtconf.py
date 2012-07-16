@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from gi.repository import GObject
 from srt_comm import *
 
@@ -26,7 +27,7 @@ class SrtConf(GObject.Object):
                     (GObject.TYPE_STRING, GObject.TYPE_STRING)),
     }
     def __init__(self, path=config.srt_config_path):
-        super().__init__()
+        super(SrtConf, self).__init__()
         paths = path.split(':')
         self._config = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')
@@ -66,7 +67,7 @@ class SrtConf(GObject.Object):
         return new_wrapper(_getter, _setter)
     def __setattr__(self, key, value):
         if key.startswith('_'):
-            super().__setattr__(key, value)
+            super(SrtConf, self).__setattr__(key, value)
             return
         raise AttributeError("Attribute %s read only" % key)
     def __getitem__(self, key):

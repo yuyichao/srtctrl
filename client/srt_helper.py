@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 from srt_comm import *
 from gi.repository import GObject, GLib
 
@@ -37,7 +38,7 @@ class SrtHelper(GObject.Object):
                   ())
     }
     def __init__(self, sock):
-        super().__init__()
+        super(SrtHelper, self).__init__()
         self._sock = sock
         self._name = None
         self._ready = False
@@ -112,12 +113,15 @@ class SrtHelper(GObject.Object):
             return
         self.send_prop(sid,  name, value)
         return {"type": "prop", "name": name, "sid": sid}
-    def _handle_alarm(self, name=None, nid=None, alarm=None, **kw):
-        if not isinstance(name, str) or not name.isidentifier():
+    def _handle_alarm(self, name=None, nid=None, alarm=None,
+                      success=None, **kw):
+        if not isidentifier(name):
             return
-        if not alarm is None:
-            self.emit("alarm::%s" % name.replace('_', '-'),
-                      name, nid, alarm)
+        if not success is None:
+            return {"type": "alarm", "name": name, "nid": nid,
+                    "success": bool(success)}
+        self.emit("alarm::%s" % name.replace('_', '-'),
+                  name, nid, alarm)
         return {"type": "alarm", "name": name, "nid": nid,
                 "alarm": alarm}
     def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
@@ -159,6 +163,8 @@ class SrtHelper(GObject.Object):
         if self._ready:
             return
         self.wait_types("ready")
+    def wait_alarm(self):
+        return self.wait_types("alarm")
     def recv_remote(self):
         pkg = self.wait_types("remote")
         return pkg["obj"]
@@ -167,7 +173,7 @@ class SrtHelper(GObject.Object):
         self.send_got_cmd(pkg["sid"])
         return pkg
     def send_chk_alarm(self, name, nid, args):
-        if not (isinstance(name, str) and name.isidentifier()):
+        if not isidentifier(name):
             return
         if not isinstance(args, dict):
             return
@@ -176,9 +182,13 @@ class SrtHelper(GObject.Object):
             return
         self.send_alarm(name, nid, args)
         while True:
-            pkg = self.wait_types("alarm")
-            if pkg["name"] != name or pkg["nid"] != nid:
+            pkg = self.wait_alarm()
+            if not (pkg["name"] == name and pkg["nid"] == nid):
                 continue
+            if "success" in pkg:
+                if pkg["success"]:
+                    return pkg
+                return
             if pkg["alarm"] is None:
                 return
             return pkg
@@ -209,10 +219,10 @@ class SrtHelper(GObject.Object):
             self.send_invalid(sid)
             return
         if self._auto_props:
-            self.send_slave(sid, {"res": res,
+            self.send_slave(sid, {"type": "res", "res": res,
                                   "props": self.get_all_props()})
         else:
-            self.send_slave(sid, {"res": res, "props": None})
+            self.send_slave(sid, {"type": "res", "res": res})
 
     # sends
     def _send(self, obj):

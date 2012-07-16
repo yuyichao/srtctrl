@@ -16,6 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function, division
 import time as _time
 from srt_comm import *
 
@@ -73,9 +74,16 @@ class ZwickyTracker:
         track_obj = {"name": name, "offset": offset, "time": time,
                      "track": track, "args": args}
         res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
-        if not res is None:
-            self._track_obj = track_obj
-        return res
+        if res is None:
+            return
+        self._track_obj = track_obj
+        while True:
+            res = self._zwicky.wait_alarm()
+            try:
+                if res["name"] == "track" and res["nid"] == "zwicky":
+                    return True
+            except:
+                pass
     def get_track(self):
         return self._track_obj
 
