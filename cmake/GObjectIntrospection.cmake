@@ -178,7 +178,8 @@ function(gobject_introspection _FIRST_ARG)
   ###########################################################################
   set(ENV{CFLAGS} ${GIR_REAL_CFLAGS})
   add_custom_command(
-    COMMAND ${GIR_SCANNER} ${GIR_SCANNER_ARGS}
+    COMMAND env LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}
+    ${GIR_SCANNER} ${GIR_SCANNER_ARGS}
     --namespace=${GIR_NAMESPACE}
     --nsversion=${GIR_NSVERSION}
     ${GIR_REAL_CFLAGS}
