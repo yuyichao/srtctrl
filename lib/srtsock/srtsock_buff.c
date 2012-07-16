@@ -20,6 +20,12 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+#if GLIB_CHECK_VERSION(2, 32, 0)
+#  define EMBED_GMUTEX 1
+#else
+#  define EMBED_GMUTEX 0
+#endif
+
 /**
  * SrtSockBuff: (skip)
  **/
@@ -29,7 +35,11 @@ struct _SrtSockBuff {
     guint offset;
     gchar *buff1;
     gchar *buff2;
+#if EMBED_GMUTEX
     GMutex push_lock;
+#else
+    GMutex *push_lock;
+#endif
 };
 
 /**
@@ -42,7 +52,11 @@ srtsock_buff_new()
     self = g_new0(SrtSockBuff, 1);
     if (G_UNLIKELY(!self))
         return NULL;
+#if EMBED_GMUTEX
     g_mutex_init(&self->push_lock);
+#else
+    self->push_lock = g_mutex_new();
+#endif
     return self;
 }
 
@@ -54,11 +68,19 @@ srtsock_buff_push(SrtSockBuff *self, const gchar *buff, guint len)
 {
     if (G_UNLIKELY(!self || !buff || !len))
         return;
+#if EMBED_GMUTEX
     g_mutex_lock(&self->push_lock);
+#else
+    g_mutex_lock(self->push_lock);
+#endif
     self->buff2 = g_realloc(self->buff2, self->len2 + len);
     memcpy(self->buff2 + self->len2, buff, len);
     self->len2 += len;
+#if EMBED_GMUTEX
     g_mutex_unlock(&self->push_lock);
+#else
+    g_mutex_unlock(self->push_lock);
+#endif
 }
 
 static void
@@ -106,11 +128,19 @@ srtsock_buff_get(SrtSockBuff *self, guint *len)
     gchar *res;
     if (G_UNLIKELY(!self || !len))
         return NULL;
+#if EMBED_GMUTEX
     g_mutex_lock(&self->push_lock);
+#else
+    g_mutex_lock(self->push_lock);
+#endif
     srtsock_buff_update(self);
     *len = self->len1 - self->offset;
     res = self->buff1 + self->offset;
+#if EMBED_GMUTEX
     g_mutex_unlock(&self->push_lock);
+#else
+    g_mutex_unlock(self->push_lock);
+#endif
     return res;
 }
 
@@ -122,10 +152,18 @@ srtsock_buff_pop(SrtSockBuff *self, guint len)
 {
     if (G_UNLIKELY(!self))
         return;
+#if EMBED_GMUTEX
     g_mutex_lock(&self->push_lock);
+#else
+    g_mutex_lock(self->push_lock);
+#endif
     self->offset += len;
     srtsock_buff_update(self);
+#if EMBED_GMUTEX
     g_mutex_unlock(&self->push_lock);
+#else
+    g_mutex_unlock(self->push_lock);
+#endif
 }
 
 /**
@@ -138,7 +176,11 @@ srtsock_buff_free(SrtSockBuff *self)
         return;
     g_free(self->buff1);
     g_free(self->buff2);
+#if EMBED_GMUTEX
     g_mutex_clear(&self->push_lock);
+#else
+    g_mutex_free(self->push_lock);
+#endif
     g_free(self);
 }
 
@@ -151,11 +193,19 @@ srtsock_buff_empty(SrtSockBuff *self)
     gboolean res = FALSE;
     if (G_UNLIKELY(!self))
         return FALSE;
+#if EMBED_GMUTEX
     g_mutex_lock(&self->push_lock);
+#else
+    g_mutex_lock(self->push_lock);
+#endif
     srtsock_buff_update(self);
     if ((!self->buff1 || self->offset >= self->len1) &&
         (!self->buff2 || !self->len2))
         res = TRUE;
+#if EMBED_GMUTEX
     g_mutex_unlock(&self->push_lock);
+#else
+    g_mutex_unlock(self->push_lock);
+#endif
     return res;
 }
