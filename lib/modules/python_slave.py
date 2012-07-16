@@ -269,7 +269,7 @@ def new_iface(conn, sync=True):
                         GObject.TYPE_PYOBJECT)),
         }
         def __init__(self):
-            super().__init__()
+            super(PythonSlave, self).__init__()
         def do_quit(self):
             if sync:
                 exit()

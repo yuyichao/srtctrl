@@ -37,7 +37,7 @@ class SrtHelper(GObject.Object):
                   ())
     }
     def __init__(self, sock):
-        super().__init__()
+        super(SrtHelper, self).__init__()
         self._sock = sock
         self._name = None
         self._ready = False

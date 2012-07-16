@@ -39,7 +39,7 @@ class ZwickyHelper(GObject.Object):
                   ())
     }
     def __init__(self, helper):
-        super().__init__()
+        super(ZwickyHelper, self).__init__()
         self._helper = helper
         self.configs = self._helper.configs.zwicky
         self.plugins = self._helper.plugins.device.zwicky

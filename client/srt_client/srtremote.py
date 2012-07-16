@@ -41,7 +41,7 @@ class SrtRemote(SrtConn):
                       ()),
     }
     def __init__(self, plugins=None):
-        super().__init__()
+        super(SrtRemote, self).__init__()
         self._dispatch = None
         self._name = None
         if not plugins is None:
@@ -70,7 +70,7 @@ class SrtRemote(SrtConn):
         try:
             return self._dispatch(buff)
         except Exception as e:
-            return super()._do_dispatch(buff)
+            return super(SrtRemote, self)._do_dispatch(buff)
     def set_name(self, name):
         if not self._name is None:
             raise AttributeError('name is already set')

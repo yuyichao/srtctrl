@@ -26,7 +26,7 @@ class FakeSource(GObject.Object):
                   (GObject.TYPE_PYOBJECT,))
     }
     def __init__(self):
-        super().__init__()
+        super(FakeSource, self).__init__()
         self._az = 0
         self._el = 0
         self._fake_events = [self._fake_move_event]

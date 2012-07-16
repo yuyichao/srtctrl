@@ -16,6 +16,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from srt_comm import *
+
 class DefaultInit:
     def __init__(self, remote):
         self._remote = remote
@@ -47,6 +49,6 @@ class DefaultInit:
                 self._remote.set_name(obj['name'])
             return pkg, left
         self._remote.set_name(None)
-        return super()._do_dispatch(buff)
+        return SrtConn._do_dispatch(self._remote, buff)
 
 setiface.initializer.default = DefaultInit

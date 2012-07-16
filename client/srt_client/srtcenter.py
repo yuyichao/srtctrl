@@ -39,7 +39,7 @@ class SrtCenter(GObject.Object):
                   (GObject.TYPE_INT, GObject.TYPE_STRING)),
     }
     def __init__(self, config={}):
-        super().__init__()
+        super(SrtCenter, self).__init__()
         self._mainloop = GLib.MainLoop()
         self._remote_err_id = 0
         self._plugins = SrtPlugins()

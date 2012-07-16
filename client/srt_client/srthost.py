@@ -39,7 +39,7 @@ class SrtHost(GObject.Object):
                     GObject.TYPE_STRING, GObject.TYPE_BOOLEAN)),
     }
     def __init__(self, plugins=None):
-        super().__init__()
+        super(SrtHost, self).__init__()
         if not plugins is None:
             self._plugins = plugins
         else:

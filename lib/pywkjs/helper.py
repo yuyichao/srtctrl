@@ -25,7 +25,7 @@ class Helper(GObject.Object):
                                   (WebKit.WebFrame, GObject.TYPE_PYOBJECT))
     }
     def __init__(self, view):
-        super().__init__()
+        super(Helper, self).__init__()
         self._helper = _gwkjs.Helper.new(view)
         self._helper.connect("window-object-cleared", self._win_obj_cb)
     def _win_obj_cb(self, helper, frame, ctx, obj):
@@ -41,7 +41,7 @@ def new_js_global(pyobj=None, name=None):
     if not pyobj is None:
         class tmpclass(WKPYObject):
             def __init__(self):
-                super().__init__()
+                super(Helper, self).__init__()
                 self.set_pyobj(pyobj)
         if not name is None:
             _gwkjs.Base.set_name(tmpclass, name)

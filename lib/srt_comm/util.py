@@ -198,3 +198,11 @@ def std_arg(default, arg, fallback=True):
         raise ValueError
     return type(arg)(std_arg(d, a, fallback=fallback)
                      for (d, a) in zip(default, arg))
+
+def def_enum(*args):
+    for arg in args:
+        if not isinstance(arg, str):
+            raise TypeError
+    l = _inspect.currentframe().f_back.f_locals
+    for i in range(len(args)):
+        l[args[i]] = i

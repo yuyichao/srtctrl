@@ -28,7 +28,7 @@ class SrtTracker(GObject.Object):
     }
     def __init__(self, name='', offset=[0, 0], time=0, track=True,
                  args=None, station=[0, 0], **kwargs):
-        super().__init__()
+        super(SrtTracker, self).__init__()
         if not name:
             name = "simple"
         self._plugin = getiface.alarm.trackers[name](args)
