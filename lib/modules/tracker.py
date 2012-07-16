@@ -16,7 +16,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from srt_comm.time import *
+from srt_comm.parsetime import *
 from gi.repository import GObject, GLib
 import time as _time
 

@@ -166,7 +166,7 @@ def new_iface(conn, sync=True):
         return {"type": "prop", "name": name, "value": value}
     def _handle_alarm(name=None, nid=None, alarm=None,
                       success=None, **kw):
-        if not isinstance(name, str) or not name.isidentifier():
+        if not isidentifier(name):
             return
         if not success is None:
             success = bool(success)
@@ -203,7 +203,7 @@ def new_iface(conn, sync=True):
         iface.emit("res", res, props)
         return {"type": "res", "res": res, "props": props}
     def _handle_signal(name=None, value=None, props={}, **kw):
-        if not (isinstance(name, str) and name.isidentifier()):
+        if not isidentifier(name):
             return
         props = std_arg({}, props)
         iface.emit("signal::%s" % name.replace('_', '-'),

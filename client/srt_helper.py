@@ -114,7 +114,7 @@ class SrtHelper(GObject.Object):
         return {"type": "prop", "name": name, "sid": sid}
     def _handle_alarm(self, name=None, nid=None, alarm=None,
                       success=None, **kw):
-        if not isinstance(name, str) or not name.isidentifier():
+        if not isidentifier(name):
             return
         if not success is None:
             return {"type": "alarm", "name": name, "nid": nid,
@@ -172,7 +172,7 @@ class SrtHelper(GObject.Object):
         self.send_got_cmd(pkg["sid"])
         return pkg
     def send_chk_alarm(self, name, nid, args):
-        if not (isinstance(name, str) and name.isidentifier()):
+        if not isidentifier(name):
             return
         if not isinstance(args, dict):
             return

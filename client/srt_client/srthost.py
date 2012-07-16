@@ -171,9 +171,8 @@ class SrtHost(GObject.Object):
         self.emit("quit")
         return True
     def _handle_alarm(self, sid, name="", nid=None, args={}, **kw):
-        if (not (isinstance(name, str) and name.isidentifier()
-                 and isinstance(args, dict)) or isinstance(nid, list)
-                 or isinstance(nid, dict)):
+        if (not (isidentifier(name) and isinstance(args, dict))
+            or isinstance(nid, list) or isinstance(nid, dict)):
             self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
                                  "success": False})
             return True

@@ -151,9 +151,8 @@ class SrtCenter(GObject.Object):
             return
         return
     def _helper_handle_alarm(self, name="", nid=None, args={}, **kw):
-        if (not (isinstance(name, str) and name.isidentifier()
-                 and isinstance(args, dict)) or isinstance(nid, list)
-                 or isinstance(nid, dict)):
+        if (not (isidentifier(name) and isinstance(args, dict))
+            or isinstance(nid, list) or isinstance(nid, dict)):
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
                                "success": False})
             return
@@ -179,7 +178,7 @@ class SrtCenter(GObject.Object):
                            "nid": nid, "alarm": alarm})
 
     def _helper_handle_signal(self, name=None, value=None, props={}, **kw):
-        if not (isinstance(name, str) and name.isidentifier()):
+        if not isidentifier(name):
             return
         self._host.feed_signal(name, value, props)
     def _helper_handle_prop(self, sid=None, name=None, value=None, **kw):

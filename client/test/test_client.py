@@ -24,6 +24,11 @@ def err_cb(center, errno, msg):
 
 def get_obj_cb(sock, pkg):
     print("get_obj_cb", pkg)
+    try:
+        if pkg["type"] == "ready":
+            sock.send({"type": "quit"})
+    except:
+        pass
 
 def main():
     srtcenter = SrtCenter()

@@ -206,3 +206,19 @@ def def_enum(*args):
     l = _inspect.currentframe().f_back.f_locals
     for i in range(len(args)):
         l[args[i]] = i
+
+if sys.version_info[0] >= 3:
+    def isidentifier(s, dotted=False):
+        if not isinstance(s, str):
+            return False
+        if dotted:
+            return all(isidentifier(a) for a in s.split("."))
+        return s.isidentifier()
+else:
+    _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
+    def isidentifier(s, dotted=False):
+        if not isinstance(s, str):
+            return False
+        if dotted:
+            return all(isidentifier(a) for a in s.split("."))
+        return bool(_name_re.match(s))
