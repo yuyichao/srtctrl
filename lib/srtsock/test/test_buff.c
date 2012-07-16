@@ -63,7 +63,11 @@ main()
     char *c = "0123456789";
     srand(time(NULL));
     buff = srtsock_buff_new();
+#if GLIB_CHECK_VERSION(2, 32, 0)
     thread = g_thread_new("push", push_thread, buff);
+#else
+    thread = g_thread_create(push_thread, buff, TRUE, NULL);
+#endif
     for (i = 0;i < COUNTN;i++) {
         srtsock_buff_push(buff, c, 10);
     }
