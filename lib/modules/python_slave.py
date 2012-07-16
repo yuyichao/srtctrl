@@ -23,8 +23,8 @@ from gi.repository import GObject, GLib
 # requests: config, start, prop, cmd, lock, quit, alarm
 # reply: error, alarm, lock, prop, init, ready, quit, config, cmd, res, signal
 
-def new_iface(conn):
-    _state = {"ready": False, "name": None}
+def new_iface(conn, sync=True):
+    # config
     _config_cache = {}
     def _cache_config(field, name, value):
         set_2_level(_config_cache, field, name, value)
@@ -38,18 +38,81 @@ def new_iface(conn):
         iface.emit("config", field, name, value)
         return {"type": "config", "notify": notify,
                 "field": field, "name": name, "value": value}
+    def get_config(field, name, notify=True, non_null=False):
+        try:
+            return _config_cache[field][name]
+        except:
+            pass
+        conn.send({"type": "config", "field": field, "name": name,
+                   "notify": bool(notify)})
+        pkg = wait_types("config")
+        value = pkg["value"]
+        if value is None and non_null:
+            raise KeyError("config %s.%s not found" % (field, name))
+        return pkg["value"]
+
+    _state = {"ready": False, "name": None}
+    sync = bool(sync)
+
+    def handle_pkg(pkg):
+        if not pkg:
+            iface.emit("quit")
+        pkgtype = get_dict_fields(pkg, "type")
+        if pkgtype is None:
+            return
+        elif pkgtype == "quit":
+            iface.emit("quit")
+            return {"type": "quit"}
+        elif pkgtype == "ready":
+            _state["ready"] = True
+            iface.emit("ready")
+            return {"type": "ready"}
+        elif pkgtype == "config":
+            return _handle_config(**pkg)
+        elif pkgtype == "prop":
+            return _handle_prop(**pkg)
+        elif pkgtype == "alarm":
+            return _handle_alarm(**pkg)
+        elif pkgtype == "error":
+            return _handle_error(**pkg)
+        elif pkgtype == "lock":
+            return _handle_lock(**pkg)
+        elif pkgtype == "init":
+            return _handle_init(**pkg)
+        elif pkgtype == "cmd":
+            return _handle_cmd(**pkg)
+        elif pkgtype == "res":
+            return _handle_res(**pkg)
+        elif pkgtype == "signal":
+            return _handle_signal(**pkg)
+    def wait_types(types):
+        if isinstance(types, str):
+            types = [types]
+        while True:
+            try:
+                pkg = conn.recv()
+            except GLib.GError:
+                iface.emit("quit")
+            pkg = handle_pkg(pkg)
+            if pkg is None:
+                continue
+            if pkgtype in types:
+                return pkg
     def _handle_prop(name=None, value=None, **kw):
+        iface.emit("prop", name, value)
         return {"type": "prop", "name": name, "value": value}
     def _handle_alarm(name=None, nid=None, alarm=None,
                       success=None, **kw):
         if not isinstance(name, str) or not name.isidentifier():
             return
         if not success is None:
+            success = bool(success)
+            iface.emit("alarm-success::%s" % name.replace('_', '-'),
+                       name, nid, success)
             return {"type": "alarm", "name": name, "nid": nid,
-                    "success": bool(success)}
-        if not alarm is None:
-            iface.emit("alarm::%s" % name.replace('_', '-'),
-                       name, nid, alarm)
+                    "success": success}
+        iface.emit("alarm::%s" % name.replace('_', '-'),
+                   name, nid, alarm)
         return {"type": "alarm", "name": name, "nid": nid,
                 "alarm": alarm}
     def _handle_error(errno=None, msg=None, **kw):
@@ -58,17 +121,23 @@ def new_iface(conn):
         except:
             return
         msg = str(msg)
+        iface.emit("error", errno, msg)
         return {"type": "error", "errno": errno, "msg": msg}
     def _handle_lock(res=None, **kw):
-        return {"type": "lock", "res": bool(res)}
+        res = bool(res)
+        iface.emit("lock", errno, res)
+        return {"type": "lock", "res": res}
     def _handle_init(name=None, **kw):
         if not isinstance(name, str):
             return
         _state["name"] = name
+        iface.emit("init", name)
         return {"type": "init", "name": name}
     def _handle_cmd(**kw):
+        iface.emit("cmd")
         return {"type": "cmd"}
     def _handle_res(res=None, props={}, **kw):
+        iface.emit("res", res, props)
         return {"type": "res", "res": res, "props": props}
     def _handle_signal(name=None, value=None, props={}, **kw):
         if not (isinstance(name, str) and name.isidentifier()):
@@ -77,62 +146,46 @@ def new_iface(conn):
         iface.emit("signal::%s" % name.replace('_', '-'),
                    name, value, props)
         return {"type": "res", "name": name, "value": value, "props": props}
-    def wait_types(types):
-        if isinstance(types, str):
-            types = [types]
-        while True:
-            try:
-                pkg = conn.recv()
-            except GLib.GError:
-                exit()
-            if not pkg:
-                exit()
-            pkgtype = get_dict_fields(pkg, "type")
-            if pkgtype is None:
-                continue
-            elif pkgtype == "quit":
-                exit()
-            elif pkgtype == "ready":
-                _state["ready"] = True
-                pkg = {"type": "ready"}
-            elif pkgtype == "config":
-                pkg = _handle_config(**pkg)
-            elif pkgtype == "prop":
-                pkg = _handle_prop(**pkg)
-            elif pkgtype == "alarm":
-                pkg = _handle_alarm(**pkg)
-            elif pkgtype == "error":
-                pkg = _handle_error(**pkg)
-            elif pkgtype == "lock":
-                pkg = _handle_lock(**pkg)
-            elif pkgtype == "init":
-                pkg = _handle_init(**pkg)
-            elif pkgtype == "cmd":
-                pkg = _handle_cmd(**pkg)
-            elif pkgtype == "res":
-                pkg = _handle_res(**pkg)
-            elif pkgtype == "signal":
-                pkg = _handle_signal(**pkg)
-            if pkg is None:
-                continue
-            if pkgtype in types:
-                return pkg
-    def send_quit():
-        conn.send({"type": "quit"})
-        conn.wait_send()
-    def send_alarm():
-        pass
     class PythonSlave(GObject.Object):
         __gsignals__ = {
             "config": (GObject.SignalFlags.RUN_FIRST,
                        GObject.TYPE_NONE,
                        (GObject.TYPE_STRING, GObject.TYPE_STRING,
                         GObject.TYPE_PYOBJECT)),
+            "quit": (GObject.SignalFlags.RUN_FIRST,
+                     GObject.TYPE_NONE,
+                     ()),
+            "ready": (GObject.SignalFlags.RUN_FIRST,
+                      GObject.TYPE_NONE,
+                      ()),
+            "cmd": (GObject.SignalFlags.RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    ()),
+            "res": (GObject.SignalFlags.RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
             "alarm": (GObject.SignalFlags.RUN_FIRST |
                       GObject.SignalFlags.DETAILED,
                       GObject.TYPE_NONE,
                       (GObject.TYPE_STRING, GObject.TYPE_STRING,
                        GObject.TYPE_PYOBJECT)),
+            "error": (GObject.SignalFlags.RUN_FIRST,
+                      GObject.TYPE_NONE,
+                      (GObject.TYPE_INT, GObject.TYPE_STRING)),
+            "lock": (GObject.SignalFlags.RUN_FIRST,
+                     GObject.TYPE_NONE,
+                     (GObject.TYPE_BOOLEAN,)),
+            "init": (GObject.SignalFlags.RUN_FIRST,
+                     GObject.TYPE_NONE,
+                     (GObject.TYPE_STRING,)),
+            "alarm-success": (GObject.SignalFlags.RUN_FIRST |
+                              GObject.SignalFlags.DETAILED,
+                              GObject.TYPE_NONE,
+                              (GObject.TYPE_STRING, GObject.TYPE_STRING,
+                               GObject.TYPE_BOOLEAN)),
+            "prop": (GObject.SignalFlags.RUN_FIRST,
+                     GObject.TYPE_NONE,
+                     (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
             "signal": (GObject.SignalFlags.RUN_FIRST |
                        GObject.SignalFlags.DETAILED,
                        GObject.TYPE_NONE,
@@ -141,6 +194,9 @@ def new_iface(conn):
         }
         def __init__(self):
             super().__init__()
+        def do_quit(self):
+            if sync:
+                exit()
     iface = PythonSlave()
     return iface
 
