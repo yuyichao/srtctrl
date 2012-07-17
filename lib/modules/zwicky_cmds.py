@@ -17,6 +17,8 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
+from srt_comm import *
+
 def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
                 track=True, args=None, *w, **kw):
     name = std_arg("", name)
@@ -26,17 +28,20 @@ def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
     if not zwicky.track(name=name, offset=offset, time=time,
                         abstime=abstime, track=track, args=args):
         return
+    print("MOVE CMD WAIT")
+    zwicky.tracker.update_pos()
     return {"type": "move", "res": True}
 
 setiface.cmds.zwicky.move = zwicky_move
 
-def zwicky_calib(zwicky, *w, **kw):
-    zwicky.calib()
-    return {"type": "calib", "res": True}
+def zwicky_calib(zwicky, count=1, *w, **kw):
+    res = zwicky.calib(count)
+    return {"type": "calib", "res": res}
 
 setiface.cmds.zwicky.calib = zwicky_calib
 
 def zwicky_reset(zwicky, *w, **kw):
+    getiface.cmds.zwicky.move(zwicky, track=False)
     zwicky.reset()
     return {"type": "reset", "res": True}
 

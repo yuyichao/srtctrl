@@ -154,8 +154,8 @@ class ZwickyRadio:
 
         on_mean = sum(on_buff) / len(on_buff)
         off_mean = sum(off_buff) / len(off_buff)
-        self._sys_tmp = off_mean
         self._calib = (on_mean - off_mean) / 115.
+        self._sys_tmp = off_mean / self._calib
         return {"calib": self._calib, "sys_tmp": self._sys_tmp}
 
 setiface.device.zwicky.radio = ZwickyRadio
