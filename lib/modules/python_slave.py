@@ -49,10 +49,13 @@ def new_iface(conn, sync=True):
         send({"type": "prop", "name": name})
         if not sync:
             return
-        pkg = wait_types(["prop", "error"])
-        if pkg["type"] == "error":
-            raise InvalidRequest
-        return pkg
+        while True:
+            pkg = wait_types(["prop", "error"])
+            if pkg["type"] == "error":
+                raise InvalidRequest
+            if not pkg["name"] == name:
+                continue
+            return pkg["value"]
     def send_cmd(name, *args, **kwargs):
         send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
         if not sync:
@@ -61,7 +64,7 @@ def new_iface(conn, sync=True):
         pkg = wait_types(["error", "res"])
         if pkg["type"] == "error":
             raise InvalidRequest
-        return pkg
+        return pkg["res"], pkg["props"]
     def send_lock(lock, wait=True):
         lock = bool(lock)
         wait = bool(wait)
