@@ -60,11 +60,8 @@ class TrackGalactic:
             self._az, self._el = [float(i) for i in args]
         except:
             self._az, self._el = [0, 0]
-        printr(self._az, self._el)
-        printr(*deg2rad([self._az, self._el]))
         gal = ephem.Galactic(*deg2rad([self._az, self._el]),
                              epoch=ephem.J2000)
-        printr(gal)
         self._p = ephem.FixedBody()
         self._p._ra, self._p._dec = [float(i) for i in gal.to_radec()]
     def __call__(self, station, time):
