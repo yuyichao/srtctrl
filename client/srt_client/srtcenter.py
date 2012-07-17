@@ -236,15 +236,16 @@ class SrtCenter(GObject.Object):
         self._start_remote()
     def _quit(self):
         self.emit('quit')
-        try:
-            self._remote.wait_send()
-        except GLib.GError:
-            pass
         self._mainloop.quit()
     def do_quit(self):
         self._remote.request({"type": "quit"})
-        self._helper.send({"type": "quit"})
+        try:
+            self._remote.wait_send()
+            self._remote.close()
+        except GLib.GError:
+            pass
         self._host.quit()
+        self._helper.send({"type": "quit"})
         try:
             self._helper.wait_send()
         except GLib.GError:

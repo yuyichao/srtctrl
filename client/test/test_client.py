@@ -22,7 +22,6 @@ from srt_comm import *
 
 from os import path
 dirname = path.dirname(path.abspath(__file__))
-exit()
 
 def err_cb(center, errno, msg):
     print(msg)
