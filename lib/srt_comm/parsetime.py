@@ -19,6 +19,7 @@
 from __future__ import print_function, division
 import time as _time
 import re as _re
+from .util import *
 
 def _try_formats(tstr, formats):
     for f in formats:
@@ -51,7 +52,7 @@ def guess_interval(tstr):
         return float(tstr)
     except:
         pass
-    if not isinstance(tstr, str):
+    if not isstr(tstr):
         raise ValueError
     for guesser in _interval_guesser:
         try:
@@ -66,7 +67,7 @@ def guess_time(tstr):
         return float(tstr)
     except:
         pass
-    if not isinstance(tstr, str):
+    if not isstr(tstr):
         raise ValueError
     t = _try_formats(tstr, ["%Y:%j:%H:%M:%S", "%Y:%m:%d:%H:%M:%S"])
     if not t is None:

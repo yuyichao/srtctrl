@@ -68,14 +68,14 @@ def read_env(name, default=None, append=None):
         return default
     if default is None:
         return value
-    if not isinstance(append, str):
+    if not isstr(append):
         if not append:
             return value
         append = ':'
     return append.join((value, default))
 
 def ls_dirs(paths='.', regex=None):
-    if isinstance(paths, str):
+    if isstr(paths):
         paths = [paths]
     else:
         _paths = []
@@ -141,7 +141,7 @@ def new_wrapper2(getter, setter):
 
 def get_dict_fields(d, fields):
     res = []
-    if isinstance(fields, str):
+    if isstr(fields):
         try:
             return d[fields]
         except:
@@ -184,38 +184,45 @@ def new_wrapper_tree(getter, setter, direr=None):
     _direr = None if direr is None else _direr_
     return new_wrapper(_getter, _setter, direr=_direr)
 
-def std_arg(default, arg, fallback=True):
-    if not isinstance(arg, type(default)):
-        if isinstance(default, float) and isinstance(arg, int):
-            return float(arg)
-        if fallback:
-            return default
-        raise ValueError
-    if not isinstance(arg, list) and not isinstance(arg, tuple):
-        return arg
-    if not len(arg) == len(default):
-        if fallback:
-            return default
-        raise ValueError
-    return type(arg)(std_arg(d, a, fallback=fallback)
-                     for (d, a) in zip(default, arg))
-
 def def_enum(*args):
     for arg in args:
-        if not isinstance(arg, str):
+        if not isstr(arg):
             raise TypeError
     l = _inspect.currentframe().f_back.f_locals
     for i in range(len(args)):
         l[args[i]] = i
 
+def isnum(i):
+    return isinstance(i, int) or isinstance(i, float)
+
 if sys.version_info[0] >= 3:
+    def isstr(s):
+        return isinstance(s, str)
     def isidentifier(s, dotted=False):
-        if not isinstance(s, str):
+        if not isstr(s):
             return False
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return s.isidentifier()
+    def std_arg(default, arg, fallback=True):
+        if not isinstance(arg, type(default)):
+            if isinstance(default, float) and isinstance(arg, int):
+                return float(arg)
+            if fallback:
+                return default
+            raise ValueError
+        if not isinstance(arg, list) and not isinstance(arg, tuple):
+            return arg
+        if not len(arg) == len(default):
+            if fallback:
+                return default
+            raise ValueError
+        return type(arg)(std_arg(d, a, fallback=fallback)
+                         for (d, a) in zip(default, arg))
+
 else:
+    def isstr(s):
+        return isinstance(s, str) or isinstance(s, unicode)
     _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
     def isidentifier(s, dotted=False):
         if not isinstance(s, str):
@@ -223,6 +230,23 @@ else:
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
         return bool(_name_re.match(s))
+    def std_arg(default, arg, fallback=True):
+        if isstr(default) and isstr(arg):
+            return arg
+        if not isinstance(arg, type(default)):
+            if isinstance(default, float) and isinstance(arg, int):
+                return float(arg)
+            if fallback:
+                return default
+            raise ValueError
+        if not isinstance(arg, list) and not isinstance(arg, tuple):
+            return arg
+        if not len(arg) == len(default):
+            if fallback:
+                return default
+            raise ValueError
+        return type(arg)(std_arg(d, a, fallback=fallback)
+                         for (d, a) in zip(default, arg))
 
 def printr(*arg, **kwarg):
     end = '\n'

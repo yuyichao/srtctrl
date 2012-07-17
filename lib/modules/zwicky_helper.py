@@ -63,7 +63,6 @@ class ZwickyHelper(GObject.Object):
         self.reset()
         self.emit("ready")
     def _config_cb(self, helper, field, name, value):
-        print("config_cb", field, name)
         self.emit("config", field, name, value)
     def _remote_cb(self, helper, obj):
         self._handle_remote(obj)

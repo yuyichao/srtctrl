@@ -53,7 +53,7 @@ class SrtHelper(GObject.Object):
 
     # Main Receive
     def wait_types(self, types):
-        if isinstance(types, str):
+        if isstr(types):
             types = [types]
         for i in range(len(self._pkg_queue)):
             if self._pkg_queue[i]["type"] in types:
@@ -93,7 +93,7 @@ class SrtHelper(GObject.Object):
     # handles
     def _handle_config(self, field=None, name=None, notify=False,
                        value=None, **kw):
-        if not isinstance(name, str) or not isinstance(field, str) :
+        if not isstr(name) or not isstr(field) :
             return
         notify = bool(notify)
         if notify:
@@ -102,7 +102,7 @@ class SrtHelper(GObject.Object):
         return {"type": "config", "notify": notify,
                 "field": field, "name": name, "value": value}
     def _handle_prop(self, name=None, sid=None, **kw):
-        if not isinstance(name, str) or self._name is None:
+        if not isstr(name) or self._name is None:
             self.send_invalid(sid)
             return
         try:
