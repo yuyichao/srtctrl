@@ -55,10 +55,10 @@ class SrtHelper(GObject.Object):
     def wait_types(self, types):
         if isstr(types):
             types = [types]
-        for i in range(len(self._pkg_queue)):
-            if self._pkg_queue[i]["type"] in types:
-                return self._pkg_queue.pop(i)
         while True:
+            for i in range(len(self._pkg_queue)):
+                if self._pkg_queue[i]["type"] in types:
+                    return self._pkg_queue.pop(i)
             try:
                 pkg = self._sock.recv()
             except GLib.GError:
@@ -108,7 +108,7 @@ class SrtHelper(GObject.Object):
         try:
             value = self.plugins.props[self._name][name](self._device)
         except Exception as err:
-            print(err)
+            printr(err)
             self.send_invalid(sid)
             return
         self.send_prop(sid,  name, value)
@@ -156,7 +156,7 @@ class SrtHelper(GObject.Object):
             try:
                 props[name] = props_plugins[name](self._device)
             except Exception as err:
-                print(err)
+                printr(err)
         return props
     # receive utils
     def wait_ready(self):
@@ -199,7 +199,7 @@ class SrtHelper(GObject.Object):
         try:
             self._device = self.plugins.helper[name](self)
         except Exception as err:
-            print(err)
+            printr(err)
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
                         "msg": "error running helper [%s]" % name})
         self.wait_ready()
@@ -214,7 +214,7 @@ class SrtHelper(GObject.Object):
             res = self.plugins.cmds[self._name][name](self._device,
                                                       *args, **kwargs)
         except Exception as err:
-            print(err)
+            printr(err)
             self.send_invalid(sid)
             return
         if self._auto_props:
@@ -277,7 +277,7 @@ def main():
     # try:
     #     helper._start()
     # except Exception as err:
-    #     print(err)
+    #     printr(err)
 
 if __name__ == '__main__':
     main()
