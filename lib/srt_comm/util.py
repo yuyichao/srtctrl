@@ -225,7 +225,7 @@ else:
         return isinstance(s, str) or isinstance(s, unicode)
     _name_re = re.compile(r"[a-zA-Z_][a-zA-Z0-9_]*$")
     def isidentifier(s, dotted=False):
-        if not isinstance(s, str):
+        if not isstr(s):
             return False
         if dotted:
             return all(isidentifier(a) for a in s.split("."))
