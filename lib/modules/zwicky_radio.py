@@ -105,6 +105,10 @@ class ZwickyRadio:
         self._mode = mode
     def get_freq(self):
         return {"freq": self._freq, "mode": self._mode}
+    def get_frange(self):
+        freq, mode = self._freq, self._mode
+        cfreqc = cfreq2count(freq)
+        return frange_from_cfreqc(cfreqc, mode)
     def _radio(self):
         freq, mode = self._freq, self._mode
         cfreqc = cfreq2count(freq)
@@ -124,10 +128,9 @@ class ZwickyRadio:
             return
         return self._radio_res(buff)
     def _radio_res(self, buff):
-        freq, mode = self._freq, self._mode
-        cfreqc = cfreq2count(freq)
+        frange = self.get_frange()
         res = {"data": [d / self._calib for d in buff],
-               "freq_range": frange_from_cfreqc(cfreqc, mode)}
+               "freq_range": frange}
         self._zwicky.send_signal("radio", res)
         return res
     def get_calib(self):

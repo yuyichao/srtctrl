@@ -66,8 +66,7 @@ def zwicky_source_on(zwicky):
 setiface.props.zwicky.source_on = zwicky_source_on
 
 def zwicky_frange(zwicky):
-    # TODO
-    return
+    return zwicky.radio.get_frange()
 
 setiface.props.zwicky.frange = zwicky_frange
 
