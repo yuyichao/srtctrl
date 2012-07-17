@@ -40,6 +40,10 @@ def mk_observer(station, time):
     o.elev = station[2]
     return o
 
+setiface.utils.ephem.mk_observer = mk_observer
+setiface.utils.ephem.rad2deg = rad2deg
+setiface.utils.ephem.deg2rad = deg2rad
+
 class TrackSun:
     def __init__(self, args):
         self._sun = ephem.Sun()
@@ -49,3 +53,23 @@ class TrackSun:
         return rad2deg([self._sun.az, self._sun.alt])
 
 setiface.alarm.trackers.sun = TrackSun
+
+class TrackGalactic:
+    def __init__(self, args):
+        try:
+            self._az, self._el = [float(i) for i in args]
+        except:
+            self._az, self._el = [0, 0]
+        printr(self._az, self._el)
+        printr(*deg2rad([self._az, self._el]))
+        gal = ephem.Galactic(*deg2rad([self._az, self._el]),
+                             epoch=ephem.J2000)
+        printr(gal)
+        self._p = ephem.FixedBody()
+        self._p._ra, self._p._dec = [float(i) for i in gal.to_radec()]
+    def __call__(self, station, time):
+        o = mk_observer(station, time)
+        self._p.compute(o)
+        return rad2deg([self._p.az, self._p.alt])
+
+setiface.alarm.trackers.galactic = TrackGalactic

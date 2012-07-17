@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 from srt_comm.parsetime import *
+from srt_comm import *
 from gi.repository import GObject, GLib
 import time as _time
 

@@ -27,7 +27,7 @@ def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
     track = std_arg(False, track)
     if not zwicky.track(name=name, offset=offset, time=time,
                         abstime=abstime, track=track, args=args):
-        return
+        raise Exception
     zwicky.tracker.update_pos()
     return True
 

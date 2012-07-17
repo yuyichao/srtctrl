@@ -22,9 +22,9 @@ from srt_comm import *
 import time
 
 print("TEST SLAVE")
-printr("RES:", iface.cmd.move(offset=[12, 14]))
-printr("RES:", iface.cmd.calib(2))
-# printr("RES:", iface.cmd.move("sun"))
+# printr("RES:", iface.cmd.move(offset=[12, 14]))
+# printr("RES:", iface.cmd.calib(2))
+printr("RES:", iface.cmd.move("galactic", args=[46, 48]))
 printg("Start Sleeping")
 time.sleep(5)
 printg("Wake Up, 1")

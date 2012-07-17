@@ -50,8 +50,16 @@ def zwicky_offset(zwicky):
 setiface.props.zwicky.offset = zwicky_offset
 
 def zwicky_gala_pos(zwicky):
-    az, el = zwicky_pos(zwicky)
-    # TODO
+    import ephem
+    o = getiface.utils.ephem.mk_observer(zwicky.configs.station,
+                                         zwicky_time(zwicky))
+    pos = getiface.utils.ephem.deg2rad(zwicky_pos(zwicky))
+    radec = o.radec_of(*pos)
+    p = ephem.FixedBody()
+    p._ra, p._dec = radec
+    p.compute(o)
+    ga = ephem.Galactic(p, epoch=ephem.J2000)
+    return getiface.utils.ephem.rad2deg([ga.lon, ga.lat])
 
 setiface.props.zwicky.gala_pos = zwicky_gala_pos
 
