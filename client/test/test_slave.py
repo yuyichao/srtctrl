@@ -22,6 +22,8 @@ from srt_comm import *
 print("TEST SLAVE")
 printr("RES:", iface.cmd.move(offset=[15, 15]))
 printr("RES:", iface.cmd.calib(2))
+printr("RES:", iface.cmd.move("sun"))
+printr("RES:", iface.cmd.radio(2))
 printr("RES:", iface.cmd.reset())
 print("TEST QUIT")
 iface.quit()

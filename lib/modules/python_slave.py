@@ -90,7 +90,6 @@ def new_iface(conn, sync=True):
                 if pkg["success"]:
                     return True
                 raise InvalidRequest
-            return True
 
     # config
     _config_cache = {}

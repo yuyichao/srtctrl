@@ -17,20 +17,35 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
-az_lim = [10., 359.]
-el_lim = [-1., 90.]
-az_c_per_deg = 128 / 27
-el_c_per_deg = 11.7
 
-pushrod = True
-rod_l1 = 14.25
-rod_l2 = 16.5
-rod_l3 = 2.
-rod_t0 = 110.
-rod_crate = 30.
+from srt_comm import *
+import ephem, datetime
+from math import *
 
-# digital = True # not sure what if it is not digital
+def rad2deg(agls):
+    if isnum(agls):
+        return agls * 180 / pi
+    return [rad2deg(agl) for agl in agls]
 
-station = [-71.091, 42.361, 30.]
+def deg2rad(agls):
+    if isnum(agls):
+        return agls * pi / 180
+    return [deg2rad(agl) for agl in agls]
 
-curv_corr = 0
+def mk_observer(station, time):
+    o = ephem.Observer()
+    o.date = datetime.datetime.utcfromtimestamp(time)
+    o.pressure = 0
+    o.lon, o.lat = deg2rad(station[:2])
+    o.elev = station[2]
+    return o
+
+class TrackSun:
+    def __init__(self, args):
+        self._sun = ephem.Sun()
+    def __call__(self, station, time):
+        o = mk_observer(station, time)
+        self._sun.compute(o)
+        return rad2deg([self._sun.az, self._sun.alt])
+
+setiface.alarm.trackers.sun = TrackSun

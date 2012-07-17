@@ -300,10 +300,11 @@ class SrtHost(GObject.Object):
         elif objtype == "error":
             self._handle_feed_error(sid, **obj)
             return
-    def _handle_feed_res(self, sid, res=None, props={}, **kw):
+    def _handle_feed_res(self, sid, name=None, res=None, props={}, **kw):
         if not isinstance(props, dict):
             props = {}
-        self._send_sid(sid, {"type": "res", "res": res, "props": props})
+        self._send_sid(sid, {"type": "res", "name": name,
+                             "res": res, "props": props})
     def _handle_feed_error(self, sid, errno=None, msg=None, **kw):
         try:
             errno = int(errno)

@@ -189,9 +189,6 @@ class SrtHelper(GObject.Object):
                 if pkg["success"]:
                     return pkg
                 return
-            if pkg["alarm"] is None:
-                return
-            return pkg
 
     def start(self):
         pkg = self.wait_types("init")
@@ -221,10 +218,10 @@ class SrtHelper(GObject.Object):
             self.send_invalid(sid)
             return
         if self._auto_props:
-            self.send_slave(sid, {"type": "res", "res": res,
+            self.send_slave(sid, {"type": "res", "name": name, "res": res,
                                   "props": self.get_all_props()})
         else:
-            self.send_slave(sid, {"type": "res", "res": res})
+            self.send_slave(sid, {"type": "res", "name": name, "res": res})
 
     # sends
     def _send(self, obj):

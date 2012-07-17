@@ -28,7 +28,7 @@ class SrtTracker(GObject.Object):
                   (GObject.TYPE_PYOBJECT,)),
     }
     def __init__(self, name='', offset=[0, 0], time=0, track=True,
-                 args=None, station=[0, 0], **kwargs):
+                 args=None, station=[0, 0, 0], **kwargs):
         super(SrtTracker, self).__init__()
         if not name:
             name = "simple"
@@ -51,9 +51,13 @@ class SrtTracker(GObject.Object):
             except:
                 self._time = _time.time()
 
-        self._station_az, self._station_el = station
+        self._station_az, self._station_el = station[:2]
         self._station_az, self._station_el = (float(self._station_az),
                                               float(self._station_el))
+        try:
+            self._station_hi = float(station[2])
+        except:
+            self._station_hi = 0
         if self._track:
             GLib.timeout_add_seconds(1, self._update_cb)
         else:
@@ -66,7 +70,7 @@ class SrtTracker(GObject.Object):
             time = _time.time() + self._time
         else:
             time = self._time
-        station = [self._station_az, self._station_el]
+        station = [self._station_az, self._station_el, self._station_hi]
         az, el = self._plugin(station, time)
         # TODO better offset
         az += self._off_az

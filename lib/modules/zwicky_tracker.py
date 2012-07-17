@@ -32,11 +32,14 @@ class ZwickyTracker:
         try:
             self.set_pos(az, el)
         except:
-            pass
+            return
+        if zwicky.remote_busy:
+            return
+        self.update_pos()
     def reset(self):
-        self._az = 0
-        self._el = 0
-        self.track(track=False)
+        self._az = -10
+        self._el = -10
+        self.track(offset=[-10, -10], track=False)
     def set_pos(self, az, el):
         self._az = float(az)
         self._el = float(el)
@@ -71,8 +74,9 @@ class ZwickyTracker:
                     time = guess_interval(time) + _time.time()
                 except:
                     time = _time.time()
+        station = self._zwicky.configs.station
         track_obj = {"name": name, "offset": offset, "time": time,
-                     "track": track, "args": args}
+                     "track": track, "station": station, "args": args}
         res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
         if res is None:
             return
