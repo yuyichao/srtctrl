@@ -191,6 +191,7 @@ class SrtHelper(GObject.Object):
                 return
 
     def start(self):
+        self.send_chk_alarm("timer", "std", {})
         pkg = self.wait_types("init")
         name = get_dict_fields(pkg, "name")
         if name is None:

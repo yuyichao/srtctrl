@@ -26,10 +26,10 @@ class SrtTimer(GObject.Object):
                   GObject.TYPE_NONE,
                   (GObject.TYPE_PYOBJECT,)),
     }
-    def __init__(self, timeout=1, **kwargs):
+    def __init__(self, timeout=1000, **kwargs):
         super(SrtTimer, self).__init__()
-        timeout = float(timeout)
-        GLib.timeout_add_seconds(timeout, self._update_cb)
+        timeout = int(timeout)
+        GLib.timeout_add(timeout, self._update_cb)
         self._active = True
     def _update_cb(self):
         if not self._active:

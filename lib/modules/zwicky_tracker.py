@@ -26,6 +26,7 @@ class ZwickyTracker:
         self._track_obj = None
         self._zwicky.get_config("station")
         self._zwicky.connect("alarm::track", self._track_cb)
+        self._zwicky.connect("alarm::timer", printr)
         self.reset()
     def _track_cb(self, zwicky, name, nid, args):
         az, el = get_dict_fields(args, ["az", "el"])
