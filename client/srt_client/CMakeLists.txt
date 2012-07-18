@@ -7,7 +7,3 @@ set(srt_client_py
   )
 
 python_install_module(srt_client ${srt_client_py})
-
-if(ENABLE_TEST)
-  add_subdirectory(test)
-endif()

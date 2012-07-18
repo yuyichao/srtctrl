@@ -10,6 +10,10 @@ set(srt_modules_py
   zwicky_tracker.py
   track_simple.py
   tracker.py
+  python_slave.py
+  track_ephem.py
+  zwicky_cmds.py
+  zwicky_properties.py
   )
 
 install(FILES ${srt_modules_py}

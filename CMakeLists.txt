@@ -86,6 +86,10 @@ if(NOT DEFINED SRT_INITIALIZER)
   set(SRT_INITIALIZER "default")
 endif()
 
+if(NOT DEFINED SRT_CLIENT_BIN_NAME)
+  set(SRT_CLIENT_BIN_NAME "srt_client")
+endif()
+
 set(CMAKE_C_FLAGS "-g -pipe -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "-g -pipe -Wall -Wextra -Wno-sign-compare -Wno-unused-parameter ${CMAKE_CXX_FLAGS}")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
