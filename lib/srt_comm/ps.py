@@ -50,7 +50,7 @@ def fork_ps(cb, *args):
             try:
                 cb(*args)
             except Exception as err:
-                print(err)
+                print_except()
                 os._exit(1)
             os._exit(0)
 
