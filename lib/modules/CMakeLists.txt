@@ -14,6 +14,7 @@ set(srt_modules_py
   track_ephem.py
   zwicky_cmds.py
   zwicky_properties.py
+  timer.py
   )
 
 install(FILES ${srt_modules_py}
