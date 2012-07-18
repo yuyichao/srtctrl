@@ -72,10 +72,16 @@ class SrtTracker(GObject.Object):
         else:
             time = self._time
         station = [self._station_az, self._station_el, self._station_hi]
-        az, el = self._plugin(station, time)
-        # TODO better offset
-        az += self._off_az
-        el += self._off_el
+        _az, _el = self._plugin(station, time)
+        az, el = ae_with_offset_as([_az, _el], [self._off_az, self._off_el],
+                                   base_type='xy',  offset_type='xy',
+                                   comp_type='xy')
+        if -180 < self._off_az < 180:
+            az = (az - _az + 180) % 360 + _az - 180
+        elif self._off_az >= 0:
+            az = (az - _az) % 360 + _az
+        else:
+            az = (az - _az) % 360 + _az - 360
         self.emit("alarm", {"az": az, "el": el})
         return self._track
     def stop(self):

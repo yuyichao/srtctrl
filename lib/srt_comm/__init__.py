@@ -17,16 +17,17 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
-from srt_comm.srtaddr import *
-from srt_comm.srtconn import SrtConn
-from srt_comm.jsonsock import JSONSock
-from srt_comm.jsonstm import get_json
-from srt_comm.ps import *
-from srt_comm.util import *
-from srt_comm import config
-from srt_comm.module import *
-from srt_comm.error import *
-from srt_comm.parsetime import *
+from .srtaddr import *
+from .srtconn import SrtConn
+from .jsonsock import JSONSock
+from .jsonstm import get_json
+from .ps import *
+from .util import *
+from . import config
+from .module import *
+from .error import *
+from .parsetime import *
+from .srtangl import *
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
