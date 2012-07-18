@@ -108,7 +108,7 @@ class SrtHelper(GObject.Object):
         try:
             value = self.plugins.props[self._name][name](self._device)
         except Exception as err:
-            printr(err)
+            print_except()
             self.send_invalid(sid)
             return
         self.send_prop(sid,  name, value)
@@ -156,7 +156,7 @@ class SrtHelper(GObject.Object):
             try:
                 props[name] = props_plugins[name](self._device)
             except Exception as err:
-                printr(err)
+                print_except()
         return props
     # receive utils
     def wait_ready(self):
@@ -199,9 +199,10 @@ class SrtHelper(GObject.Object):
         try:
             self._device = self.plugins.helper[name](self)
         except Exception as err:
-            printr(err)
+            print_except()
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
                         "msg": "error running helper [%s]" % name})
+            return
         self.wait_ready()
         self.emit("ready")
         self.send_ready()
@@ -214,7 +215,7 @@ class SrtHelper(GObject.Object):
             res = self.plugins.cmds[self._name][name](self._device,
                                                       *args, **kwargs)
         except Exception as err:
-            printr(err)
+            print_except()
             self.send_invalid(sid)
             return
         if self._auto_props:
@@ -277,7 +278,7 @@ def main():
     # try:
     #     helper._start()
     # except Exception as err:
-    #     printr(err)
+    #     print_except()
 
 if __name__ == '__main__':
     main()

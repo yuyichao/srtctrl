@@ -77,7 +77,7 @@ class SrtPlugins:
                  '__file__': fname}
             execfile(fname, g, g)
         except Exception as err:
-            printr("load_next: %s" % fname, err)
+            print_except()
         return True
     def _try_get_iface(self, *keys):
         ftable = self._ftable

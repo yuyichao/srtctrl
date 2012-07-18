@@ -265,3 +265,10 @@ def printg(*arg, **kwarg):
     print('\033[32;1m', end='')
     print(*arg, **kwarg)
     print('\033[0m', end=end)
+
+import traceback
+def print_except():
+    try:
+        printr(traceback.format_exc())
+    except:
+        pass
