@@ -48,7 +48,6 @@ class ZwickyHelper(GObject.Object):
         self.radio = self.plugins.radio(self)
         self.tracker = self.plugins.tracker(self)
         self.remote_busy = False
-        self.get_config("station")
         self.motor.reset()
         self.source_on = False
         self._helper.connect("config", self._config_cb)

@@ -23,6 +23,8 @@ from srt_comm import *
 class ZwickyTracker:
     def __init__(self, zwicky):
         self._zwicky = zwicky
+        self._track_obj = None
+        self._zwicky.get_config("station")
         self._zwicky.connect("alarm::track", self._track_cb)
         self.reset()
     def _track_cb(self, zwicky, name, nid, args):
@@ -51,6 +53,19 @@ class ZwickyTracker:
             self._zwicky.send_signal("track", self._track_obj)
             return True
         return False
+    def _apply_track(self, track_obj):
+        track_obj["station"] = self._zwicky.configs.station
+        res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
+        if res is None:
+            return
+        self._track_obj = track_obj
+        while True:
+            res = self._zwicky.wait_alarm()
+            try:
+                if res["name"] == "track" and res["nid"] == "zwicky":
+                    return True
+            except:
+                pass
     def _track(self, name, offset, time, abstime, track, args):
         if track:
             if abstime:
@@ -74,20 +89,9 @@ class ZwickyTracker:
                     time = guess_interval(time) + _time.time()
                 except:
                     time = _time.time()
-        station = self._zwicky.configs.station
         track_obj = {"name": name, "offset": offset, "time": time,
-                     "track": track, "station": station, "args": args}
-        res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
-        if res is None:
-            return
-        self._track_obj = track_obj
-        while True:
-            res = self._zwicky.wait_alarm()
-            try:
-                if res["name"] == "track" and res["nid"] == "zwicky":
-                    return True
-            except:
-                pass
+                     "track": track, "args": args}
+        return self._apply_track(track_obj)
     def get_track(self):
         return self._track_obj
 
