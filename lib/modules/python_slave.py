@@ -49,10 +49,13 @@ def new_iface(conn, sync=True):
         send({"type": "prop", "name": name})
         if not sync:
             return
-        pkg = wait_types(["prop", "error"])
-        if pkg["type"] == "error":
-            raise InvalidRequest
-        return pkg
+        while True:
+            pkg = wait_types(["prop", "error"])
+            if pkg["type"] == "error":
+                raise InvalidRequest
+            if not pkg["name"] == name:
+                continue
+            return pkg["value"]
     def send_cmd(name, *args, **kwargs):
         send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
         if not sync:
@@ -61,7 +64,7 @@ def new_iface(conn, sync=True):
         pkg = wait_types(["error", "res"])
         if pkg["type"] == "error":
             raise InvalidRequest
-        return pkg
+        return pkg["res"], pkg["props"]
     def send_lock(lock, wait=True):
         lock = bool(lock)
         wait = bool(wait)
@@ -87,7 +90,6 @@ def new_iface(conn, sync=True):
                 if pkg["success"]:
                     return True
                 raise InvalidRequest
-            return True
 
     # config
     _config_cache = {}
@@ -95,7 +97,7 @@ def new_iface(conn, sync=True):
         set_2_level(_config_cache, field, name, value)
     def _handle_config(field=None, name=None, notify=False,
                        value=None, **kw):
-        if not isinstance(name, str) or not isinstance(field, str) :
+        if not isstr(name) or not isstr(field, str) :
             return
         notify = bool(notify)
         if notify:
@@ -150,7 +152,7 @@ def new_iface(conn, sync=True):
         elif pkgtype == "signal":
             return _handle_signal(**pkg)
     def wait_types(types):
-        if isinstance(types, str):
+        if isstr(types):
             types = [types]
         while True:
             try:
@@ -192,7 +194,7 @@ def new_iface(conn, sync=True):
         iface.emit("lock", errno, res)
         return {"type": "lock", "res": res}
     def _handle_init(name=None, **kw):
-        if not isinstance(name, str):
+        if not isstr(name):
             return
         _state["name"] = name
         iface.emit("init", name)
@@ -305,10 +307,9 @@ def main():
     execfile(fname, g, g)
 
 def start_slave(host, fname=None, args=[], sync=True, **kw):
-    if not isinstance(fname, str):
+    if not isstr(fname):
         return False
-    if (isinstance(args, str) or isinstance(args, float)
-        or isinstance(args, int)):
+    if (isstr(args) or isnum(args)):
         args = [str(args)]
     else:
         try:

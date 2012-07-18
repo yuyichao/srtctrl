@@ -227,16 +227,14 @@ class SrtHost(GObject.Object):
         self._check_queue()
         return True
     def _handle_cmd(self, sid, name=None, args=None, kwargs=None, **kw):
-        if name is None:
-            return
-        if not isinstance(name, str):
+        if not isstr(name):
             return
         self._cmd_queue.append({"type": "cmd", "sid": sid, "name": name,
                                 "args": args, "kwargs": kwargs})
         self._check_queue()
         return True
     def _handle_prop(self, sid, name=None, **kw):
-        if not isinstance(name, str):
+        if not isstr(name):
             return
         if name == "name":
             self._send_sid(sid, {"type": "prop", "name": "name",
@@ -256,7 +254,7 @@ class SrtHost(GObject.Object):
     def _handle_config(self, sid, field=None, name=None, notify=False, **kw):
         if None in [field, name]:
             return
-        if not isinstance(field, str) or not isinstance(name, str):
+        if not isstr(field) or not isstr(name):
             return
         notify = bool(notify)
         self.emit("config", sid, field, name, notify)
@@ -302,11 +300,11 @@ class SrtHost(GObject.Object):
         elif objtype == "error":
             self._handle_feed_error(sid, **obj)
             return
-    def _handle_feed_res(self, sid, res=None, props={}, **kw):
+    def _handle_feed_res(self, sid, name=None, res=None, props={}, **kw):
         if not isinstance(props, dict):
             props = {}
-        printg("host send res,", res)
-        self._send_sid(sid, {"type": "res", "res": res, "props": props})
+        self._send_sid(sid, {"type": "res", "name": name,
+                             "res": res, "props": props})
     def _handle_feed_error(self, sid, errno=None, msg=None, **kw):
         try:
             errno = int(errno)

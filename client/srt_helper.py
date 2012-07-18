@@ -53,12 +53,12 @@ class SrtHelper(GObject.Object):
 
     # Main Receive
     def wait_types(self, types):
-        if isinstance(types, str):
+        if isstr(types):
             types = [types]
-        for i in range(len(self._pkg_queue)):
-            if self._pkg_queue[i]["type"] in types:
-                return self._pkg_queue.pop(i)
         while True:
+            for i in range(len(self._pkg_queue)):
+                if self._pkg_queue[i]["type"] in types:
+                    return self._pkg_queue.pop(i)
             try:
                 pkg = self._sock.recv()
             except GLib.GError:
@@ -93,7 +93,7 @@ class SrtHelper(GObject.Object):
     # handles
     def _handle_config(self, field=None, name=None, notify=False,
                        value=None, **kw):
-        if not isinstance(name, str) or not isinstance(field, str) :
+        if not isstr(name) or not isstr(field) :
             return
         notify = bool(notify)
         if notify:
@@ -102,13 +102,13 @@ class SrtHelper(GObject.Object):
         return {"type": "config", "notify": notify,
                 "field": field, "name": name, "value": value}
     def _handle_prop(self, name=None, sid=None, **kw):
-        if not isinstance(name, str) or self._name is None:
+        if not isstr(name) or self._name is None:
             self.send_invalid(sid)
             return
         try:
             value = self.plugins.props[self._name][name](self._device)
         except Exception as err:
-            print(err)
+            printr(err)
             self.send_invalid(sid)
             return
         self.send_prop(sid,  name, value)
@@ -156,7 +156,7 @@ class SrtHelper(GObject.Object):
             try:
                 props[name] = props_plugins[name](self._device)
             except Exception as err:
-                print(err)
+                printr(err)
         return props
     # receive utils
     def wait_ready(self):
@@ -189,9 +189,6 @@ class SrtHelper(GObject.Object):
                 if pkg["success"]:
                     return pkg
                 return
-            if pkg["alarm"] is None:
-                return
-            return pkg
 
     def start(self):
         pkg = self.wait_types("init")
@@ -202,7 +199,7 @@ class SrtHelper(GObject.Object):
         try:
             self._device = self.plugins.helper[name](self)
         except Exception as err:
-            print(err)
+            printr(err)
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
                         "msg": "error running helper [%s]" % name})
         self.wait_ready()
@@ -217,14 +214,14 @@ class SrtHelper(GObject.Object):
             res = self.plugins.cmds[self._name][name](self._device,
                                                       *args, **kwargs)
         except Exception as err:
-            print(err)
+            printr(err)
             self.send_invalid(sid)
             return
         if self._auto_props:
-            self.send_slave(sid, {"type": "res", "res": res,
+            self.send_slave(sid, {"type": "res", "name": name, "res": res,
                                   "props": self.get_all_props()})
         else:
-            self.send_slave(sid, {"type": "res", "res": res})
+            self.send_slave(sid, {"type": "res", "name": name, "res": res})
 
     # sends
     def _send(self, obj):
@@ -280,7 +277,7 @@ def main():
     # try:
     #     helper._start()
     # except Exception as err:
-    #     print(err)
+    #     printr(err)
 
 if __name__ == '__main__':
     main()

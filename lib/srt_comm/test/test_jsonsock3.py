@@ -18,8 +18,10 @@
 
 from __future__ import print_function, division
 from srt_comm import *
+import sys
 
-conn = exec_n_conn('python', args=['python', './test_jsonchild3.py'],
+conn = exec_n_conn(sys.executable,
+                   args=[sys.executable, './test_jsonchild3.py'],
                    n=1, gtype=JSONSock)[0]
 
 print(conn)

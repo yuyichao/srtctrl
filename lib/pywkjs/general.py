@@ -16,9 +16,20 @@
 
 from __future__ import print_function, division
 from gi.repository import GWebKitJS as _gwkjs, GLib as _GLib
+import sys
 
 from pywkjs.pywrap import WKPYObject
 from pywkjs.jswrap import WKJSObject
+
+
+def isnum(i):
+    return isinstance(i, int) or isinstance(i, float)
+if sys.version_info[0] >= 3:
+    def isstr(s):
+        return isinstance(s, str)
+else:
+    def isstr(s):
+        return isinstance(s, str) or isinstance(s, unicode)
 
 def _js2array(ctx, jsobj):
     try:
@@ -62,7 +73,7 @@ def py2js(ctx, pyobj):
         return ctx.make_null()
     elif isinstance(pyobj, bool):
         return ctx.make_boolean(pyobj)
-    elif isinstance(pyobj, float) or isinstance(pyobj, int):
+    elif isnum(pyobj):
         return ctx.make_number(float(pyobj))
     elif isinstance(pyobj, str):
         return ctx.make_string(pyobj)

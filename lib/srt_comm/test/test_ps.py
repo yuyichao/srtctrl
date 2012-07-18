@@ -18,8 +18,10 @@
 
 from __future__ import print_function, division
 from srt_comm import *
+import sys
 
-conn = exec_n_conn('./test_ps_child.py', n=1)[0]
+conn = exec_n_conn(sys.executable,
+                   args=[sys.executable, './test_ps_child.py'], n=1)[0]
 
 print(conn)
 

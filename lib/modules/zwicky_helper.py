@@ -47,23 +47,20 @@ class ZwickyHelper(GObject.Object):
         self.motor = self.plugins.motor(self)
         self.radio = self.plugins.radio(self)
         self.tracker = self.plugins.tracker(self)
+        self.remote_busy = False
         self.get_config("station")
-        self._reset_coor()
+        self.motor.reset()
+        self.source_on = False
         self._helper.connect("config", self._config_cb)
         self._helper.connect("ready", self._ready_cb)
         self._helper.connect("remote", self._remote_cb)
         self._helper.connect("alarm", self._alarm_cb)
-    def _reset_coor(self):
-        self.tracker.reset()
-        self.motor.reset()
-        self.source_on = False
 
     # callbacks
     def _ready_cb(self, helper):
         self.reset()
         self.emit("ready")
     def _config_cb(self, helper, field, name, value):
-        print("config_cb", field, name)
         self.emit("config", field, name, value)
     def _remote_cb(self, helper, obj):
         self._handle_remote(obj)
@@ -87,12 +84,14 @@ class ZwickyHelper(GObject.Object):
     def _handle_beep(self, host="", **kw):
         self.send_signal("beep", host)
     def _handle_source(self, on=None, **kw):
+        self.remote_busy = False
         self.source_on = bool(on)
         self.send_signal("source", self.source_on)
         return {"type": "source", "on": self.source_on}
     def _handle_move(self, direct=None, count=None, edge=None, **kw):
         if None in [direct, count, edge]:
             return
+        self.remote_busy = False
         try:
             direct = int(direct)
             count = int(count)
@@ -104,6 +103,7 @@ class ZwickyHelper(GObject.Object):
     def _handle_radio(self, data=None, **kw):
         if data is None:
             return
+        self.remote_busy = False
         return {"type": "radio", "data": data}
 
     def wait_alarm(self):
@@ -112,6 +112,7 @@ class ZwickyHelper(GObject.Object):
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)
     def send_remote(self, obj):
+        self.remote_busy = True
         self._helper.send_remote(obj)
         return self._helper.recv_remote()
     def send_signal(self, name, value):
@@ -124,8 +125,6 @@ class ZwickyHelper(GObject.Object):
     def send_source(self, on):
         return self.send_remote({"type": "source", "on": on})
     def send_radio(self, freq, mode):
-        self.tracker.update_pos()
-        self.motor.pos_chk()
         reply = self.send_remote({"type": "radio", "freq": freq, "mode": mode})
         rtype, data = get_dict_fields(reply, ["type", "data"])
         if None in [rtype, data]:
@@ -139,10 +138,12 @@ class ZwickyHelper(GObject.Object):
         return self._helper.send_chk_alarm(name, nid, args)
 
     def reset(self):
+        self.tracker.reset()
         self.send_move(0, 5000)
         self.send_move(2, 5000)
+        self.motor.reset()
         self.send_source(False)
-        self._reset_coor()
+        self.source_on = False
     def move(self, az, el):
         self.motor.set_pos(az, el)
     def set_freq(self, freq, mode):

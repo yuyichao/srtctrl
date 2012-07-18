@@ -23,6 +23,7 @@ from gi.repository import GObject, GLib
 from srt_client.srtconf import *
 from srt_client.srtremote import *
 from srt_client.srthost import *
+import sys
 
 class SrtCenter(GObject.Object):
     __gsignals__ = {
@@ -90,7 +91,9 @@ class SrtCenter(GObject.Object):
         self._remote.connect('got-obj', self._remote_got_obj_cb)
         self._remote.connect('reconnect', self._remote_reconnect_cb)
     def __init_helper__(self):
-        self._helper = exec_n_conn(glob_conf.srt_helper, n=1, gtype=JSONSock)[0]
+        self._helper = exec_n_conn(sys.executable,
+                                   args=[sys.executable, glob_conf.srt_helper],
+                                   n=1, gtype=JSONSock)[0]
         self._helper.start_send()
         self._helper.start_recv()
         self._helper.connect('disconn', self._helper_disconn_cb)
@@ -163,7 +166,7 @@ class SrtCenter(GObject.Object):
             alarm = self._plugins.alarm[name](**args)
             alarm.connect("alarm", self._helper_alarm_cb, name, nid)
         except Exception as err:
-            print(err)
+            printr(err)
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
                                "success": False})
             return
@@ -233,15 +236,16 @@ class SrtCenter(GObject.Object):
         self._start_remote()
     def _quit(self):
         self.emit('quit')
-        try:
-            self._remote.wait_send()
-        except GLib.GError:
-            pass
         self._mainloop.quit()
     def do_quit(self):
         self._remote.request({"type": "quit"})
-        self._helper.send({"type": "quit"})
+        try:
+            self._remote.wait_send()
+            self._remote.close()
+        except GLib.GError:
+            pass
         self._host.quit()
+        self._helper.send({"type": "quit"})
         try:
             self._helper.wait_send()
         except GLib.GError:

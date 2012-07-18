@@ -20,7 +20,7 @@ from __future__ import print_function, division
 class TrackSimple:
     def __init__(self, args):
         try:
-            self._az, self._el = args
+            self._az, self._el = [float(i) for i in args]
         except:
             self._az, self._el = [0, 0]
     def __call__(self, station, time):

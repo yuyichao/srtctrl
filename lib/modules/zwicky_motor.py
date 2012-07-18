@@ -155,7 +155,6 @@ class ZwickyMoter:
         self._az_set = float(az)
         self._el_set = float(el)
         self.pos_chk()
-        self.pos_chk()
     def set_offset(self, offaz, offel):
         self._offaz = offaz
         self._offel = offel

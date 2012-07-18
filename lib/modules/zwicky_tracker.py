@@ -27,17 +27,19 @@ class ZwickyTracker:
         self.reset()
     def _track_cb(self, zwicky, name, nid, args):
         az, el = get_dict_fields(args, ["az", "el"])
-        print("____TRACK____ cb", az, el)
         if None in [az, el]:
             return
         try:
             self.set_pos(az, el)
         except:
-            pass
+            return
+        if zwicky.remote_busy:
+            return
+        self.update_pos()
     def reset(self):
-        self._az = 0
-        self._el = 0
-        self.track(track=False)
+        self._az = -10
+        self._el = -10
+        self.track(offset=[-10, -10], track=False)
     def set_pos(self, az, el):
         self._az = float(az)
         self._el = float(el)
@@ -45,7 +47,6 @@ class ZwickyTracker:
         self._zwicky.move(self._az, self._el)
     def track(self, name="", offset=[0, 0], time=0, abstime=False, track=True,
               args=None, **kw):
-        print("TRACKER.TRACK")
         if self._track(name, offset, time, abstime, track, args):
             self._zwicky.send_signal("track", self._track_obj)
             return True
@@ -73,16 +74,15 @@ class ZwickyTracker:
                     time = guess_interval(time) + _time.time()
                 except:
                     time = _time.time()
+        station = self._zwicky.configs.station
         track_obj = {"name": name, "offset": offset, "time": time,
-                     "track": track, "args": args}
+                     "track": track, "station": station, "args": args}
         res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
-        print("TRACK, RES", res)
         if res is None:
             return
         self._track_obj = track_obj
         while True:
             res = self._zwicky.wait_alarm()
-            print("TRACK WAIT", res)
             try:
                 if res["name"] == "track" and res["nid"] == "zwicky":
                     return True
