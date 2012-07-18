@@ -29,7 +29,7 @@ class ZwickyMoter:
         self._zwicky = zwicky
         for key in ["az_lim", "el_lim", "az_c_per_deg", "el_c_per_deg",
                     "pushrod", "rod_l1", "rod_l2", "rod_l3", "rod_t0",
-                    "rod_crate"]:
+                    "rod_crate", "poffset"]:
             self._zwicky.get_config(key)
         self.configs = self._zwicky.configs
         self.reset()
@@ -40,8 +40,6 @@ class ZwickyMoter:
         self._el_set = 0
         self._az_edge = -1
         self._el_edge = -1
-        self._offaz = 0
-        self._offel = 0
         self.move_signal()
     def move(self, direct, count, edge):
         if direct == DIRECT_HDEC:
@@ -125,7 +123,7 @@ class ZwickyMoter:
             return self.configs.az_lim[1]
         return degree
     def az_d2c(self, degree):
-        degree = self.az_chk(degree + self._offaz)
+        degree = self.az_chk(degree + self.configs.poffset[0])
         return (degree - self.configs.az_lim[0]) * self.configs.az_c_per_deg
     def el_chk(self, degree):
         if degree > self.configs.el_lim[1] or degree > 90:
@@ -134,7 +132,7 @@ class ZwickyMoter:
             return self.configs.el_lim[0]
         return degree
     def el_d2c(self, degree):
-        degree = self.el_chk(degree + self._offel)
+        degree = self.el_chk(degree + self.configs.poffset[1])
         if self.configs.pushrod:
             L0 = self.l_rod()
             L1 = self.l_rod(degree)
@@ -155,11 +153,7 @@ class ZwickyMoter:
         self._az_set = float(az)
         self._el_set = float(el)
         self.pos_chk()
-    def set_offset(self, offaz, offel):
-        self._offaz = offaz
-        self._offel = offel
-        self.pos_chk()
     def get_offset(self):
-        return [self._offaz, self._offel]
+        return self.configs.poffset[:2]
 
 setiface.device.zwicky.motor = ZwickyMoter

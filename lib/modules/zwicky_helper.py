@@ -55,6 +55,10 @@ class ZwickyHelper(GObject.Object):
         self._helper.connect("remote", self._remote_cb)
         self._helper.connect("alarm", self._alarm_cb)
 
+    def __getattr__(self, name):
+        if name == "cmd_busy":
+            return self._helper.cmd_busy
+        raise AttributeError
     # callbacks
     def _ready_cb(self, helper):
         self.reset()

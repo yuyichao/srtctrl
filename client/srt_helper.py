@@ -39,6 +39,7 @@ class SrtHelper(GObject.Object):
     }
     def __init__(self, sock):
         super(SrtHelper, self).__init__()
+        self.cmd_busy = False
         self._sock = sock
         self._name = None
         self._ready = False
@@ -209,16 +210,19 @@ class SrtHelper(GObject.Object):
         self.send_ready()
         while True:
             pkg = self.recv_slave()
-            self.exec_cmd(**pkg)
+            self._exec_cmd(**pkg)
 
-    def exec_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
+    def _exec_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
+        self.cmd_busy = True
         try:
             res = self.plugins.cmds[self._name][name](self._device,
                                                       *args, **kwargs)
         except Exception as err:
+            self.cmd_busy = False
             print_except()
             self.send_invalid(sid)
             return
+        self.cmd_busy = False
         if self._auto_props:
             self.send_slave(sid, {"type": "res", "name": name, "res": res,
                                   "props": self.get_all_props()})

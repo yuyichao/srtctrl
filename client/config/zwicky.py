@@ -34,3 +34,5 @@ rod_crate = 30.
 station = [-71.091, 42.361, 30.]
 
 curv_corr = 0
+
+poffset = [0, 0]
