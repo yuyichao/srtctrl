@@ -70,3 +70,23 @@ class TrackGalactic:
         return rad2deg([self._p.az, self._p.alt])
 
 setiface.alarm.trackers.galactic = TrackGalactic
+
+class TrackMoon:
+    def __init__(self, args):
+        self._moon = ephem.Moon()
+    def __call__(self, station, time):
+        o = mk_observer(station, time)
+        self._moon.compute(o)
+        return rad2deg([self._moon.az, self._moon.alt])
+
+setiface.alarm.trackers.moon = TrackMoon
+
+class TrackMars:
+    def __init__(self, args):
+        self._mars = ephem.Mars()
+    def __call__(self, station, time):
+        o = mk_observer(station, time)
+        self._mars.compute(o)
+        return rad2deg([self._mars.az, self._mars.alt])
+
+setiface.alarm.trackers.mars = TrackMars

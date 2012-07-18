@@ -20,6 +20,7 @@ from __future__ import print_function, division
 import sys
 from srt_comm import *
 from gi.repository import GObject, GLib
+import time as _time
 
 # requests: config, start, prop, cmd, lock, quit, alarm
 # reply: error, alarm, lock, prop, init, ready, quit, config, cmd, res, signal
@@ -213,7 +214,15 @@ def new_iface(conn, sync=True):
                    name, value, props)
         return {"type": "signal", "name": name,
                 "value": value, "props": props}
+    def make_time(tstr):
+        try:
+            return guess_time(tstr)
+        except:
+            pass
+        return _time.time() + guess_interval(tstr)
     attr_table = {
+        "make_time": make_time,
+        "time_passed": lambda t: _time.time() >= t,
         "config": new_wrapper2(get_config, None),
         "start": send_start,
         "prop": new_wrapper(send_prop, None) if sync else send_prop,
