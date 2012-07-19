@@ -293,7 +293,6 @@ class SrtHost(GObject.Object):
         self._check_queue()
         return res
     def feed_config(self, sid, field, name, value, notify):
-        printg("feed_config")
         return self._send_sid(sid, {"type": "config", "field": field,
                                     "name": name, "value": value,
                                     "notify": notify})

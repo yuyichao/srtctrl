@@ -21,16 +21,15 @@ from srt_comm import *
 
 import time
 
-print("TEST SLAVE")
+printbg("TEST SLAVE")
 printb("RES:", iface.cmd.move(offset=[0, 10]))
 printb("config", iface.config.zwicky.station)
-iface.quit()
 printb("RES:", iface.cmd.set_freq(1420.8, 5))
 printb("RES:", iface.cmd.calib(2))
 printb("RES:", iface.cmd.move(args=[0, 8]))
-t = iface.make_time("2s")
+t = iface.make_time("10s")
 while not iface.time_passed(t):
     printb("RES:", iface.cmd.radio())
 printb("RES:", iface.cmd.reset())
-print("TEST QUIT")
+printbg("TEST QUIT")
 iface.quit()

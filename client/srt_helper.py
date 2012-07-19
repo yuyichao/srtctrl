@@ -282,11 +282,10 @@ class SrtHelper(GObject.Object):
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper.start()
-    # try:
-    #     helper._start()
-    # except Exception as err:
-    #     print_except()
+    try:
+        helper.start()
+    except Exception as err:
+        print_except()
 
 if __name__ == '__main__':
     main()
