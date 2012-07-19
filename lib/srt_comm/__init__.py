@@ -16,18 +16,22 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Common functions and classes
+"""
+
 from __future__ import print_function, division
-from .srtaddr import *
+from .srtaddr import get_sock_addrs, get_sock_addrs_async
 from .srtconn import SrtConn
 from .jsonsock import JSONSock
 from .jsonstm import get_json
 from .ps import *
 from .util import *
 from . import config
-from .module import *
+from .module import SrtPlugins
 from .error import *
 from .parsetime import *
 from .srtangl import *
 
-import locale
-locale.setlocale(locale.LC_ALL, '')
+import locale as _locale
+_locale.setlocale(_locale.LC_ALL, '')

@@ -16,8 +16,12 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Definition of error numbers
+"""
+
 from __future__ import print_function, division
-from .util import *
+from .util import def_enum
 
 def_enum(
     'SRTERR_CONN', # connection lost or other connection errors

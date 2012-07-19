@@ -63,7 +63,7 @@ class SrtRemote(SrtConn):
         except:
             self.emit('error', SRTERR_PLUGIN,
                       'initializer [%s] cannot be loaded' % init)
-    def init(self, addr, init=config.srt_initializer):
+    def init(self, addr, init=config.SRT_INITIALIZER):
         self.conn_recv(addr, self._conn_cb, init)
     def set_dispatch(self, dispatch):
         self._dispatch = dispatch

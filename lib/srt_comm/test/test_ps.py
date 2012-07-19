@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 from srt_comm import *
+from gi.repository import GLib
 import sys
 
 conn = exec_n_conn(sys.executable,

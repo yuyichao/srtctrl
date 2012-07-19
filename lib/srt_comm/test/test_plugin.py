@@ -19,7 +19,7 @@
 from __future__ import print_function, division
 from srt_comm import *
 
-print(config.srt_modules_path)
+print(config.SRT_MODULES_PATH)
 plugins = SrtPlugins()
 print(plugins._files)
 print('plugin created')

@@ -1,0 +1,6 @@
+* Frontend
+** wwebkitgtk
+** mac frontend?
+* Backend
+** error check
+** config update

@@ -20,7 +20,7 @@ from __future__ import print_function, division
 from srt_comm import *
 
 class SrtPlugins:
-    def __init__(self, path=config.srt_modules_path):
+    def __init__(self, path=config.SRT_MODULES_PATH):
         paths = path.split(':')
         self._ftable = {}
         self._files = ls_dirs(paths=paths, regex='\\.py$')

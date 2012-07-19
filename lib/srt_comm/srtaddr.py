@@ -18,7 +18,7 @@
 
 from __future__ import print_function, division
 from gi.repository import Gio, GLib
-from srt_comm import util
+from . import util
 
 def _unix_sock_addr(addr):
     if addr.startswith('\0'):
