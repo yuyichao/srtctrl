@@ -18,8 +18,8 @@
 
 from __future__ import print_function, division
 from gi.repository import SrtSock as _sock, Gio, GLib, GObject
-from srt_comm.srtaddr import *
-from srt_comm import util
+from .srtaddr import *
+from . import util
 
 class SrtConn(_sock.Sock):
     __gsignals__ = {
@@ -62,7 +62,7 @@ class SrtConn(_sock.Sock):
                 return
             self._buffer += newbuf.decode('utf-8')
     def send(self, buff):
-        print(repr(buff))
+        util.printp(repr(buff))
         try:
             buff = buff.encode('utf-8')
         except AttributeError:

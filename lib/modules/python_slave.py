@@ -98,7 +98,7 @@ def new_iface(conn, sync=True):
         set_2_level(_config_cache, field, name, value)
     def _handle_config(field=None, name=None, notify=False,
                        value=None, **kw):
-        if not isstr(name) or not isstr(field, str) :
+        if not isstr(name) or not isstr(field) :
             return
         notify = bool(notify)
         if notify:
@@ -106,6 +106,9 @@ def new_iface(conn, sync=True):
         iface.emit("config", field, name, value)
         return {"type": "config", "notify": notify,
                 "field": field, "name": name, "value": value}
+    def set_config(field, name, value):
+        send({"type": "config", "field": field, "name": name,
+              "set_value": True, "value": value})
     def get_config(field, name, notify=True, non_null=False):
         try:
             return _config_cache[field][name]
@@ -115,11 +118,14 @@ def new_iface(conn, sync=True):
               "notify": bool(notify)})
         if not sync:
             return
-        pkg = wait_types("config")
-        value = pkg["value"]
-        if value is None and non_null:
-            raise KeyError("config %s.%s not found" % (field, name))
-        return pkg["value"]
+        while True:
+            pkg = wait_types("config")
+            if not (pkg["field"] == field and pkg["name"] == name):
+                continue
+            value = pkg["value"]
+            if value is None and non_null:
+                raise KeyError("config %s.%s not found" % (field, name))
+            return pkg["value"]
 
     def handle_pkg(pkg):
         if not pkg:
@@ -223,7 +229,7 @@ def new_iface(conn, sync=True):
     attr_table = {
         "make_time": make_time,
         "time_passed": lambda t: _time.time() >= t,
-        "config": new_wrapper2(get_config, None),
+        "config": new_wrapper2(get_config, set_config),
         "start": send_start,
         "prop": new_wrapper(send_prop, None) if sync else send_prop,
         "cmd": new_wrapper(lambda name:
@@ -313,7 +319,10 @@ def main():
     g = {"iface": iface, "InvalidRequest": InvalidRequest}
     if sync:
         iface.wait_ready()
-    execfile(fname, g, g)
+    try:
+        execfile(fname, g, g)
+    except:
+        print_except()
 
 def start_slave(host, fname=None, args=[], sync=True, **kw):
     if not isstr(fname):

@@ -279,6 +279,33 @@ def printg(*arg, **kwarg):
     print(*arg, **kwarg)
     print('\033[0m', end=end)
 
+def printp(*arg, **kwarg):
+    end = '\n'
+    if 'end' in kwarg:
+        end = kwarg['end']
+    kwarg['end'] = ''
+    print('\033[35;1m', end='')
+    print(*arg, **kwarg)
+    print('\033[0m', end=end)
+
+def printb(*arg, **kwarg):
+    end = '\n'
+    if 'end' in kwarg:
+        end = kwarg['end']
+    kwarg['end'] = ''
+    print('\033[34;1m', end='')
+    print(*arg, **kwarg)
+    print('\033[0m', end=end)
+
+def printy(*arg, **kwarg):
+    end = '\n'
+    if 'end' in kwarg:
+        end = kwarg['end']
+    kwarg['end'] = ''
+    print('\033[33;1m', end='')
+    print(*arg, **kwarg)
+    print('\033[0m', end=end)
+
 import traceback
 def print_except():
     try:

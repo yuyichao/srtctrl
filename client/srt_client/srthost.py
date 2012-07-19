@@ -38,6 +38,10 @@ class SrtHost(GObject.Object):
                    GObject.TYPE_NONE,
                    (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
                     GObject.TYPE_STRING, GObject.TYPE_BOOLEAN)),
+        "set-config": (GObject.SignalFlags.RUN_FIRST,
+                       GObject.TYPE_NONE,
+                       (GObject.TYPE_STRING, GObject.TYPE_STRING,
+                        GObject.TYPE_PYOBJECT)),
     }
     def __init__(self, plugins=None):
         super(SrtHost, self).__init__()
@@ -250,10 +254,12 @@ class SrtHost(GObject.Object):
         if not self.create_slave_by_name(name, args):
             return
         return True
-    def _handle_config(self, sid, field=None, name=None, notify=False, **kw):
-        if None in [field, name]:
-            return
+    def _handle_config(self, sid, field=None, name=None, notify=False,
+                       set_value=None, value=None, **kw):
         if not isstr(field) or not isstr(name):
+            return
+        if set_value:
+            self.emit("set-config", field, name, value)
             return
         notify = bool(notify)
         self.emit("config", sid, field, name, notify)
@@ -287,8 +293,10 @@ class SrtHost(GObject.Object):
         self._check_queue()
         return res
     def feed_config(self, sid, field, name, value, notify):
-        return self._send_sid(sid, {"type": "config", "name": name,
-                                    "value": value, "notify": notify})
+        printg("feed_config")
+        return self._send_sid(sid, {"type": "config", "field": field,
+                                    "name": name, "value": value,
+                                    "notify": notify})
     def feed_res(self, sid, obj):
         objtype = get_dict_fields(obj, "type")
         if objtype is None:

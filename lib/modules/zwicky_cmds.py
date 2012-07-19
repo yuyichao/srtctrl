@@ -59,3 +59,12 @@ def zwicky_radio(zwicky, count=1, *w, **kw):
     return {"data": f_res, "frange": f_frange}
 
 setiface.cmds.zwicky.radio = zwicky_radio
+
+def zwicky_set_freq(zwicky, freq=None, mode=1, *w, **kw):
+    freq = float(freq)
+    mode = int(mode)
+    if not mode > 0:
+        raise TypeError
+    zwicky.radio.set_freq(freq, mode)
+
+setiface.cmds.zwicky.set_freq = zwicky_set_freq

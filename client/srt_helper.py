@@ -273,6 +273,9 @@ class SrtHelper(GObject.Object):
         if value is None and non_null:
             raise KeyError("config %s.%s not found" % (field, name))
         return pkg["value"]
+    def set_config(self, field, name, value):
+        self._send({"type": "config", "field": field, "name": name,
+                    "set_value": True, "value": value})
     def set_auto_props(self, auto_props):
         self._auto_props = bool(auto_props)
 
