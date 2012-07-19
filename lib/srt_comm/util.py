@@ -16,21 +16,34 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Random Utility functions...
+"""
+
 from __future__ import print_function, division
 import inspect as _inspect
 import os, sys, re, os.path
 
 def call_cb(cb, *args):
+    """
+    Check callable before calling a callback
+    """
     if hasattr(cb, '__call__'):
         return cb(*args)
 
 def call_catch(cb, *args):
+    """
+    Catch all exception when calling a callback
+    """
     try:
-        return call_cb(cb, *args)
+        return cb(*args)
     except:
         return
 
 def get_line(string, start=0):
+    """
+    Cut lines
+    """
     l = len(string)
     if not l:
         return ('', '', '')
@@ -48,18 +61,18 @@ def get_line(string, start=0):
 try:
     _execfile = execfile
 except NameError:
-    def _execfile(file, _globals, _locals):
-        with open(file, "r") as fh:
-            code = compile(fh.read() + "\n", file, 'exec')
+    def _execfile(fname, _globals, _locals):
+        with open(fname, "r") as fh:
+            code = compile(fh.read() + "\n", fname, 'exec')
         exec(code, _globals, _locals)
 
-def execfile(file, globals=None, locals=None):
+def execfile(fname, globals=None, locals=None):
     f = _inspect.currentframe().f_back
     if globals is None:
         globals = f.f_globals
     if locals is None:
         locals = f.f_locals
-    return _execfile(file, globals, locals)
+    return _execfile(fname, globals, locals)
 
 def read_env(name, default=None, append=None):
     try:
