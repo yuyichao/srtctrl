@@ -18,12 +18,12 @@
 
 from __future__ import print_function, division
 import os, socket, ctypes
-from srt_comm.util import *
-from srt_comm.srtconn import SrtConn
+from .util import *
+from .srtconn import SrtConn
 from gi.repository import GObject
 import fcntl
 
-_fds_env_name = 'SRT_PASSED_FDS'
+__fds_env_name__ = 'SRT_PASSED_FDS'
 
 def fork_ps(cb, *args):
     pid = os.fork()
@@ -55,7 +55,7 @@ def fork_ps(cb, *args):
             os._exit(0)
 
 def _exec_fd_cb(fname, args, fds):
-    os.environ[_fds_env_name] = ' '.join([str(fd) for fd in fds])
+    os.environ[__fds_env_name__] = ' '.join([str(fd) for fd in fds])
     os.execvp(fname, args)
 
 def exec_with_fd(fname, args=None, fds=[]):
@@ -70,7 +70,7 @@ def exec_with_fd(fname, args=None, fds=[]):
     return fork_ps(_exec_fd_cb, fname, args, fds)
 
 def get_passed_fds():
-    fds = read_env(_fds_env_name, default='')
+    fds = read_env(__fds_env_name__, default='')
     fds = [try_to_int(fd) for fd in fds.split()]
     return [fd for fd in fds if not fd is None]
 
