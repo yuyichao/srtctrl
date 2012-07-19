@@ -92,7 +92,7 @@ class SrtCenter(GObject.Object):
         self._remote.connect('reconnect', self._remote_reconnect_cb)
     def __init_helper__(self):
         self._helper = exec_n_conn(sys.executable,
-                                   args=[sys.executable, glob_conf.srt_helper],
+                                   args=[sys.executable, glob_conf.SRT_HELPER],
                                    n=1, gtype=JSONSock)[0]
         self._helper.start_send()
         self._helper.start_recv()

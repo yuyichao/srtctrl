@@ -26,7 +26,7 @@ class SrtConf(GObject.Object):
                     GObject.TYPE_NONE,
                     (GObject.TYPE_STRING, GObject.TYPE_STRING)),
     }
-    def __init__(self, path=config.srt_config_path):
+    def __init__(self, path=config.SRT_CONFIG_PATH):
         super(SrtConf, self).__init__()
         paths = path.split(':')
         self._config = {}

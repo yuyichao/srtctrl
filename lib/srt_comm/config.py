@@ -16,15 +16,19 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Handle Default Configuration and Environment Variables
+"""
+
 from __future__ import print_function, division
-from srt_comm import _config
-from srt_comm.util import *
+from . import _config
+from .util import read_env
 from os import path
 
-srt_modules_path = read_env('SRT_MODULES_PATH', default=_config.srt_modules_path,
+SRT_MODULES_PATH = read_env('SRT_MODULES_PATH',
+                            default=_config.SRT_MODULES_PATH, append=':')
+SRT_CONFIG_PATH = read_env('SRT_CONFIG_PATH', default=_config.SRT_CONFIG_PATH,
                             append=':')
-srt_config_path = read_env('SRT_CONFIG_PATH', default=_config.srt_config_path,
-                            append=':')
-srt_helper = read_env('SRT_HELPER_PATH', default=_config.srt_helper_path)
-srt_helper = path.abspath(srt_helper) + '/srt_helper.py'
-srt_initializer = read_env('SRT_INITIALIZER', default=_config.srt_initializer)
+SRT_HELPER = read_env('SRT_HELPER_PATH', default=_config.SRT_HELPER_PATH)
+SRT_HELPER = path.abspath(SRT_HELPER) + '/srt_helper.py'
+SRT_INITIALIZER = read_env('SRT_INITIALIZER', default=_config.SRT_INITIALIZER)
