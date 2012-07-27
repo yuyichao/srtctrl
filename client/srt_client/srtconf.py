@@ -63,7 +63,9 @@ class SrtConf(GObject.Object):
         def _setter(key, value):
             self._load_file(field)
             self._config[field][key] = value
+            printbg(field, key)
             self.emit('updated', field, key)
+            printbg(field, key)
         return new_wrapper(_getter, _setter)
     def __setattr__(self, key, value):
         if key.startswith('_'):

@@ -74,7 +74,7 @@ class SrtCenter(GObject.Object):
             pass
         self._config_notify = {}
         self._config.connect("updated", self._config_updated_cb)
-    def _config_updated_cb(self, field, name):
+    def _config_updated_cb(self, config, field, name):
         try:
             cbargs = self._config_notify[field][name]
         except:

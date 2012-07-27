@@ -97,9 +97,12 @@ def new_iface(conn, sync=True):
     def _cache_config(field, name, value):
         set_2_level(_config_cache, field, name, value)
     def _handle_config(field=None, name=None, notify=False,
-                       value=None, **kw):
+                       value=None, set_value=None, success=None, **kw):
         if not isstr(name) or not isstr(field) :
             return
+        if set_value:
+            return {"type": "config", "field": field, "name": name,
+                    "set_value": True, "success": bool(success)}
         notify = bool(notify)
         if notify:
             _cache_config(field, name, value)
@@ -109,6 +112,14 @@ def new_iface(conn, sync=True):
     def set_config(field, name, value):
         send({"type": "config", "field": field, "name": name,
               "set_value": True, "value": value})
+        while True:
+            pkg = wait_types("config")
+            if (not "set_value" in pkg or
+                not (pkg["field"] == field and pkg["name"] == name)):
+                continue
+            if pkg["success"]:
+                return
+            raise InvalidRequest
     def get_config(field, name, notify=True, non_null=False):
         try:
             return _config_cache[field][name]
@@ -120,7 +131,8 @@ def new_iface(conn, sync=True):
             return
         while True:
             pkg = wait_types("config")
-            if not (pkg["field"] == field and pkg["name"] == name):
+            if ("set_value" in pkg or
+                not (pkg["field"] == field and pkg["name"] == name)):
                 continue
             value = pkg["value"]
             if value is None and non_null:

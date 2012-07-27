@@ -137,6 +137,8 @@ def new_wrapper(getter, setter, direr=None):
             return direr()
         def __iter__(self):
             return self.__dir__().__iter__()
+        def __call__(self, *args):
+            printr(args)
     return _wrapper()
 
 def new_wrapper2(getter, setter):

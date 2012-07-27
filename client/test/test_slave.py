@@ -24,6 +24,8 @@ import time
 printbg("TEST SLAVE")
 printb("RES:", iface.cmd.move(offset=[0, 10]))
 printb("config", iface.config.zwicky.station)
+iface.config.zwicky.station = [10, 10, 10]
+iface.quit()
 printb("RES:", iface.cmd.set_freq(1420.8, 5))
 printb("RES:", iface.cmd.calib(2))
 printb("RES:", iface.cmd.move(args=[0, 8]))
