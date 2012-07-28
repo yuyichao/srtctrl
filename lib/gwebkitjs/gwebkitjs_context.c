@@ -1034,6 +1034,7 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     jsargv = gwebkitjs_context_make_arg_array(jsctx, argc, argv);
     if (!jsargv)
         argc = 0;
+    printf("%s, %d\n", __func__, (int)argc);
     jsres = JSObjectCallAsFunction(jsctx, jsfunc, jsthis,
                                    argc, jsargv, &jserror);
     g_free(jsargv);
