@@ -7,7 +7,7 @@ $(document).ready(function () {
         console.log(src);
         console.log(evt);
         console.log(div);
-        div.text(evt);
+        div.text(evt.toString());
     }, $('#mvevent'));
     $('#quit').click(function (ev) {
         Back.Source.quit();
