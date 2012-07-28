@@ -73,6 +73,7 @@ class WKPYObject(_gwkjs.Base):
         if name == 'toString':
             def tostr(*args):
                 string = str(self._pyobj)
+                print("tostr: ", string)
                 return py2js(ctx, string)
             return py2js(ctx, tostr)
         try:

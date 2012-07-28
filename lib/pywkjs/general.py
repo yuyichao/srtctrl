@@ -76,6 +76,7 @@ def py2js(ctx, pyobj):
     elif isnum(pyobj):
         return ctx.make_number(float(pyobj))
     elif isinstance(pyobj, str):
+        print("string: ", pyobj)
         return ctx.make_string(pyobj)
     elif isinstance(pyobj, list) or isinstance(pyobj, tuple):
         ary = list(pyobj)
