@@ -1025,6 +1025,7 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     jsthis = (JSObjectRef)gwebkitjs_value_get_value(thisobj);
     jsfunc = JSValueToObject(jsctx, jsfunc_val, &jserror);
     if (!jsfunc) {
+        printf("%s, 1\n", __func__);
         gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
         return NULL;
     }
@@ -1036,8 +1037,11 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     jsres = JSObjectCallAsFunction(jsctx, jsfunc, jsthis,
                                    argc, jsargv, &jserror);
     g_free(jsargv);
-    if (jsres)
+    if (jsres) {
+        printf("%s, 2\n", __func__);
         jserror = NULL;
+    }
+    printf("%s, 3\n", __func__);
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }
