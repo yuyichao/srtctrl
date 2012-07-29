@@ -76,7 +76,6 @@ def py2js(ctx, pyobj):
     elif isnum(pyobj):
         return ctx.make_number(float(pyobj))
     elif isinstance(pyobj, str):
-        print("string: ", pyobj)
         return ctx.make_string(pyobj)
     elif isinstance(pyobj, list) or isinstance(pyobj, tuple):
         ary = list(pyobj)
@@ -84,6 +83,8 @@ def py2js(ctx, pyobj):
         for ele in ary:
             jsary.append(py2js(ctx, ele))
         return ctx.make_array(jsary)
+    if isinstance(pyobj, _gwkjs.Value):
+        return pyobj
     if isinstance(pyobj, WKJSObject):
         return pyobj._jsvalue
     return WKPYObject.new(ctx, pyobj)

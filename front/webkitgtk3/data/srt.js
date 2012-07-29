@@ -4,8 +4,8 @@ function escapeHTML(str) {
 $(document).ready(function () {
     Back.Source.connect("event::move", function (src, evt, div) {
         console.log("length: " + arguments.length);
-        console.log(src);
-        console.log(evt);
+        console.log(src.toString());
+        console.log(evt.toString());
         console.log(div);
         div.text(evt.toString());
     }, $('#mvevent'));
