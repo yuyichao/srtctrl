@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# coding=utf-8
+
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
 #
@@ -18,19 +20,28 @@
 
 from __future__ import print_function, division
 from srt_comm import *
+from gi.repository import GObject, GLib, Gio
+import sys
 
-import time
+__mainloop__ = GLib.MainLoop()
+def bind_cb(res):
+    if res:
+        printbg("Listening now.")
+    else:
+        __mainloop__.quit()
 
-printbg("TEST SLAVE")
-printb("RES:", iface.cmd.move(offset=[0, 10]))
-printb("config", iface.config.zwicky.station)
-# iface.config.zwicky.station = [10, 10, 10]
-printb("RES:", iface.cmd.set_freq(1420.8, 5))
-printb("RES:", iface.cmd.calib(2))
-printb("RES:", iface.cmd.move(args=[0, 8]))
-t = iface.make_time("10s")
-while not iface.time_passed(t):
-    printb("RES:", iface.cmd.radio())
-printb("RES:", iface.cmd.reset())
-printbg("TEST QUIT")
-iface.quit()
+def accept_cb(conn, nconn):
+    exec_with_fd(sys.executable, [sys.executable, "zwicky.py"],
+                 [nconn.props.fd])
+
+def main():
+    conn = SrtConn()
+    conn.bind_accept("0.0.0.0:1422", bind_cb)
+    conn.connect("accept", accept_cb)
+    try:
+        __mainloop__.run()
+    except:
+        print_except()
+
+if __name__ == "__main__":
+    main()

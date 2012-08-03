@@ -100,3 +100,5 @@ add_subdirectory(lib)
 if(ENABLE_FRONT)
   add_subdirectory(front)
 endif()
+
+add_subdirectory(tools)
