@@ -323,3 +323,9 @@ def print_except():
         printr(traceback.format_exc())
     except:
         pass
+
+def print_stack():
+    try:
+        printg(''.join(traceback.format_stack()))
+    except:
+        pass
