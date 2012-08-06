@@ -326,6 +326,6 @@ def print_except():
 
 def print_stack():
     try:
-        printg(''.join(traceback.format_stack()))
+        printg(''.join(traceback.format_stack()[:-1]))
     except:
         pass
