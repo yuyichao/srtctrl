@@ -76,6 +76,8 @@ class SrtHelper(GObject.Object):
                 pkg = {"type": "ready"}
             elif pkgtype == "config":
                 pkg = self._handle_config(**pkg)
+            elif pkgtype == "init":
+                pkg = self._handle_init(**pkg)
             elif pkgtype == "prop":
                 pkg = self._handle_prop(**pkg)
             elif pkgtype == "alarm":
@@ -92,6 +94,10 @@ class SrtHelper(GObject.Object):
                 self._pkg_queue.append(pkg)
 
     # handles
+    def _handle_init(self, name=None, **kw):
+        if self._name is None:
+            self._name = name
+        return {"type": "init", "name": name}
     def _handle_config(self, field=None, name=None, notify=False,
                        value=None, **kw):
         if not isstr(name) or not isstr(field) :
@@ -193,17 +199,16 @@ class SrtHelper(GObject.Object):
 
     def start(self):
         self.send_chk_alarm("timer", "std", {})
-        pkg = self.wait_types("init")
-        name = get_dict_fields(pkg, "name")
-        if name is None:
+        if self._name is None:
+            pkg = self.wait_types("init")
+        if self._name is None:
             return
-        self._name = name
         try:
-            self._device = self.plugins.helper[name](self)
+            self._device = self.plugins.helper[self._name](self)
         except Exception as err:
             print_except()
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
-                        "msg": "error running helper [%s]" % name})
+                        "msg": "error running helper [%s]" % self._name})
             return
         self.wait_ready()
         self.emit("ready")
