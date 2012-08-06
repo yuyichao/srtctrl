@@ -24,10 +24,10 @@ from os import path
 dirname = path.dirname(path.abspath(__file__))
 
 def err_cb(center, errno, msg):
-    print(msg)
+    printr(msg)
 
 def get_obj_cb(sock, pkg):
-    printr("get_obj_cb", pkg)
+    printbg("get_obj_cb", pkg)
 
 def main():
     srtcenter = SrtCenter({"generic": {"host": "yyc-arch.org"}})

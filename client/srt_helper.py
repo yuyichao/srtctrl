@@ -51,8 +51,11 @@ class SrtHelper(GObject.Object):
                                     None)
         self._pkg_queue = []
         self._auto_props = True
+        self._wait_queue = []
 
     # Main Receive
+    def wait_with_cb(self, cb, check_only=False):
+        pass
     def wait_types(self, types):
         if isstr(types):
             types = [types]

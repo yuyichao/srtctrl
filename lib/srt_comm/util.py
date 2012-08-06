@@ -261,59 +261,32 @@ else:
         return type(arg)(std_arg(d, a, fallback=fallback)
                          for (d, a) in zip(default, arg))
 
-def printr(*arg, **kwarg):
+def _print_with_style(prefix, suffix, *arg, **kwarg):
     end = '\n'
     if 'end' in kwarg:
         end = kwarg['end']
     kwarg['end'] = ''
-    print('\033[31;1m', end='')
+    print(prefix, end='')
     print(*arg, **kwarg)
-    print('\033[0m', end=end)
+    print(suffix, end=end)
+
+def printr(*arg, **kwarg):
+    _print_with_style('\033[31;1m', '\033[0m', *arg, **kwarg)
 
 def printg(*arg, **kwarg):
-    end = '\n'
-    if 'end' in kwarg:
-        end = kwarg['end']
-    kwarg['end'] = ''
-    print('\033[32;1m', end='')
-    print(*arg, **kwarg)
-    print('\033[0m', end=end)
+    _print_with_style('\033[32;1m', '\033[0m', *arg, **kwarg)
 
 def printy(*arg, **kwarg):
-    end = '\n'
-    if 'end' in kwarg:
-        end = kwarg['end']
-    kwarg['end'] = ''
-    print('\033[33;1m', end='')
-    print(*arg, **kwarg)
-    print('\033[0m', end=end)
+    _print_with_style('\033[33;1m', '\033[0m', *arg, **kwarg)
 
 def printb(*arg, **kwarg):
-    end = '\n'
-    if 'end' in kwarg:
-        end = kwarg['end']
-    kwarg['end'] = ''
-    print('\033[34;1m', end='')
-    print(*arg, **kwarg)
-    print('\033[0m', end=end)
+    _print_with_style('\033[34;1m', '\033[0m', *arg, **kwarg)
 
 def printp(*arg, **kwarg):
-    end = '\n'
-    if 'end' in kwarg:
-        end = kwarg['end']
-    kwarg['end'] = ''
-    print('\033[35;1m', end='')
-    print(*arg, **kwarg)
-    print('\033[0m', end=end)
+    _print_with_style('\033[35;1m', '\033[0m', *arg, **kwarg)
 
 def printbg(*arg, **kwarg):
-    end = '\n'
-    if 'end' in kwarg:
-        end = kwarg['end']
-    kwarg['end'] = ''
-    print('\033[36;1m', end='')
-    print(*arg, **kwarg)
-    print('\033[0m', end=end)
+    _print_with_style('\033[36;1m', '\033[0m', *arg, **kwarg)
 
 import traceback
 def print_except():
