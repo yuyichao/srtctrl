@@ -1036,8 +1036,9 @@ gwebkitjs_context_call_function(GWebKitJSContext *self, GWebKitJSValue *func,
     jsres = JSObjectCallAsFunction(jsctx, jsfunc, jsthis,
                                    argc, jsargv, &jserror);
     g_free(jsargv);
-    if (jsres)
+    if (jsres) {
         jserror = NULL;
+    }
     gwebkitjs_util_gerror_from_jserror(jsctx, jserror, error);
     return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
 }

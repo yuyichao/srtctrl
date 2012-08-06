@@ -83,6 +83,8 @@ def py2js(ctx, pyobj):
         for ele in ary:
             jsary.append(py2js(ctx, ele))
         return ctx.make_array(jsary)
+    if isinstance(pyobj, _gwkjs.Value):
+        return pyobj
     if isinstance(pyobj, WKJSObject):
         return pyobj._jsvalue
     return WKPYObject.new(ctx, pyobj)
