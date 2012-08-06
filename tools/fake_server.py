@@ -36,7 +36,7 @@ def accept_cb(conn, nconn):
 
 def main():
     conn = SrtConn()
-    conn.bind_accept("0.0.0.0:1422", bind_cb)
+    conn.bind_accept("0.0.0.0:1421", bind_cb)
     conn.connect("accept", accept_cb)
     try:
         __mainloop__.run()

@@ -51,7 +51,7 @@ class Zwicky:
             # probably print a error message here?
             return
         else:
-            remote.send('GotIt.\n')
+            remote.send('GotIt\n')
         if seq[0] == 'C':
             if len(seq) < 4:
                 remote.unknown(pkg)
