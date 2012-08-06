@@ -39,10 +39,35 @@ class SrtConn(_sock.Sock):
             kwargs['protocol'] = sprotocol
         super(SrtConn, self).__init__(**kwargs)
         self._buffer = ''
+        self._byte_buff = b''
         self.connect('receive', SrtConn._receive_cb)
+    def _decode(self, byte_buff):
+        self._byte_buff += byte_buff
+        # well this is the simplist way I know to create a empty unicode string
+        # in both python2 and python3
+        buff = b''.decode()
+        while True:
+            try:
+                buff += self._byte_buff.decode('utf-8')
+                self._byte_buff = b''
+                return buff
+            except UnicodeDecodeError as error:
+                (valid, invalid, left) = (
+                    self._byte_buff[:error.start],
+                    self._byte_buff[error.start:error.end],
+                    self._byte_buff[error.end:])
+                try:
+                    buff += valid.decode('utf-8')
+                except:
+                    pass
+                if left:
+                    self._byte_buff = left
+                    continue
+                self._byte_buff = invalid
+                return buff
     @staticmethod
     def _receive_cb(self, obj):
-        self._buffer += _sock.buff_from_obj(obj).decode('utf-8')
+        self._buffer += self._decode(_sock.buff_from_obj(obj))
         while True:
             package, self._buffer = self._do_dispatch(self._buffer)
             if package:
@@ -60,7 +85,7 @@ class SrtConn(_sock.Sock):
             newbuf = super(SrtConn, self).recv(65536)
             if not newbuf:
                 return
-            self._buffer += newbuf.decode('utf-8')
+            self._buffer += self._decode(newbuf)
     def send(self, buff):
         util.printp(repr(buff))
         try:
