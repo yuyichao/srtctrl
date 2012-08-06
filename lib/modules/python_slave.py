@@ -207,6 +207,8 @@ def new_iface(conn, sync=True):
             return
         msg = str(msg)
         iface.emit("error", errno, msg)
+        if sync:
+            raise InvalidRequest
         return {"type": "error", "errno": errno, "msg": msg}
     def _handle_lock(res=None, **kw):
         res = bool(res)

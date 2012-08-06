@@ -262,7 +262,7 @@ class SrtHost(GObject.Object):
             self.emit("set-config", field, name, value)
             self._send_sid(sid, {"type": "config", "field": field, "name": name,
                                  "set_value": True, "success": True})
-            return
+            return True
         notify = bool(notify)
         self.emit("config", sid, field, name, notify)
         return True
