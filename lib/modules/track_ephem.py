@@ -36,7 +36,7 @@ def mk_observer(station, time):
     o = ephem.Observer()
     o.date = datetime.datetime.utcfromtimestamp(time)
     o.pressure = 0
-    o.lon, o.lat = deg2rad(station[:2])
+    o.long, o.lat = deg2rad(station[:2])
     o.elev = station[2]
     return o
 

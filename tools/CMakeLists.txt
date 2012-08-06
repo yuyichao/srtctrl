@@ -1,4 +1,4 @@
-add_run(zwicky_server
+add_run(zwicky_server NO_ALL
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND env GI_TYPELIB_PATH="${PROJECT_BINARY_DIR}/lib/srtsock"
   PYTHONPATH="${PROJECT_BINARY_DIR}/lib:${PROJECT_BINARY_DIR}/client"
