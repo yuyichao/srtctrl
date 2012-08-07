@@ -55,6 +55,7 @@ class SrtCenter(GObject.Object):
         self._host.connect("prop", self._host_prop_cb)
         self._host.connect("cmd", self._host_cmd_cb)
         self._host.connect("config", self._host_config_cb)
+        self._host.connect("set-config", self._host_set_config_cb)
         self._host.connect("quit", self._host_quit_cb)
 
     def __init_config__(self, config):
@@ -66,14 +67,14 @@ class SrtCenter(GObject.Object):
                         try:
                             self._config[field][key] = value
                         except:
-                            pass
+                            print_except()
                 except:
-                    pass
+                    print_except()
         except:
             pass
         self._config_notify = {}
         self._config.connect("updated", self._config_updated_cb)
-    def _config_updated_cb(self, field, name):
+    def _config_updated_cb(self, config, field, name):
         try:
             cbargs = self._config_notify[field][name]
         except:
@@ -117,8 +118,12 @@ class SrtCenter(GObject.Object):
     def _host_config_cb(self, host, sid, field, name, notify):
         value = self._get_config(field, name, notify,
                                  self._host_config_notify_cb, sid)
-        self._helper.send({"type": "config", "field": field, "name": name,
-                           "value": value, "notify": notify})
+        self._host.feed_config(sid, field, name, value, notify)
+    def _host_set_config_cb(self, host, field, name, value):
+        try:
+            self._config[field][name] = value
+        except:
+            print_except()
     def _host_config_notify_cb(self, field, name, value, sid):
         return self._host.feed_config(sid, field, name, value, True)
 
@@ -195,8 +200,15 @@ class SrtCenter(GObject.Object):
         if obj is None:
             return
         self._host.feed_res(sid, obj)
-    def _helper_handle_config(self, field=None, name=None, notify=False, **kw):
-        if None in [field, name]:
+    def _helper_handle_config(self, field=None, name=None, notify=False,
+                              set_value=None, value=None, **kw):
+        if not isstr(field) or not isstr(name):
+            return
+        if set_value:
+            try:
+                self._config[field][name] = value
+            except:
+                print_except()
             return
         notify = bool(notify)
         value = self._get_config(field, name, notify,

@@ -39,6 +39,7 @@ class SrtHelper(GObject.Object):
     }
     def __init__(self, sock):
         super(SrtHelper, self).__init__()
+        self.cmd_busy = False
         self._sock = sock
         self._name = None
         self._ready = False
@@ -50,8 +51,11 @@ class SrtHelper(GObject.Object):
                                     None)
         self._pkg_queue = []
         self._auto_props = True
+        self._wait_queue = []
 
     # Main Receive
+    def wait_with_cb(self, cb, check_only=False):
+        pass
     def wait_types(self, types):
         if isstr(types):
             types = [types]
@@ -75,6 +79,8 @@ class SrtHelper(GObject.Object):
                 pkg = {"type": "ready"}
             elif pkgtype == "config":
                 pkg = self._handle_config(**pkg)
+            elif pkgtype == "init":
+                pkg = self._handle_init(**pkg)
             elif pkgtype == "prop":
                 pkg = self._handle_prop(**pkg)
             elif pkgtype == "alarm":
@@ -91,6 +97,10 @@ class SrtHelper(GObject.Object):
                 self._pkg_queue.append(pkg)
 
     # handles
+    def _handle_init(self, name=None, **kw):
+        if self._name is None:
+            self._name = name
+        return {"type": "init", "name": name}
     def _handle_config(self, field=None, name=None, notify=False,
                        value=None, **kw):
         if not isstr(name) or not isstr(field) :
@@ -192,33 +202,35 @@ class SrtHelper(GObject.Object):
 
     def start(self):
         self.send_chk_alarm("timer", "std", {})
-        pkg = self.wait_types("init")
-        name = get_dict_fields(pkg, "name")
-        if name is None:
+        if self._name is None:
+            pkg = self.wait_types("init")
+        if self._name is None:
             return
-        self._name = name
         try:
-            self._device = self.plugins.helper[name](self)
+            self._device = self.plugins.helper[self._name](self)
         except Exception as err:
             print_except()
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
-                        "msg": "error running helper [%s]" % name})
+                        "msg": "error running helper [%s]" % self._name})
             return
         self.wait_ready()
         self.emit("ready")
         self.send_ready()
         while True:
             pkg = self.recv_slave()
-            self.exec_cmd(**pkg)
+            self._exec_cmd(**pkg)
 
-    def exec_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
+    def _exec_cmd(self, sid=None, name=None, args=[], kwargs={}, **kw):
+        self.cmd_busy = True
         try:
             res = self.plugins.cmds[self._name][name](self._device,
                                                       *args, **kwargs)
         except Exception as err:
+            self.cmd_busy = False
             print_except()
             self.send_invalid(sid)
             return
+        self.cmd_busy = False
         if self._auto_props:
             self.send_slave(sid, {"type": "res", "name": name, "res": res,
                                   "props": self.get_all_props()})
@@ -269,17 +281,19 @@ class SrtHelper(GObject.Object):
         if value is None and non_null:
             raise KeyError("config %s.%s not found" % (field, name))
         return pkg["value"]
+    def set_config(self, field, name, value):
+        self._send({"type": "config", "field": field, "name": name,
+                    "set_value": True, "value": value})
     def set_auto_props(self, auto_props):
         self._auto_props = bool(auto_props)
 
 def main():
     sock = get_passed_conns(gtype=JSONSock)[0]
     helper = SrtHelper(sock)
-    helper.start()
-    # try:
-    #     helper._start()
-    # except Exception as err:
-    #     print_except()
+    try:
+        helper.start()
+    except Exception as err:
+        print_except()
 
 if __name__ == '__main__':
     main()

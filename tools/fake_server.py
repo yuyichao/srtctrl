@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # coding=utf-8
 
 #   Copyright (C) 2012~2012 by Yichao Yu
@@ -17,22 +19,29 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
-az_lim = [10., 359.]
-el_lim = [-1., 90.]
-az_c_per_deg = 128 / 27
-el_c_per_deg = 11.7
+from srt_comm import *
+from gi.repository import GObject, GLib, Gio
+import sys
 
-pushrod = True
-rod_l1 = 14.25
-rod_l2 = 16.5
-rod_l3 = 2.
-rod_t0 = 110.
-rod_crate = 30.
+__mainloop__ = GLib.MainLoop()
+def bind_cb(res):
+    if res:
+        printbg("Listening now.")
+    else:
+        __mainloop__.quit()
 
-# digital = True # not sure what if it is not digital
+def accept_cb(conn, nconn):
+    exec_with_fd(sys.executable, [sys.executable, "zwicky.py"],
+                 [nconn.props.fd])
 
-station = [-71.091, 42.361, 30.]
+def main():
+    conn = SrtConn()
+    conn.bind_accept("0.0.0.0:1421", bind_cb)
+    conn.connect("accept", accept_cb)
+    try:
+        __mainloop__.run()
+    except:
+        print_except()
 
-curv_corr = 0
-
-poffset = [0, 0]
+if __name__ == "__main__":
+    main()

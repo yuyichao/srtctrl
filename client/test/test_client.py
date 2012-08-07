@@ -24,13 +24,13 @@ from os import path
 dirname = path.dirname(path.abspath(__file__))
 
 def err_cb(center, errno, msg):
-    print(msg)
+    printr(msg)
 
 def get_obj_cb(sock, pkg):
-    print("get_obj_cb", pkg)
+    printbg("get_obj_cb", pkg)
 
 def main():
-    srtcenter = SrtCenter()
+    srtcenter = SrtCenter({"generic": {"host": "yyc-arch.org"}})
     srtcenter.connect('error', err_cb)
     host, slave = conn_pair(gtype=JSONSock)
     srtcenter.add_slave_from_jsonsock(host)

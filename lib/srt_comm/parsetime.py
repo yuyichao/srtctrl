@@ -30,20 +30,20 @@ def _try_formats(tstr, formats):
     return
 
 _interval_guesser = [
-    [_re.compile("^(?P<sec>[.0-9])s?$"), lambda grp: float(grp("sec"))],
-    [_re.compile("^(?P<min>[.0-9])m$"), lambda grp: float(grp("min")) * 60],
-    [_re.compile("^(?P<hour>[.0-9])h$"), lambda grp: float(grp("hour")) * 3600],
-    [_re.compile("^(?P<min>[.0-9])m(?P<sec>[.0-9])s?$"),
+    [_re.compile("^(?P<sec>[.0-9]+)s?$"), lambda grp: float(grp("sec"))],
+    [_re.compile("^(?P<min>[.0-9]+)m$"), lambda grp: float(grp("min")) * 60],
+    [_re.compile("^(?P<hour>[.0-9]+)h$"), lambda grp: float(grp("hour")) * 3600],
+    [_re.compile("^(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
-    [_re.compile("^(?P<hour>[.0-9])h(?P<min>[.0-9])m$"),
+    [_re.compile("^(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m$"),
      lambda grp: float(grp("min")) * 60 + float(grp("hour")) * 3600],
-    [_re.compile("^(?P<hour>[.0-9])h(?P<min>[.0-9])m(?P<sec>[.0-9])s?$"),
+    [_re.compile("^(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^(?P<hour>[.0-9]):(?P<min>[.0-9]):(?P<sec>[.0-9])$"),
+    [_re.compile("^(?P<hour>[.0-9]+)h?:(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^(?P<min>[.0-9]):(?P<sec>[.0-9])$"),
+    [_re.compile("^(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
     ]
 
@@ -56,7 +56,7 @@ def guess_interval(tstr):
         raise ValueError
     for guesser in _interval_guesser:
         try:
-            m = guesser[0].search()
+            m = guesser[0].search(tstr)
             return float(guesser[1](m.group))
         except:
             pass

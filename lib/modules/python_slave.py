@@ -20,6 +20,7 @@ from __future__ import print_function, division
 import sys
 from srt_comm import *
 from gi.repository import GObject, GLib
+import time as _time
 
 # requests: config, start, prop, cmd, lock, quit, alarm
 # reply: error, alarm, lock, prop, init, ready, quit, config, cmd, res, signal
@@ -96,15 +97,29 @@ def new_iface(conn, sync=True):
     def _cache_config(field, name, value):
         set_2_level(_config_cache, field, name, value)
     def _handle_config(field=None, name=None, notify=False,
-                       value=None, **kw):
-        if not isstr(name) or not isstr(field, str) :
+                       value=None, set_value=None, success=None, **kw):
+        if not isstr(name) or not isstr(field) :
             return
+        if set_value:
+            return {"type": "config", "field": field, "name": name,
+                    "set_value": True, "success": bool(success)}
         notify = bool(notify)
         if notify:
             _cache_config(field, name, value)
         iface.emit("config", field, name, value)
         return {"type": "config", "notify": notify,
                 "field": field, "name": name, "value": value}
+    def set_config(field, name, value):
+        send({"type": "config", "field": field, "name": name,
+              "set_value": True, "value": value})
+        while True:
+            pkg = wait_types("config")
+            if (not "set_value" in pkg or
+                not (pkg["field"] == field and pkg["name"] == name)):
+                continue
+            if pkg["success"]:
+                return
+            raise InvalidRequest
     def get_config(field, name, notify=True, non_null=False):
         try:
             return _config_cache[field][name]
@@ -114,11 +129,15 @@ def new_iface(conn, sync=True):
               "notify": bool(notify)})
         if not sync:
             return
-        pkg = wait_types("config")
-        value = pkg["value"]
-        if value is None and non_null:
-            raise KeyError("config %s.%s not found" % (field, name))
-        return pkg["value"]
+        while True:
+            pkg = wait_types("config")
+            if ("set_value" in pkg or
+                not (pkg["field"] == field and pkg["name"] == name)):
+                continue
+            value = pkg["value"]
+            if value is None and non_null:
+                raise KeyError("config %s.%s not found" % (field, name))
+            return pkg["value"]
 
     def handle_pkg(pkg):
         if not pkg:
@@ -188,6 +207,8 @@ def new_iface(conn, sync=True):
             return
         msg = str(msg)
         iface.emit("error", errno, msg)
+        if sync:
+            raise InvalidRequest
         return {"type": "error", "errno": errno, "msg": msg}
     def _handle_lock(res=None, **kw):
         res = bool(res)
@@ -213,8 +234,16 @@ def new_iface(conn, sync=True):
                    name, value, props)
         return {"type": "signal", "name": name,
                 "value": value, "props": props}
+    def make_time(tstr):
+        try:
+            return guess_time(tstr)
+        except:
+            pass
+        return _time.time() + guess_interval(tstr)
     attr_table = {
-        "config": new_wrapper2(get_config, None),
+        "make_time": make_time,
+        "time_passed": lambda t: _time.time() >= t,
+        "config": new_wrapper2(get_config, set_config),
         "start": send_start,
         "prop": new_wrapper(send_prop, None) if sync else send_prop,
         "cmd": new_wrapper(lambda name:
@@ -304,7 +333,10 @@ def main():
     g = {"iface": iface, "InvalidRequest": InvalidRequest}
     if sync:
         iface.wait_ready()
-    execfile(fname, g, g)
+    try:
+        execfile(fname, g, g)
+    except:
+        print_except()
 
 def start_slave(host, fname=None, args=[], sync=True, **kw):
     if not isstr(fname):
