@@ -109,8 +109,8 @@ class ZwickyHelper(GObject.Object):
         self.remote_busy = False
         return {"type": "radio", "data": data}
 
-    def wait_alarm(self):
-        return self._helper.wait_alarm()
+    def wait_with_cb(self, cb, check_only=False):
+        return self._helper.wait_with_cb(cb, check_only=check_only)
     def get_config(self, key, notify=True, non_null=True):
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)

@@ -82,14 +82,12 @@ class ZwickyTracker:
             self.waiting_track = False
             return
         self._track_obj = track_obj
-        while True:
-            res = self._zwicky.wait_alarm()
-            try:
-                if res["name"] == "track" and res["nid"] == "zwicky":
-                    self.waiting_track = False
-                    return True
-            except:
-                pass
+        res = self._zwicky.wait_with_cb(
+            lambda pkg: (pkg["type"] == "alarm" and
+                         pkg["name"] == "track" and
+                         pkg["nid"] == "zwicky"), check_only=True)
+        self.waiting_track = False
+        return True
     def _track(self, name, offset, time, abstime, track, args):
         if track:
             if abstime:

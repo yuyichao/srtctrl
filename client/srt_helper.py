@@ -256,8 +256,6 @@ class SrtHelper(GObject.Object):
         if self._ready:
             return
         self.wait_types("ready")
-    def wait_alarm(self):
-        return self.wait_types("alarm")
     def recv_remote(self):
         pkg = self.wait_types("remote")
         return pkg["obj"]
@@ -274,14 +272,14 @@ class SrtHelper(GObject.Object):
             or isinstance(nid, dict)):
             return
         self.send_alarm(name, nid, args)
-        while True:
-            pkg = self.wait_alarm()
-            if not (pkg["name"] == name and pkg["nid"] == nid):
-                continue
-            if "success" in pkg:
-                if pkg["success"]:
-                    return pkg
-                return
+        res = self.wait_with_cb(
+            lambda pkg: (pkg["type"] == "alarm" and
+                         pkg["name"] == name and
+                         pkg["nid"] == nid and
+                         "success" in pkg))
+        if res["success"]:
+            return res
+        return
 
     def start(self):
         self.send_chk_alarm("timer", "std", {})
