@@ -54,89 +54,123 @@ class SrtHelper(GObject.Object):
         self._wait_queue = []
 
     # Main Receive
+    def _push_cb(self, cb, check_only):
+        index = len(self._wait_queue)
+        self._wait_queue.append({"cb": cb, "check_only": check_only})
+        return index
+    def _push_package(self, index, pkg):
+        self._wait_queue[:] = self._wait_queue[:index + 1]
+        taken = False
+        for obj in self._wait_queue:
+            if "res" in obj:
+                continue
+            if taken and not obj["check_only"]:
+                continue
+            try:
+                if not obj["cb"](pkg):
+                    continue
+            except:
+                continue
+            obj["res"] = pkg
+            if not obj["check_only"]:
+                taken = True
+        if "res" in self._wait_queue[-1]:
+            return self._wait_queue[-1]["res"]
+        return
     def wait_with_cb(self, cb, check_only=False):
         if not hasattr(cb, '__call__'):
             raise TypeError("cb is not callable")
         check_only = bool(check_only)
-    def wait_types(self, types):
-        if isstr(types):
-            types = [types]
+        index = self._push_cb(cb, check_only)
         while True:
-            for i in range(len(self._pkg_queue)):
-                if self._pkg_queue[i]["type"] in types:
-                    return self._pkg_queue.pop(i)
             try:
                 pkg = self._sock.recv()
             except GLib.GError:
                 exit()
             if not pkg:
                 exit()
-            pkgtype = get_dict_fields(pkg, "type")
-            if pkgtype is None:
+            try:
+                pkg = self.__check_packages(**pkg)
+            except:
                 continue
-            elif pkgtype == "quit":
-                exit()
-            elif pkgtype == "ready":
-                self._ready = True
-                pkg = {"type": "ready"}
-            elif pkgtype == "config":
-                pkg = self._handle_config(**pkg)
-            elif pkgtype == "init":
-                pkg = self._handle_init(**pkg)
-            elif pkgtype == "prop":
-                pkg = self._handle_prop(**pkg)
-            elif pkgtype == "alarm":
-                pkg = self._handle_alarm(**pkg)
-            elif pkgtype == "slave":
-                pkg = self._handle_slave(**pkg)
-            elif pkgtype == "remote":
-                pkg = self._handle_remote(**pkg)
             if pkg is None:
                 continue
-            if pkgtype in types:
-                return pkg
-            if pkgtype == "slave":
-                self._pkg_queue.append(pkg)
+            res = self._push_package(index, pkg)
+            try:
+                self.__package_action(**pkg)
+            except:
+                pass
+            if not res:
+                continue
+            return res
+    def wait_types(self, types, check_only=False):
+        if isstr(types):
+            types = [types]
+        return self.wait_with_cb(lambda pkg: (pkg["type"] in types),
+                                 check_only)
+
+    def __check_packages(self, type=None, **pkg):
+        if type is None:
+            return
+        elif type == "quit":
+            exit()
+        elif type == "ready":
+            self._ready = True
+            return {"type": "ready"}
+        elif type == "config":
+            return self._check_config(**pkg)
+        elif type == "init":
+            return self._check_init(**pkg)
+        elif type == "prop":
+            return self._check_prop(**pkg)
+        elif type == "alarm":
+            return self._check_alarm(**pkg)
+        elif type == "slave":
+            return self._check_slave(**pkg)
+        elif type == "remote":
+            return self._check_remote(**pkg)
+        return
+    def __package_action(self, type=None, **pkg):
+        if type is None:
+            return
+        elif type == "config":
+            return self._config_action(**pkg)
+        elif type == "init":
+            return self._init_action(**pkg)
+        elif type == "prop":
+            return self._prop_action(**pkg)
+        elif type == "alarm":
+            return self._alarm_action(**pkg)
+        elif type == "slave":
+            return self._slave_action(**pkg)
+        elif type == "remote":
+            return self._remote_action(**pkg)
+        return
 
     # handles
-    def _handle_init(self, name=None, **kw):
-        if self._name is None:
-            self._name = name
+    def _check_init(self, name=None, **kw):
         return {"type": "init", "name": name}
-    def _handle_config(self, field=None, name=None, notify=False,
-                       value=None, **kw):
+    def _check_config(self, field=None, name=None, notify=False,
+                      value=None, **kw):
         if not isstr(name) or not isstr(field) :
             return
-        notify = bool(notify)
-        if notify:
-            self._cache_config(field, name, value)
-        self.emit("config", field, name, value)
-        return {"type": "config", "notify": notify,
+        return {"type": "config", "notify": bool(notify),
                 "field": field, "name": name, "value": value}
-    def _handle_prop(self, name=None, sid=None, **kw):
+    def _check_prop(self, name=None, sid=None, **kw):
         if not isstr(name) or self._name is None:
             self.send_invalid(sid)
             return
-        try:
-            value = self.plugins.props[self._name][name](self._device)
-        except Exception as err:
-            print_except()
-            self.send_invalid(sid)
-            return
-        self.send_prop(sid,  name, value)
         return {"type": "prop", "name": name, "sid": sid}
-    def _handle_alarm(self, name=None, nid=None, alarm=None,
-                      success=None, **kw):
+    def _check_alarm(self, name=None, nid=None, alarm=None,
+                     success=None, **kw):
         if not isidentifier(name):
             return
         if not success is None:
             return {"type": "alarm", "name": name, "nid": nid,
                     "success": bool(success)}
-        self.emit("alarm::%s" % name.replace('_', '-'),
-                  name, nid, alarm)
         return {"type": "alarm", "name": name, "nid": nid,
                 "alarm": alarm}
-    def _handle_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
+    def _check_slave(self, sid=None, name=None, args=[], kwargs={}, **kw):
         if name is None:
             self.send_invalid(sid)
             return
@@ -150,11 +184,37 @@ class SrtHelper(GObject.Object):
             kwargs = {}
         return {"type": "slave", "name": name, "sid": sid,
                 "args": args, "kwargs": kwargs}
-    def _handle_remote(self, obj=None, **kw):
+    def _check_remote(self, obj=None, **kw):
         if obj is None:
             return
-        self.emit("remote", obj)
         return {"type": "remote", "obj": obj}
+
+    def _init_action(self, name=None, **kw):
+        if self._name is None:
+            self._name = name
+    def _config_action(self, field=None, name=None, notify=False,
+                       value=None, **kw):
+        if notify:
+            self._cache_config(field, name, value)
+        self.emit("config", field, name, value)
+    def _prop_action(self, name=None, sid=None, **kw):
+        try:
+            value = self.plugins.props[self._name][name](self._device)
+        except Exception as err:
+            print_except()
+            self.send_invalid(sid)
+            return
+        self.send_prop(sid,  name, value)
+    def _alarm_action(self, name=None, nid=None, alarm=None,
+                      success=None, **kw):
+        if not success is None:
+            return
+        self.emit("alarm::%s" % name.replace('_', '-'),
+                  name, nid, alarm)
+    def _slave_action(self, sid=None, name=None, args=[], kwargs={}, **kw):
+        pass
+    def _remote_action(self, obj=None, **kw):
+        self.emit("remote", obj)
 
     def get_all_props(self):
         if self._name is None or self._device is None:

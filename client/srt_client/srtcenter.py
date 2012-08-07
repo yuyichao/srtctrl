@@ -114,7 +114,7 @@ class SrtCenter(GObject.Object):
         self._helper.send({"type": "slave", "sid": sid, "name": name,
                            "args": args, "kwargs": kwargs})
     def _host_quit_cb(self, host):
-        self.emit("quit")
+        self._quit()
     def _host_config_cb(self, host, sid, field, name, notify):
         value = self._get_config(field, name, notify,
                                  self._host_config_notify_cb, sid)

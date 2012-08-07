@@ -30,7 +30,8 @@ def get_obj_cb(sock, pkg):
     printbg("get_obj_cb", pkg)
 
 def main():
-    srtcenter = SrtCenter({"generic": {"host": "yyc-arch.org"}})
+    # srtcenter = SrtCenter({"generic": {"host": "yyc-arch.org"}})
+    srtcenter = SrtCenter()
     srtcenter.connect('error', err_cb)
     host, slave = conn_pair(gtype=JSONSock)
     srtcenter.add_slave_from_jsonsock(host)

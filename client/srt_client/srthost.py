@@ -173,7 +173,6 @@ class SrtHost(GObject.Object):
             except:
                 pass
     def _handle_quit(self, sid, **kw):
-        printr("slave quit")
         self.emit("quit")
         return True
     def _handle_alarm(self, sid, name="", nid=None, args={}, **kw):
