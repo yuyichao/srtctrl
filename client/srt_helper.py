@@ -49,18 +49,30 @@ class SrtHelper(GObject.Object):
         self.configs = new_wrapper2(lambda field, name:
                                     self.get_config(field, name, False),
                                     None)
-        self._pkg_queue = []
+        self._slave_queue = []
         self._auto_props = True
         self._wait_queue = []
 
     # Main Receive
     def _push_cb(self, cb, check_only):
         index = len(self._wait_queue)
-        self._wait_queue.append({"cb": cb, "check_only": check_only})
+        obj = {"cb": cb, "check_only": check_only}
+        if not check_only:
+            for i in range(len(self._slave_queue)):
+                try:
+                    if cb(self._slave_queue[i]):
+                        obj["res"] = self._slave_queue.pop(i)
+                        break
+                except:
+                    pass
+        self._wait_queue.append(obj)
         return index
     def _push_package(self, index, pkg):
+        if index >= len(self._wait_queue):
+            return
         self._wait_queue[:] = self._wait_queue[:index + 1]
         taken = False
+        used = False
         for obj in self._wait_queue:
             if "res" in obj:
                 continue
@@ -72,8 +84,17 @@ class SrtHelper(GObject.Object):
             except:
                 continue
             obj["res"] = pkg
+            used = True
             if not obj["check_only"]:
                 taken = True
+        if not used and "type" in pkg and pkg["type"] == "slave":
+            printr("pushed", pkg)
+            self._slave_queue.append(pkg)
+        return used
+    def _try_get_package(self, index):
+        if index >= len(self._wait_queue):
+            return
+        self._wait_queue[:] = self._wait_queue[:index + 1]
         if "res" in self._wait_queue[-1]:
             return self._wait_queue[-1]["res"]
         return
@@ -83,6 +104,9 @@ class SrtHelper(GObject.Object):
         check_only = bool(check_only)
         index = self._push_cb(cb, check_only)
         while True:
+            res = self._try_get_package(index)
+            if res:
+                return res
             try:
                 pkg = self._sock.recv()
             except GLib.GError:
@@ -95,14 +119,11 @@ class SrtHelper(GObject.Object):
                 continue
             if pkg is None:
                 continue
-            res = self._push_package(index, pkg)
+            self._push_package(index, pkg)
             try:
                 self.__package_action(**pkg)
             except:
                 pass
-            if not res:
-                continue
-            return res
     def wait_types(self, types, check_only=False):
         if isstr(types):
             types = [types]
