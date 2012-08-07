@@ -33,6 +33,7 @@ def bind_cb(res):
 def accept_cb(conn, nconn):
     exec_with_fd(sys.executable, [sys.executable, "zwicky.py"],
                  [nconn.props.fd])
+    nconn.close()
 
 def main():
     conn = SrtConn()
