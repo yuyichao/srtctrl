@@ -1,6 +1,6 @@
 #!/usr/bin/env python
+# coding=utf-8
 
-# -*- coding=utf-8
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
 #
@@ -17,7 +17,7 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function, division
+from __future__ import print_function, division, unicode_literals
 from srt_comm import *
 from gi.repository import GLib
 import sys
@@ -35,6 +35,8 @@ printg(conn)
 
 base_str = "随便挑的字符串\n"
 rep_times = 10
+
+printr(repr(base_str))
 
 def get_dirty_utf8():
     invalid_bytes = b'\xaf\xb0\x8e\x9f\xff\xe8\xca\xe4'
@@ -69,4 +71,4 @@ else:
         printg(buff)
         print()
     printbg(buff)
-    printbg(get_dirty_utf8())
+    printbg(repr(get_dirty_utf8()))

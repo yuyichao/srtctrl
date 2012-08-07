@@ -90,7 +90,7 @@ class SrtConn(_sock.Sock):
         util.printp(repr(buff))
         try:
             buff = buff.encode('utf-8')
-        except AttributeError:
+        except:
             pass
         return super(SrtConn, self).send(buff)
     def conn(self, addr):
