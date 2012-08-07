@@ -49,14 +49,14 @@
 #
 
 function(__PY_GET_UNIQUE_TARGET_NAME _name _unique_name)
-   set(propertyName "_PYTHON_UNIQUE_COUNTER_${_name}")
-   get_property(currentCounter GLOBAL PROPERTY "${propertyName}")
-   if(NOT currentCounter)
-      set(currentCounter 1)
-   endif()
-   set(${_unique_name} "${_name}_${currentCounter}" PARENT_SCOPE)
-   math(EXPR currentCounter "${currentCounter} + 1")
-   set_property(GLOBAL PROPERTY ${propertyName} ${currentCounter} )
+  set(propertyName "_PYTHON_UNIQUE_COUNTER_${_name}")
+  get_property(currentCounter GLOBAL PROPERTY "${propertyName}")
+  if(NOT currentCounter)
+    set(currentCounter 1)
+  endif()
+  set(${_unique_name} "${_name}_${currentCounter}" PARENT_SCOPE)
+  math(EXPR currentCounter "${currentCounter} + 1")
+  set_property(GLOBAL PROPERTY ${propertyName} ${currentCounter} )
 endfunction()
 
 get_filename_component(PYTHON_MACROS_MODULE_PATH
@@ -65,7 +65,7 @@ get_filename_component(PYTHON_MACROS_MODULE_PATH
 # Hopefully this will not break anything
 find_package(PythonLibrary REQUIRED)
 
-macro(_PYTHON_COMPILE SOURCE_FILE)
+function(_PYTHON_COMPILE SOURCE_FILE)
   find_file(_python_compile_py PythonCompile.py PATHS ${CMAKE_MODULE_PATH})
 
   # Byte compile and install the .pyc file.
@@ -121,19 +121,17 @@ macro(_PYTHON_COMPILE SOURCE_FILE)
     add_custom_command(
       OUTPUT ${_bin_py}
       COMMAND ${CMAKE_COMMAND} -E copy ${_absfilename} ${_bin_py}
-      DEPENDS ${_absfilename}
-    )
+      DEPENDS ${_absfilename})
   endif()
   add_custom_command(
     OUTPUT ${_bin_pyc}
     COMMAND ${PYTHON_EXECUTABLE} ${_python_compile_py} ${_bin_py}
-    DEPENDS ${_bin_py}
-    )
-  set(PYTHON_COMPILED_FILE ${_bin_pyc})
-  set(PYTHON_COMPILE_PY_FILE ${_bin_py})
-endmacro()
+    DEPENDS ${_bin_py})
+  set(PYTHON_COMPILED_FILE ${_bin_pyc} PARENT_SCOPE)
+  set(PYTHON_COMPILE_PY_FILE ${_bin_py} PARENT_SCOPE)
+endfunction()
 
-macro(PYTHON_COMPILE)
+function(PYTHON_COMPILE)
   unset(PYTHON_COMPILED_FILES)
   unset(PYTHON_COMPILE_TARGET_FILES)
   foreach(pyfile ${ARGN})
@@ -142,9 +140,11 @@ macro(PYTHON_COMPILE)
     set(PYTHON_COMPILE_PY_FILES ${PYTHON_COMPILE_PY_FILES}
       ${PYTHON_COMPILE_PY_FILE})
   endforeach()
-endmacro()
+  set(PYTHON_COMPILED_FILES ${PYTHON_COMPILED_FILES} PARENT_SCOPE)
+  set(PYTHON_COMPILE_PY_FILES ${PYTHON_COMPILE_PY_FILES} PARENT_SCOPE)
+endfunction()
 
-macro(PYTHON_INSTALL_ALL DEST_DIR)
+function(PYTHON_INSTALL_ALL DEST_DIR)
   python_compile(${ARGN})
 
   # PLEASE tell me if there is better solutions
@@ -161,13 +161,13 @@ macro(PYTHON_INSTALL_ALL DEST_DIR)
     set(PYC_DEST_DIR ${DEST_DIR})
   endif()
   install(FILES ${PYTHON_COMPILED_FILES} DESTINATION ${PYC_DEST_DIR})
-endmacro()
+endfunction()
 
 # backward compatibility
-macro(PYTHON_INSTALL SOURCE_FILE DESINATION_DIR)
+function(PYTHON_INSTALL SOURCE_FILE DESINATION_DIR)
   python_install_all(${DESINATION_DIR} ${SOURCE_FILE})
-endmacro()
+endfunction()
 
-macro(PYTHON_INSTALL_MODULE MODULE_NAME)
+function(PYTHON_INSTALL_MODULE MODULE_NAME)
   python_install_all(${PYTHON_SITE_PACKAGES_INSTALL_DIR}/${MODULE_NAME} ${ARGN})
-endmacro()
+endfunction()
