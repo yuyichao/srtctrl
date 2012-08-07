@@ -37,17 +37,17 @@ target_link_libraries(gwebkitjs ${GWEBKITJS_LINK})
 install(TARGETS gwebkitjs LIBRARY DESTINATION ${LIB_INSTALL_DIR})
 
 gobject_introspection(
-    FILENAME GWebKitJS-0.1.gir
-    NSVERSION 0.1
-    INCLUDE GObject-2.0 GLib-2.0 WebKit-3.0
-    PACKAGE_EXPORT gwebkitjs
-    LIBRARY gwebkitjs
-    SCANNER_ARGS --warn-all --add-include-path=${CMAKE_CURRENT_SOURCE_DIR}
-    COMPILER_ARGS "--includedir=${CMAKE_CURRENT_SOURCE_DIR}"
-    SYMBOL_PREFIXES gwebkitjs
-    SOURCES ${GWEBKITJS_SOURCES} ${GWEBKITJS_HEADERS}
-    QUIET
-)
+  FILENAME GWebKitJS-0.1.gir
+  NSVERSION 0.1
+  INCLUDE GObject-2.0 GLib-2.0 WebKit-3.0
+  PACKAGE_EXPORT gwebkitjs
+  LIBRARY gwebkitjs
+  SCANNER_ARGS --warn-all --add-include-path=${CMAKE_CURRENT_SOURCE_DIR}
+  COMPILER_ARGS "--includedir=${CMAKE_CURRENT_SOURCE_DIR}"
+  SYMBOL_PREFIXES gwebkitjs
+  SOURCES ${GWEBKITJS_SOURCES} ${GWEBKITJS_HEADERS}
+  QUIET
+  )
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/GWebKitJS-0.1.gir
   DESTINATION ${GOBJECT_INTROSPECTION_GIRDIR})
