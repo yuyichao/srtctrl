@@ -60,10 +60,14 @@ class SrtTracker(GObject.Object):
         except:
             self._station_hi = 0
         if self._track:
-            GLib.timeout_add_seconds(1, self._update_cb)
-        else:
-            GLib.idle_add(self._update_cb)
+            GLib.timeout_add_seconds(1, self._timeout_cb)
+        GLib.idle_add(self._idle_cb)
         self._active = True
+    def _timeout_cb(self):
+        return self._update_cb()
+    def _idle_cb(self):
+        self._update_cb()
+        return False
     def _update_cb(self):
         if not self._active:
             return False
