@@ -55,7 +55,9 @@ class SrtHelper(GObject.Object):
 
     # Main Receive
     def wait_with_cb(self, cb, check_only=False):
-        pass
+        if not hasattr(cb, '__call__'):
+            raise TypeError("cb is not callable")
+        check_only = bool(check_only)
     def wait_types(self, types):
         if isstr(types):
             types = [types]
