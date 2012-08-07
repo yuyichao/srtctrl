@@ -28,7 +28,7 @@ def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
     if not zwicky.track(name=name, offset=offset, time=time,
                         abstime=abstime, track=track, args=args):
         raise Exception
-    zwicky.tracker.update_pos()
+    zwicky.motor.pos_chk()
     return True
 
 setiface.cmds.zwicky.move = zwicky_move
@@ -52,7 +52,7 @@ def zwicky_radio(zwicky, count=1, *w, **kw):
     f_res = []
     f_frange = None
     for i in range(count):
-        zwicky.tracker.update_pos()
+        zwicky.motor.pos_chk()
         res1 = zwicky.radio.radio()
         f_frange = res1["freq_range"]
         f_res.append(res1["data"])

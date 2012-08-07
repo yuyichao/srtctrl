@@ -32,7 +32,12 @@ class ZwickyMoter:
                     "rod_crate", "poffset"]:
             self._zwicky.get_config(key)
         self.configs = self._zwicky.configs
+        self._zwicky.connect("alarm::timer", self._timer_cb)
         self.reset()
+    def _timer_cb(self, zwicky, name, nid, args):
+        if zwicky.cmd_busy:
+            return
+        self.pos_chk()
     def reset(self):
         self._az_c = 0
         self._el_c = 0
@@ -141,6 +146,8 @@ class ZwickyMoter:
             return (degree - self.configs.el_lim[0]) * self.configs.el_c_per_deg
 
     def pos_chk(self):
+        if self._zwicky.remote_busy:
+            return
         if self.el_c_set > self._el_c and not self._el_edge == 1:
             self._zwicky.send_move(DIRECT_UP, self.el_c_set - self._el_c)
         if self.az_c_set > self._az_c and not self._az_edge == 1:

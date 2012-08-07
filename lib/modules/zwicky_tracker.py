@@ -24,20 +24,17 @@ class ZwickyTracker:
     def __init__(self, zwicky):
         self._zwicky = zwicky
         self._track_obj = None
-        self.waiting_track = False
-        self._station_changed = False
         self._zwicky.get_config("station")
         self._zwicky.connect("alarm::track", self._track_cb)
-        self._zwicky.connect("alarm::timer", self._timer_cb)
         self._zwicky.connect("config", self._config_cb)
         self.reset()
     def _config_cb(self, zwicky, field, name, value):
         if field == "zwicky" and name == "station":
-            self._station_changed = True
-    def _timer_cb(self, zwicky, name, nid, args):
-        if zwicky.remote_busy or zwicky.cmd_busy:
+            if self._track_obj is None:
+                return
+            track_obj = self._track_obj.copy()
+            self._apply_track(track_obj)
             return
-        self.update_pos()
     def _track_cb(self, zwicky, name, nid, args):
         az, el = get_dict_fields(args, ["az", "el"])
         if None in [az, el]:
@@ -45,8 +42,6 @@ class ZwickyTracker:
         try:
             self.set_pos(az, el)
         except:
-            return
-        if zwicky.remote_busy or zwicky.cmd_busy:
             return
         self._update_pos()
     def reset(self):
@@ -56,15 +51,6 @@ class ZwickyTracker:
     def set_pos(self, az, el):
         self._az = float(az)
         self._el = float(el)
-    def update_pos(self):
-        if self._track_obj is None:
-            return
-        if self._station_changed:
-            if self.waiting_track:
-                return
-            self._apply_track(self._track_obj)
-            return
-        self._update_pos()
     def _update_pos(self):
         self._zwicky.move(self._az, self._el)
     def track(self, name="", offset=[0, 0], time=0, abstime=False, track=True,
@@ -74,19 +60,15 @@ class ZwickyTracker:
             return True
         return False
     def _apply_track(self, track_obj):
-        self.waiting_track = True
         track_obj["station"] = self._zwicky.configs.station
-        self._station_changed = False
         res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
         if res is None:
-            self.waiting_track = False
             return
         self._track_obj = track_obj
         res = self._zwicky.wait_with_cb(
             lambda pkg: (pkg["type"] == "alarm" and
                          pkg["name"] == "track" and
                          pkg["nid"] == "zwicky"), check_only=True)
-        self.waiting_track = False
         return True
     def _track(self, name, offset, time, abstime, track, args):
         if track:
