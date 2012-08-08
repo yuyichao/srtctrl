@@ -18,23 +18,24 @@
 
 from __future__ import print_function, division
 from srt_comm import *
+import srt_slave
 
 import time
 
 printbg("TEST SLAVE")
 try:
-    printb("RES:", iface.cmd.move("galacti", offset=[30, 40]))
+    printb("RES:", srt_slave.cmd.move("galacti", offset=[30, 40]))
 except:
     print_except()
-printb("RES:", iface.cmd.move("galactic", offset=[30, 40]))
-printb("config", iface.config.zwicky.station)
-iface.config.zwicky.station = [10, 10, 10]
-printb("RES:", iface.cmd.set_freq(1420.8, 1))
-printb("RES:", iface.cmd.calib(1))
-printb("RES:", iface.cmd.move(args=[40, 30]))
-t = iface.make_time("10s")
-while not iface.time_passed(t):
-    printb("RES:", iface.cmd.radio())
-printb("RES:", iface.cmd.reset())
+printb("RES:", srt_slave.cmd.move("galactic", offset=[30, 40]))
+printb("config", srt_slave.config.zwicky.station)
+srt_slave.config.zwicky.station = [10, 10, 10]
+printb("RES:", srt_slave.cmd.set_freq(1420.8, 1))
+printb("RES:", srt_slave.cmd.calib(1))
+printb("RES:", srt_slave.cmd.move(args=[40, 30]))
+t = srt_slave.make_time("10s")
+while not srt_slave.time_passed(t):
+    printb("RES:", srt_slave.cmd.radio())
+printb("RES:", srt_slave.cmd.reset())
 printbg("TEST QUIT")
-iface.quit()
+srt_slave.quit()

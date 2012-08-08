@@ -331,21 +331,12 @@ def new_iface(conn, sync=True):
         except:
             pass
         return _time.time() + guess_interval(tstr)
-    attr_table = {
-        "make_time": make_time,
-        "time_passed": lambda t: _time.time() >= t,
-        "config": new_wrapper2(get_config, set_config),
-        "start": send_start,
-        "prop": new_wrapper(send_prop, None) if sync else send_prop,
-        "cmd": new_wrapper(lambda name:
-                           (lambda *args, **kwargs:
-                            send_cmd(name, *args, **kwargs)), None),
-        "lock": send_lock,
-        "quit": send_quit,
-        "alarm": new_wrapper(lambda name:
-                             (lambda nid, **args:
-                              send_alarm(name, nid, **args)), None)
-    }
+    def wait_ready():
+        if _state["ready"]:
+            return
+        wait_types("ready")
+    def get_name():
+        return _state["name"]
     class PythonSlave(GObject.Object):
         __gsignals__ = {
             "config": (GObject.SignalFlags.RUN_FIRST,
@@ -397,19 +388,31 @@ def new_iface(conn, sync=True):
         def do_quit(self):
             if sync:
                 exit()
-        def __getattr__(self, key):
-            try:
-                return attr_table[key]
-            except KeyError:
-                raise AttributeError(key)
-        def wait_ready(self):
-            if _state["ready"]:
-                return
-            wait_types("ready")
-        def get_name(self):
-            return _state["name"]
     iface = PythonSlave()
-    return iface
+    import types
+    import sys
+    module = types.ModuleType("srt_slave")
+    module.__dict__.update({
+        "wait_ready": wait_ready,
+        "get_name": get_name,
+        "make_time": make_time,
+        "time_passed": lambda t: _time.time() >= t,
+        "config": new_wrapper2(get_config, set_config),
+        "start": send_start,
+        "prop": new_wrapper(send_prop, None) if sync else send_prop,
+        "cmd": new_wrapper(lambda name:
+                           (lambda *args, **kwargs:
+                            send_cmd(name, *args, **kwargs)), None),
+        "lock": send_lock,
+        "quit": send_quit,
+        "alarm": new_wrapper(lambda name:
+                             (lambda nid, **args:
+                              send_alarm(name, nid, **args)), None),
+        "slave": iface,
+        "InvalidRequest": InvalidRequest
+    })
+    sys.modules["srt_slave"] = module
+    return module
 
 def main():
     sys.argv.pop(0)
@@ -421,11 +424,10 @@ def main():
         sync = True
     conn = get_passed_conns(gtype=JSONSock)[0]
     iface = new_iface(conn, sync)
-    g = {"iface": iface, "InvalidRequest": InvalidRequest}
     if sync:
         iface.wait_ready()
     try:
-        execfile(fname, g, g)
+        execfile(fname)
     except:
         print_except()
 
