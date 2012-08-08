@@ -31,13 +31,22 @@ class InvalidRequest(Exception):
 def new_iface(conn, sync=True):
     _state = {"ready": False, "name": None}
     sync = bool(sync)
-    def got_obj_cb(conn, pkg):
-        handle_pkg(pkg)
-    def disconn_cb(conn):
-        iface.emit("quit")
     if not sync:
         conn.start_send()
         conn.start_recv()
+        def got_obj_cb(conn, pkg):
+            if pkg is None:
+                iface.emit("quit")
+                return
+            try:
+                pkg = __check_packages(**pkg)
+            except:
+                return
+            if pkg is None:
+                return
+            __package_action(**pkg)
+        def disconn_cb(conn):
+            iface.emit("quit")
         conn.connect("got-obj", got_obj_cb)
         conn.connect("disconn", disconn_cb)
     def send(obj):
@@ -50,13 +59,12 @@ def new_iface(conn, sync=True):
         send({"type": "prop", "name": name})
         if not sync:
             return
-        while True:
-            pkg = wait_types(["prop", "error"])
-            if pkg["type"] == "error":
-                raise InvalidRequest
-            if not pkg["name"] == name:
-                continue
-            return pkg["value"]
+        pkg = wait_with_cb(lambda pkg: (pkg["type"] == "error" or
+                                        (pkg["type"] == "prop" and
+                                         pkg["name"] == name)))
+        if pkg["type"] == "error":
+            raise InvalidRequest
+        return pkg["value"]
     def send_cmd(name, *args, **kwargs):
         send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
         if not sync:
@@ -83,43 +91,28 @@ def new_iface(conn, sync=True):
         send({"type": "alarm", "name": name, "nid": nid, "args": args})
         if not sync:
             return
-        while True:
-            pkg = wait_types("alarm")
-            if not (pkg["name"] == name and pkg["nid"] == nid):
-                continue
-            if "success" in pkg:
-                if pkg["success"]:
-                    return True
-                raise InvalidRequest
+        pkg = wait_with_cb(lambda pkg: (pkg["type"] == "alarm" and
+                                        pkg["name"] == name and
+                                        pkg["nid"] == nid and
+                                        "success" in pkg))
+        if pkg["success"]:
+            return True
+        raise InvalidRequest
 
     # config
     _config_cache = {}
     def _cache_config(field, name, value):
         set_2_level(_config_cache, field, name, value)
-    def _handle_config(field=None, name=None, notify=False,
-                       value=None, set_value=None, success=None, **kw):
-        if not isstr(name) or not isstr(field) :
-            return
-        if set_value:
-            return {"type": "config", "field": field, "name": name,
-                    "set_value": True, "success": bool(success)}
-        notify = bool(notify)
-        if notify:
-            _cache_config(field, name, value)
-        iface.emit("config", field, name, value)
-        return {"type": "config", "notify": notify,
-                "field": field, "name": name, "value": value}
     def set_config(field, name, value):
         send({"type": "config", "field": field, "name": name,
               "set_value": True, "value": value})
-        while True:
-            pkg = wait_types("config")
-            if (not "set_value" in pkg or
-                not (pkg["field"] == field and pkg["name"] == name)):
-                continue
-            if pkg["success"]:
-                return
-            raise InvalidRequest
+        pkg = wait_with_cb(lambda pkg: (pkg["type"] == "config" and
+                                        "set_value" in pkg and
+                                        pkg["field"] == field and
+                                        pkg["name"] == name))
+        if pkg["success"]:
+            return
+        raise InvalidRequest
     def get_config(field, name, notify=True, non_null=False):
         try:
             return _config_cache[field][name]
@@ -129,111 +122,209 @@ def new_iface(conn, sync=True):
               "notify": bool(notify)})
         if not sync:
             return
-        while True:
-            pkg = wait_types("config")
-            if ("set_value" in pkg or
-                not (pkg["field"] == field and pkg["name"] == name)):
-                continue
-            value = pkg["value"]
-            if value is None and non_null:
-                raise KeyError("config %s.%s not found" % (field, name))
-            return pkg["value"]
+        pkg = wait_with_cb(lambda pkg: (pkg["type"] == "config" and
+                                        (not "set_value" in pkg) and
+                                        pkg["field"] == field and
+                                        pkg["name"] == name))
+        value = pkg["value"]
+        if value is None and non_null:
+            raise KeyError("config %s.%s not found" % (field, name))
+        return pkg["value"]
 
-    def handle_pkg(pkg):
-        if not pkg:
-            iface.emit("quit")
-        pkgtype = get_dict_fields(pkg, "type")
-        if pkgtype is None:
+    def __check_packages(type=None, **pkg):
+        if type is None:
             return
-        elif pkgtype == "quit":
-            iface.emit("quit")
+        elif type == "quit":
             return {"type": "quit"}
-        elif pkgtype == "ready":
+        elif type == "ready":
+            return {"type": "ready"}
+        elif type == "config":
+            return _check_config(**pkg)
+        elif type == "prop":
+            return _check_prop(**pkg)
+        elif type == "alarm":
+            return _check_alarm(**pkg)
+        elif type == "error":
+            return _check_error(**pkg)
+        elif type == "lock":
+            return _check_lock(**pkg)
+        elif type == "init":
+            return _check_init(**pkg)
+        elif type == "cmd":
+            return _check_cmd(**pkg)
+        elif type == "res":
+            return _check_res(**pkg)
+        elif type == "signal":
+            return _check_signal(**pkg)
+    def __package_action(type=None, **pkg):
+        if type == "quit":
+            iface.emit("quit")
+            return
+        elif type == "ready":
             _state["ready"] = True
             iface.emit("ready")
-            return {"type": "ready"}
-        elif pkgtype == "config":
-            return _handle_config(**pkg)
-        elif pkgtype == "prop":
-            return _handle_prop(**pkg)
-        elif pkgtype == "alarm":
-            return _handle_alarm(**pkg)
-        elif pkgtype == "error":
-            return _handle_error(**pkg)
-        elif pkgtype == "lock":
-            return _handle_lock(**pkg)
-        elif pkgtype == "init":
-            return _handle_init(**pkg)
-        elif pkgtype == "cmd":
-            return _handle_cmd(**pkg)
-        elif pkgtype == "res":
-            return _handle_res(**pkg)
-        elif pkgtype == "signal":
-            return _handle_signal(**pkg)
-    def wait_types(types):
-        if isstr(types):
-            types = [types]
+            return
+        elif type == "config":
+            return _config_action(**pkg)
+        elif type == "prop":
+            return _prop_action(**pkg)
+        elif type == "alarm":
+            return _alarm_action(**pkg)
+        elif type == "error":
+            return _error_action(**pkg)
+        elif type == "lock":
+            return _lock_action(**pkg)
+        elif type == "init":
+            return _init_action(**pkg)
+        elif type == "cmd":
+            return _cmd_action(**pkg)
+        elif type == "res":
+            return _res_action(**pkg)
+        elif type == "signal":
+            return _signal_action(**pkg)
+
+    _wait_queue = []
+    def _push_cb(cb, check_only):
+        index = len(_wait_queue)
+        obj = {"cb": cb, "check_only": check_only}
+        _wait_queue.append(obj)
+        return index
+    def _push_package(index, pkg):
+        if index >= len(_wait_queue):
+            return
+        _wait_queue[:] = _wait_queue[:index + 1]
+        taken = False
+        used = False
+        for obj in _wait_queue:
+            if "res" in obj:
+                continue
+            if taken and not obj["check_only"]:
+                continue
+            try:
+                if not obj["cb"](pkg):
+                    continue
+            except:
+                continue
+            obj["res"] = pkg
+            used = True
+            if not obj["check_only"]:
+                taken = True
+        return used
+    def _try_get_package(index):
+        if index >= len(_wait_queue):
+            return
+        _wait_queue[:] = _wait_queue[:index + 1]
+        if "res" in _wait_queue[-1]:
+            return _wait_queue[-1]["res"]
+        return
+    def wait_with_cb(cb, check_only=False):
+        if not hasattr(cb, '__call__'):
+            raise TypeError("cb is not callable")
+        check_only = bool(check_only)
+        index = _push_cb(cb, check_only)
         while True:
+            res = _try_get_package(index)
+            if res:
+                return res
             try:
                 pkg = conn.recv()
             except GLib.GError:
-                iface.emit("quit")
-            pkg = handle_pkg(pkg)
+                exit()
+            if not pkg:
+                exit()
+            try:
+                pkg = __check_packages(**pkg)
+            except:
+                continue
             if pkg is None:
                 continue
-            if pkg["type"] in types:
-                return pkg
-    def _handle_prop(name=None, value=None, **kw):
-        iface.emit("prop", name, value)
+            _push_package(index, pkg)
+            __package_action(**pkg)
+    def wait_types(types, check_only=False):
+        if isstr(types):
+            types = [types]
+        return wait_with_cb(lambda pkg: (pkg["type"] in types), check_only)
+
+    def _check_config(field=None, name=None, notify=False,
+                      value=None, set_value=None, success=None, **kw):
+        if not isstr(name) or not isstr(field) :
+            return
+        if set_value:
+            return {"type": "config", "field": field, "name": name,
+                    "set_value": True, "success": bool(success)}
+        notify = bool(notify)
+        return {"type": "config", "notify": notify,
+                "field": field, "name": name, "value": value}
+    def _check_prop(name=None, value=None, **kw):
         return {"type": "prop", "name": name, "value": value}
-    def _handle_alarm(name=None, nid=None, alarm=None,
+    def _check_alarm(name=None, nid=None, alarm=None,
                       success=None, **kw):
         if not isidentifier(name):
             return
         if not success is None:
             success = bool(success)
-            iface.emit("alarm-success::%s" % name.replace('_', '-'),
-                       name, nid, success)
             return {"type": "alarm", "name": name, "nid": nid,
                     "success": success}
-        iface.emit("alarm::%s" % name.replace('_', '-'),
-                   name, nid, alarm)
         return {"type": "alarm", "name": name, "nid": nid,
                 "alarm": alarm}
-    def _handle_error(errno=None, msg=None, **kw):
+    def _check_error(errno=None, msg=None, **kw):
         try:
             errno = int(errno)
         except:
             return
         msg = str(msg)
-        iface.emit("error", errno, msg)
-        if sync:
-            raise InvalidRequest
         return {"type": "error", "errno": errno, "msg": msg}
-    def _handle_lock(res=None, **kw):
-        res = bool(res)
-        iface.emit("lock", errno, res)
-        return {"type": "lock", "res": res}
-    def _handle_init(name=None, **kw):
+    def _check_lock(res=None, **kw):
+        return {"type": "lock", "res": bool(res)}
+    def _check_init(name=None, **kw):
         if not isstr(name):
             return
-        _state["name"] = name
-        iface.emit("init", name)
         return {"type": "init", "name": name}
-    def _handle_cmd(**kw):
-        iface.emit("cmd")
+    def _check_cmd(**kw):
         return {"type": "cmd"}
-    def _handle_res(res=None, props={}, **kw):
-        iface.emit("res", res, props)
+    def _check_res(res=None, props={}, **kw):
         return {"type": "res", "res": res, "props": props}
-    def _handle_signal(name=None, value=None, props={}, **kw):
+    def _check_signal(name=None, value=None, props={}, **kw):
         if not isidentifier(name):
             return
         props = std_arg({}, props)
-        iface.emit("signal::%s" % name.replace('_', '-'),
-                   name, value, props)
         return {"type": "signal", "name": name,
                 "value": value, "props": props}
+
+    def _config_action(field=None, name=None, notify=False,
+                       value=None, set_value=None, success=None, **kw):
+        if set_value:
+            return
+        if notify:
+            _cache_config(field, name, value)
+        iface.emit("config", field, name, value)
+    def _prop_action(name=None, value=None, **kw):
+        iface.emit("prop", name, value)
+    def _alarm_action(name=None, nid=None, alarm=None,
+                      success=None, **kw):
+        if not success is None:
+            iface.emit("alarm-success::%s" % name.replace('_', '-'),
+                       name, nid, success)
+            return
+        iface.emit("alarm::%s" % name.replace('_', '-'),
+                   name, nid, alarm)
+    def _error_action(errno=None, msg=None, **kw):
+        iface.emit("error", errno, msg)
+        if sync:
+            raise InvalidRequest
+    def _lock_action(res=None, **kw):
+        iface.emit("lock", errno, res)
+    def _init_action(name=None, **kw):
+        _state["name"] = name
+        iface.emit("init", name)
+    def _cmd_action(**kw):
+        iface.emit("cmd")
+    def _res_action(res=None, props={}, **kw):
+        iface.emit("res", res, props)
+    def _signal_action(name=None, value=None, props={}, **kw):
+        iface.emit("signal::%s" % name.replace('_', '-'),
+                   name, value, props)
+
     def make_time(tstr):
         try:
             return guess_time(tstr)

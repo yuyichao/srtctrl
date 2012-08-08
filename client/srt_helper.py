@@ -88,7 +88,6 @@ class SrtHelper(GObject.Object):
             if not obj["check_only"]:
                 taken = True
         if not used and "type" in pkg and pkg["type"] == "slave":
-            printr("pushed", pkg)
             self._slave_queue.append(pkg)
         return used
     def _try_get_package(self, index):

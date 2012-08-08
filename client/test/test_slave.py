@@ -22,6 +22,10 @@ from srt_comm import *
 import time
 
 printbg("TEST SLAVE")
+try:
+    printb("RES:", iface.cmd.move("galacti", offset=[30, 40]))
+except:
+    print_except()
 printb("RES:", iface.cmd.move("galactic", offset=[30, 40]))
 printb("config", iface.config.zwicky.station)
 iface.config.zwicky.station = [10, 10, 10]
