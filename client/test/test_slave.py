@@ -22,7 +22,7 @@ from srt_comm import *
 import time
 
 printbg("TEST SLAVE")
-printb("RES:", iface.cmd.move(offset=[30, 40]))
+printb("RES:", iface.cmd.move("galactic", offset=[30, 40]))
 printb("config", iface.config.zwicky.station)
 iface.config.zwicky.station = [10, 10, 10]
 printb("RES:", iface.cmd.set_freq(1420.8, 1))
