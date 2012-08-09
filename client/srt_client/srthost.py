@@ -18,7 +18,7 @@
 
 from __future__ import print_function, division
 from srt_comm import *
-from gi.repository import GObject
+from gi.repository import GObject, GLib
 
 # track, connect
 
@@ -81,7 +81,8 @@ class SrtHost(GObject.Object):
         if self._ready:
             sock.send({"type": "ready"})
         sid = self._new_usid()
-        self._slaves[sid] = {"sock": sock, "alarms": {}}
+        self._slaves[sid] = {"sock": sock, "alarms": {},
+                             "ping": None}
         self._lookup_id[id(sock)] = sid
         return True
     def create_slave_by_name(self, name, args):
@@ -98,6 +99,7 @@ class SrtHost(GObject.Object):
         if None in [type, sid]:
             return
         if self._lock >= 0 and not sid == self._lock:
+            self._ping_sid(sid)
             return
         if type == "lock":
             if lock:
@@ -144,6 +146,8 @@ class SrtHost(GObject.Object):
         #     res = self._handle_name(sid, **pkg)
         elif pkgtype == "prop":
             res = self._handle_prop(sid, **pkg)
+        elif pkgtype == "pong":
+            res = self._handle_pong(sid, **pkg)
         elif pkgtype == "cmd":
             res = self._handle_cmd(sid, **pkg)
         elif pkgtype == "lock":
@@ -154,6 +158,27 @@ class SrtHost(GObject.Object):
             res = self._handle_alarm(sid, **pkg)
         if res is None:
             self._send_invalid(slave)
+    def _ping_sid_cb(self, sid):
+        if (not sid in self._slave) or self._slave[sid]["ping"] is None:
+            return False
+        try:
+            self._slave[sid]["sock"].close()
+        except:
+            pass
+        try:
+            del self._slave[sid]
+        except:
+            pass
+        return False
+    def _ping_sid(self, sid):
+        if not sid in self._slaves:
+            return
+        if not self._slave[sid]["ping"] is None:
+            return
+        self._slave[sid]["ping"] = GLib.timeout_add_seconds(1,
+                                                            self._ping_sid_cb,
+                                                            sid)
+        self._send_sid(sid, {"type": "ping"})
     def _send_invalid(self, slave):
         slave.send({"type": "error", "errno": SRTERR_UNKNOWN_CMD,
                     "msg": "invalid request"})
@@ -236,6 +261,17 @@ class SrtHost(GObject.Object):
                                 "args": args, "kwargs": kwargs})
         self._check_queue()
         return True
+    def _handle_pong(self, sid, **kw):
+        if not sid in self._slaves:
+            return True
+        if self._slave[sid]["ping"] is None:
+            return True
+        try:
+            GLib.source_remove(self._slave[sid]["ping"])
+        except:
+            pass
+        self._slave[sid]["ping"] = None
+        return True
     def _handle_prop(self, sid, name=None, **kw):
         if not isstr(name):
             return
@@ -278,6 +314,13 @@ class SrtHost(GObject.Object):
             return
         try:
             del self._lookup_id[id(slave)]
+        except:
+            pass
+        try:
+            GLib.source_remove(self._slaves[sid]["ping"])
+        except:
+            pass
+        try:
             del self._slaves[sid]
         except:
             pass

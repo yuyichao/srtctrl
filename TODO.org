@@ -3,4 +3,4 @@
 ** mac frontend?
 * Backend
 ** error check
-** write_result
+** slave: cwd, listen on unix socket, cmd file, quit on slave end, auto lock

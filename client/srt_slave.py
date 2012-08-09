@@ -186,6 +186,8 @@ def new_iface(conn, sync=True, as_default=True):
     def __check_packages(type=None, **pkg):
         if type is None:
             return
+        elif type == "ping":
+            return {"type": "ping"}
         elif type == "quit":
             return {"type": "quit"}
         elif type == "ready":
@@ -211,6 +213,9 @@ def new_iface(conn, sync=True, as_default=True):
     def __package_action(type=None, **pkg):
         if type == "quit":
             iface.emit("quit")
+            return
+        elif type == "ping":
+            send({"type": "pong"})
             return
         elif type == "ready":
             _state["ready"] = True
