@@ -35,6 +35,44 @@ default = None
 sys.modules["%s.default" % __name__] = None
 _slave_list = []
 
+class SlaveLogger:
+    def __init__(self):
+        self._file = None
+        self._filter = None
+    def set_fname(self, fname):
+        if not self._file is None:
+            self._file.close()
+        try:
+            self._file = open(fname, 'a')
+        except:
+            self._file = None
+    def set_filter(self, cb):
+        self._filter = cb
+    def log(self, log_type, content):
+        if self._file is None:
+            return
+        if self._filter:
+            try:
+                if not self._filter(log_type, content):
+                    return
+            except:
+                return
+        string = "%s: %s" % (repr(log_type), repr(content))
+        str_list = string.split('\n')
+        for string in str_list:
+            self._file.write("# %s\n" % string)
+        self._file.flush()
+    def write(self, content):
+        if self._file is None:
+            return
+        string = str(content)
+        str_list = string.split('\n')
+        for string in str_list:
+            self._file.write("%s\n" % string)
+        self._file.flush()
+    def __del__(self):
+        self._file.close()
+
 class InvalidRequest(Exception):
     pass
 
@@ -48,6 +86,7 @@ def make_time(tstr):
 def new_iface(conn, sync=True, as_default=True):
     _state = {"ready": False, "name": None}
     sync = bool(sync)
+    logger = SlaveLogger()
     if not sync:
         conn.start_send()
         conn.start_recv()
@@ -71,6 +110,7 @@ def new_iface(conn, sync=True, as_default=True):
         if sync:
             conn.wait_send()
     def send_start(name, args={}):
+        logger.log("start", [name, args])
         send({"type": "start", "name": name, "args": args})
     def send_prop(name):
         send({"type": "prop", "name": name})
@@ -83,6 +123,7 @@ def new_iface(conn, sync=True, as_default=True):
             raise InvalidRequest
         return pkg["value"]
     def send_cmd(name, *args, **kwargs):
+        logger.log("cmd", [name, args, kwargs])
         send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
         if not sync:
             return
@@ -102,6 +143,7 @@ def new_iface(conn, sync=True, as_default=True):
             return True
         return
     def send_quit():
+        logger.log("quit", "")
         send({"type": "quit"})
         iface.emit("quit")
     def send_alarm(name, nid="", **args):
@@ -121,6 +163,7 @@ def new_iface(conn, sync=True, as_default=True):
     def _cache_config(field, name, value):
         set_2_level(_config_cache, field, name, value)
     def set_config(field, name, value):
+        logger.log("set_config", [field, name, value])
         send({"type": "config", "field": field, "name": name,
               "set_value": True, "value": value})
         pkg = wait_with_cb(lambda pkg: (pkg["type"] == "config" and
@@ -401,6 +444,9 @@ def new_iface(conn, sync=True, as_default=True):
                 exit()
     iface = PythonSlave()
     module_dict = {
+        "set_log_filter": logger.set_filter,
+        "record": logger.set_fname,
+        "write_log": logger.write,
         "wait_ready": wait_ready,
         "get_name": get_name,
         "make_time": make_time,

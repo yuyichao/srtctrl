@@ -32,7 +32,7 @@ class ZwickyTracker:
         if field == "zwicky" and name == "station":
             if self._track_obj is None:
                 return
-            track_obj = self._track_obj.copy()
+            track_obj = self.get_track()
             self._apply_track(track_obj)
             return
     def _track_cb(self, zwicky, name, nid, args):
@@ -97,6 +97,6 @@ class ZwickyTracker:
                      "track": track, "args": args}
         return self._apply_track(track_obj)
     def get_track(self):
-        return self._track_obj
+        return self._track_obj.copy()
 
 setiface.device.zwicky.tracker = ZwickyTracker
