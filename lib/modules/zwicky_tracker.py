@@ -71,6 +71,7 @@ class ZwickyTracker:
                          pkg["nid"] == "zwicky"), check_only=True)
         return True
     def _track(self, name, offset, time, abstime, track, args):
+        offset = std_arg([0., 0.], offset)
         if track:
             if abstime:
                 try:

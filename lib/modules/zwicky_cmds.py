@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 from srt_comm import *
+import time as _time
 
 def zwicky_move(zwicky, name="", args=None, offset=[0., 0.], time=0,
                 abstime=False, track=True, *w, **kw):
@@ -47,8 +48,21 @@ def zwicky_reset(zwicky, *w, **kw):
 setiface.cmds.zwicky.reset = zwicky_reset
 setiface.cmds.zwicky.stow = zwicky_reset
 
-def zwicky_radio(zwicky, count=1, *w, **kw):
+def zwicky_radio(zwicky, count=1, interval=None, until=None, *w, **kw):
     count = int(count)
+    time_limit = None
+    try:
+        int_limit = guess_interval(interval) + _time.time()
+        if time_limit is None or time_limit > int_limit:
+            time_limit = int_limit
+    except:
+        pass
+    try:
+        until_limit = guess_time(until)
+        if time_limit is None or time_limit > until_limit:
+            time_limit = until_limit
+    except:
+        pass
     if count <= 0:
         count = 1
     f_res = []
@@ -58,6 +72,10 @@ def zwicky_radio(zwicky, count=1, *w, **kw):
         res1 = zwicky.radio.radio()
         f_frange = res1["freq_range"]
         f_res.append(res1["data"])
+        # so we will always take at least one set of data here
+        # why would anyone ever want to take no data?...
+        if not time_limit is None and time_limit < _time.time():
+            break
     return {"data": f_res, "frange": f_frange}
 
 setiface.cmds.zwicky.radio = zwicky_radio
@@ -80,3 +98,36 @@ def zwicky_set_offset(zwicky, az=0., el=0., *w, **kw):
 
 setiface.cmds.zwicky.set_offset = zwicky_set_offset
 setiface.cmds.zwicky.offset = zwicky_set_offset
+
+def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
+                  count=1, interval=None, y_first=True, *w, **kw):
+    x_half = int(x_half)
+    y_half = int(y_half)
+    x_step = float(x_step)
+    y_step = float(y_step)
+    if x_half < 0 or y_half < 0 or x_step < 0 or y_step < 0:
+        raise Exception
+    track_obj = zwicky.tracker.get_track()
+    track_obj["abstime"] = not track_obj["track"]
+    x_base, y_base = track_obj["offset"]
+    if y_first:
+        offsets = ((x * x_step, y * y_step)
+                   for x in range(-x_half, x_half + 1)
+                   for y in range(-y_half, y_half + 1))
+    else:
+        offsets = ((x * x_step, y * y_step)
+                   for y in range(-y_half, y_half + 1)
+                   for x in range(-x_half, x_half + 1))
+    for x_off, y_off in offsets:
+        track_obj["offset"] = [x_base + x_off, y_base + y_off]
+        if not zwicky.track(**track_obj):
+            raise Exception
+        zwicky.motor.pos_chk()
+        zwicky_radio(zwicky, count=count, interval=interval)
+    track_obj["offset"] = [x_base, y_base]
+    if not zwicky.track(**track_obj):
+        raise Exception
+    zwicky.motor.pos_chk()
+    return True
+
+setiface.cmds.zwicky.npoint = zwicky_npoint
