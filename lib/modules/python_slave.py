@@ -33,6 +33,7 @@ def main():
     iface = srt_slave.new_iface(conn, sync)
     if sync:
         iface.wait_ready()
+        iface.lock(wait=True)
     try:
         execfile(fname)
     except:

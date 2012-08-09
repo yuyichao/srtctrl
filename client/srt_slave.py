@@ -371,7 +371,7 @@ def new_iface(conn, sync=True, as_default=True):
         if sync:
             raise InvalidRequest
     def _lock_action(res=None, **kw):
-        iface.emit("lock", errno, res)
+        iface.emit("lock", res)
     def _init_action(name=None, **kw):
         _state["name"] = name
         iface.emit("init", name)
@@ -468,7 +468,8 @@ def new_iface(conn, sync=True, as_default=True):
         "cmd": new_wrapper(lambda name:
                            (lambda *args, **kwargs:
                             send_cmd(name, *args, **kwargs)), None),
-        "lock": send_lock,
+        "lock": lambda wait=True: send_lock(True, wait=wait),
+        "unlock": lambda: send_lock(False),
         "quit": send_quit,
         "alarm": new_wrapper(lambda name:
                              (lambda nid, **args:
