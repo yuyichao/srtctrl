@@ -54,11 +54,16 @@ def fork_ps(cb, *args):
                 os._exit(1)
             os._exit(0)
 
-def _exec_fd_cb(fname, args, fds):
+def _exec_fd_cb(fname, args, fds, environ):
+    try:
+        os.environ.update(environ)
+    except:
+        pass
     os.environ[__fds_env_name__] = ' '.join([str(fd) for fd in fds])
     os.execvp(fname, args)
 
-def exec_with_fd(fname, args=None, fds=[]):
+# the environment variable will be updated
+def exec_with_fd(fname, args=None, fds=[], environ=None):
     fds = [int(fd) for fd in fds]
     for fd in fds:
         flags = fcntl.fcntl(fd, fcntl.F_GETFD)
@@ -67,7 +72,7 @@ def exec_with_fd(fname, args=None, fds=[]):
         args = [fname]
     else:
         args = [str(arg) for arg in args]
-    res = fork_ps(_exec_fd_cb, fname, args, fds)
+    res = fork_ps(_exec_fd_cb, fname, args, fds, environ)
     for fd in fds:
         os.close(fd)
     return res
@@ -103,12 +108,14 @@ def conn_pair_n(n=1, domain=socket.AF_UNIX, type=socket.SOCK_STREAM, protocol=0,
         pairs += [conn_pair(domain, type, protocol, gtype)]
     return tuple(zip(*pairs))
 
-def exec_n_conn(fname, n=1, args=None, gtype=SrtConn):
+# the environment variable will be updated
+def exec_n_conn(fname, n=1, args=None, gtype=SrtConn, environ=None):
     pconn, cconn = conn_pair_n(n=n, gtype=gtype)
     for conn in pconn:
         flags = fcntl.fcntl(conn.props.fd, fcntl.F_GETFD)
         fcntl.fcntl(conn.props.fd, fcntl.F_SETFD, flags | fcntl.FD_CLOEXEC)
-    if exec_with_fd(fname, args=args, fds=[conn.props.fd for conn in cconn]):
+    if exec_with_fd(fname, args=args, environ=environ,
+                    fds=[conn.props.fd for conn in cconn]):
         return pconn
 
 def get_passed_conns(gtype=SrtConn):

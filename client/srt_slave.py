@@ -17,6 +17,7 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
+import os
 import sys
 import types
 from srt_comm import *
@@ -79,6 +80,9 @@ def new_iface(conn, sync=True, as_default=True):
     _state = {"ready": False, "name": None}
     sync = bool(sync)
     logger = SlaveLogger()
+    def disconn_cb(conn):
+        iface.emit("quit")
+    conn.connect("disconn", disconn_cb)
     if not sync:
         conn.start_send()
         conn.start_recv()
@@ -93,17 +97,14 @@ def new_iface(conn, sync=True, as_default=True):
             if pkg is None:
                 return
             __package_action(**pkg)
-        def disconn_cb(conn):
-            iface.emit("quit")
         conn.connect("got-obj", got_obj_cb)
-        conn.connect("disconn", disconn_cb)
     def send(obj):
         conn.send(obj)
         if sync:
             conn.wait_send()
     def send_start(name, args={}):
         iface.emit("log", "start", [name, args])
-        send({"type": "start", "name": name, "args": args})
+        send({"type": "start", "name": name, "args": args, "pwd": os.getcwd()})
     def send_float(float=True):
         float = bool(float)
         iface.emit("log", "float", float)
@@ -482,7 +483,8 @@ def new_iface(conn, sync=True, as_default=True):
         "slave": iface,
         "InvalidRequest": InvalidRequest
     }
-    return _add_module(module_dict, as_default)
+    module = _add_module(module_dict, as_default)
+    return module
 
 def _add_module(module_dict, as_default):
     self = sys.modules[__name__]

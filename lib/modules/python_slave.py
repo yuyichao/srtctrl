@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 import sys
+import os
 from srt_comm import *
 from os import path
 
@@ -35,15 +36,23 @@ def main():
     if sync:
         iface.wait_ready()
         iface.lock(wait=True)
+    d = {"__file__": fname, "__name__": "__main__"}
+    if "SRT_AUTOLOG_FILE" in os.environ:
+        iface.record(os.environ["SRT_AUTOLOG_FILE"])
     try:
-        execfile(fname)
+        execfile(fname, d, d)
     except:
         print_except()
 
-def start_slave(host, pwd, fname=None, args=[], sync=True, **kw):
+def start_slave(host, pwd, fname=None, args=[], sync=True, autolog=None, **kw):
     if not isstr(fname):
         return False
     fname = path.abspath(path.join(pwd, fname))
+    if not autolog is None:
+        autolog = str(autolog)
+        environ = {"SRT_AUTOLOG_FILE": path.abspath(path.join(pwd, autolog))}
+    else:
+        environ = None
     if (isstr(args) or isnum(args)):
         args = [str(args)]
     else:
@@ -54,7 +63,7 @@ def start_slave(host, pwd, fname=None, args=[], sync=True, **kw):
     sync = str(bool(sync))
     conn = exec_n_conn(sys.executable,
                        args=[sys.executable, __file__, sync, fname] + args,
-                       n=1, gtype=JSONSock)[0]
+                       n=1, gtype=JSONSock, environ=environ)[0]
     return host.add_slave_from_jsonsock(conn)
 
 if __name__ == '__main__':

@@ -20,7 +20,6 @@ from __future__ import print_function, division
 from srt_comm import *
 from srt_slave.default import *
 
-record("test_slave.rad")
 printbg("TEST SLAVE")
 try:
     printb("RES:", cmd.move("galacti", offset=[30, 40]))
