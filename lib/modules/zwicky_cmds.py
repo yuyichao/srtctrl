@@ -118,16 +118,19 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
         offsets = ((x * x_step, y * y_step)
                    for y in range(-y_half, y_half + 1)
                    for x in range(-x_half, x_half + 1))
+    results = []
     for x_off, y_off in offsets:
         track_obj["offset"] = [x_base + x_off, y_base + y_off]
         if not zwicky.track(**track_obj):
             raise Exception
         zwicky.motor.pos_chk()
-        zwicky_radio(zwicky, count=count, interval=interval)
+        res = zwicky_radio(zwicky, count=count, interval=interval)
+        results.append([(x_off, y_off), res])
     track_obj["offset"] = [x_base, y_base]
     if not zwicky.track(**track_obj):
         raise Exception
     zwicky.motor.pos_chk()
-    return True
+    zwicky.send_signal("npoint", results)
+    return results;
 
 setiface.cmds.zwicky.npoint = zwicky_npoint

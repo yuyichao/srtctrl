@@ -313,9 +313,11 @@ class SrtHelper(GObject.Object):
         self.cmd_busy = False
         if self._auto_props:
             self.send_slave(sid, {"type": "res", "name": name, "res": res,
+                                  "args": args, "kwargs": kwargs,
                                   "props": self.get_all_props()})
         else:
-            self.send_slave(sid, {"type": "res", "name": name, "res": res})
+            self.send_slave(sid, {"type": "res", "name": name, "res": res,
+                                  "args": args, "kwargs": kwargs})
 
     # sends
     def _send(self, obj):

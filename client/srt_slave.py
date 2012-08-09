@@ -35,6 +35,8 @@ default = None
 sys.modules["%s.default" % __name__] = None
 _slave_list = []
 
+_plugins = SrtPlugins()
+
 class SlaveLogger:
     def __init__(self):
         self._file = None
@@ -342,8 +344,9 @@ def new_iface(conn, sync=True, as_default=True):
         return {"type": "init", "name": name}
     def _check_cmd(**kw):
         return {"type": "cmd"}
-    def _check_res(res=None, props={}, **kw):
-        return {"type": "res", "res": res, "props": props}
+    def _check_res(res=None, name=None, props={}, args=[], kwargs={}, **kw):
+        return {"type": "res", "res": res, "props": props, "name": name,
+                "args": args, "kwargs": kwargs}
     def _check_signal(name=None, value=None, props={}, **kw):
         if not isidentifier(name):
             return
@@ -379,8 +382,8 @@ def new_iface(conn, sync=True, as_default=True):
         iface.emit("init", name)
     def _cmd_action(**kw):
         iface.emit("cmd")
-    def _res_action(res=None, props={}, **kw):
-        iface.emit("res", res, props)
+    def _res_action(res=None, name=None, props={}, args=[], kwargs={}, **kw):
+        iface.emit("res", name, res, props, args, kwargs)
     def _signal_action(name=None, value=None, props={}, **kw):
         iface.emit("signal::%s" % name.replace('_', '-'),
                    name, value, props)
@@ -408,7 +411,9 @@ def new_iface(conn, sync=True, as_default=True):
                     ()),
             "res": (GObject.SignalFlags.RUN_FIRST,
                     GObject.TYPE_NONE,
-                    (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
+                    (GObject.TYPE_STRING,
+                     GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT,
+                     GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT)),
             "alarm": (GObject.SignalFlags.RUN_FIRST |
                       GObject.SignalFlags.DETAILED,
                       GObject.TYPE_NONE,
@@ -442,6 +447,11 @@ def new_iface(conn, sync=True, as_default=True):
         def do_quit(self):
             if sync:
                 exit()
+        def do_init(self, name):
+            try:
+                self.plugins.logger[name](self, logger)
+            except:
+                pass
     iface = PythonSlave()
     module_dict = {
         "set_log_filter": logger.set_filter,
