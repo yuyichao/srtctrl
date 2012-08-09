@@ -39,6 +39,7 @@ def main():
                                    {"fname": "test_slave.py"})
     slave.start_recv()
     slave.start_send()
+    slave.send({"type": "float", "float": True})
     slave.connect("got-obj", get_obj_cb)
     srtcenter.run()
 

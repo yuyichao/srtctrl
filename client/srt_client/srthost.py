@@ -82,7 +82,7 @@ class SrtHost(GObject.Object):
             sock.send({"type": "ready"})
         sid = self._new_usid()
         self._slaves[sid] = {"sock": sock, "alarms": {},
-                             "ping": None}
+                             "ping": None, "float": False}
         self._lookup_id[id(sock)] = sid
         return True
     def create_slave_by_name(self, name, pwd, args):
@@ -116,6 +116,14 @@ class SrtHost(GObject.Object):
             self.emit("cmd", sid, name, args, kwargs)
             return True
         return
+    def _check_float(self):
+        for sid, obj in self._slaves.items():
+            try:
+                if not obj["float"]:
+                    return
+            except:
+                pass
+        self.emit("quit")
     def _check_queue(self):
         if self._processing:
             return
@@ -144,6 +152,8 @@ class SrtHost(GObject.Object):
             res = self._handle_start(sid, **pkg)
         # elif pkgtype == "name":
         #     res = self._handle_name(sid, **pkg)
+        elif pkgtype == "float":
+            res = self._handle_float(sid, **pkg)
         elif pkgtype == "prop":
             res = self._handle_prop(sid, **pkg)
         elif pkgtype == "pong":
@@ -169,6 +179,7 @@ class SrtHost(GObject.Object):
             del self._slave[sid]
         except:
             pass
+        self._check_float()
         return False
     def _ping_sid(self, sid):
         if not sid in self._slaves:
@@ -281,6 +292,13 @@ class SrtHost(GObject.Object):
             return True
         self.emit("prop", sid, name)
         return True
+    def _handle_float(self, sid, float=True, **kw):
+        try:
+            self._slaves[sid]["float"] = bool(float)
+        except:
+            pass
+        self._check_float()
+        return True
     # def _handle_name(self, sid, **kw):
     #     return True
     def _handle_start(self, sid, name=None, pwd='.', args={}, **kw):
@@ -324,6 +342,7 @@ class SrtHost(GObject.Object):
             del self._slaves[sid]
         except:
             pass
+        self._check_float()
         self._cmd_queue[:] = [cmd for cmd in self._cmd_queue
                               if not cmd["sid"] == sid]
         if self._lock == sid:

@@ -104,6 +104,10 @@ def new_iface(conn, sync=True, as_default=True):
     def send_start(name, args={}):
         iface.emit("log", "start", [name, args])
         send({"type": "start", "name": name, "args": args})
+    def send_float(float=True):
+        float = bool(float)
+        iface.emit("log", "float", float)
+        send({"type": "float", "float": float})
     def send_prop(name):
         send({"type": "prop", "name": name})
         if not sync:
@@ -456,6 +460,7 @@ def new_iface(conn, sync=True, as_default=True):
     iface = PythonSlave()
     module_dict = {
         "record": logger.set_fname,
+        "float": send_float,
         "write_log": logger.write,
         "wait_ready": wait_ready,
         "get_name": get_name,
