@@ -58,8 +58,8 @@ class SlaveLogger:
         if self._file is None:
             return
         string = str(content)
-        self._file.write('#')
-        self._file.write('\n#'.join([s for s in string.split('\n') if s]))
+        self._file.write('# ')
+        self._file.write('\n# '.join([s for s in string.split('\n') if s]))
         self._file.write('\n')
         self._file.flush()
     def __del__(self):
