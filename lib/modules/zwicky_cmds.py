@@ -19,8 +19,8 @@
 from __future__ import print_function, division
 from srt_comm import *
 
-def zwicky_move(zwicky, name="", offset=[0., 0.], time=0, abstime=False,
-                track=True, args=None, *w, **kw):
+def zwicky_move(zwicky, name="", args=None, offset=[0., 0.], time=0,
+                abstime=False, track=True, *w, **kw):
     name = std_arg("", name)
     offset = std_arg([0., 0.], offset)
     abstime = std_arg(False, abstime)
@@ -38,12 +38,14 @@ def zwicky_calib(zwicky, count=1, *w, **kw):
     return res
 
 setiface.cmds.zwicky.calib = zwicky_calib
+setiface.cmds.zwicky.noicecal = zwicky_calib
 
 def zwicky_reset(zwicky, *w, **kw):
     zwicky.reset()
     return True
 
 setiface.cmds.zwicky.reset = zwicky_reset
+setiface.cmds.zwicky.stow = zwicky_reset
 
 def zwicky_radio(zwicky, count=1, *w, **kw):
     count = int(count)
@@ -68,3 +70,13 @@ def zwicky_set_freq(zwicky, freq=None, mode=1, *w, **kw):
     zwicky.radio.set_freq(freq, mode)
 
 setiface.cmds.zwicky.set_freq = zwicky_set_freq
+setiface.cmds.zwicky.freq = zwicky_set_freq
+
+def zwicky_set_offset(zwicky, az=0., el=0., *w, **kw):
+    az = float(az)
+    el = float(el)
+    zwicky.set_config("poffset", [az, el])
+    zwicky.motor.pos_chk()
+
+setiface.cmds.zwicky.set_offset = zwicky_set_offset
+setiface.cmds.zwicky.offset = zwicky_set_offset

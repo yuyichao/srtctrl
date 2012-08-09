@@ -53,6 +53,7 @@ class TrackSun:
         return rad2deg([self._sun.az, self._sun.alt])
 
 setiface.alarm.trackers.sun = TrackSun
+setiface.alarm.trackers.Sun = TrackSun
 
 class TrackGalactic:
     def __init__(self, args):
@@ -70,6 +71,9 @@ class TrackGalactic:
         return rad2deg([self._p.az, self._p.alt])
 
 setiface.alarm.trackers.galactic = TrackGalactic
+setiface.alarm.trackers.Galactic = TrackGalactic
+setiface.alarm.trackers.gala = TrackGalactic
+setiface.alarm.trackers.Gala = TrackGalactic
 
 class TrackMoon:
     def __init__(self, args):
@@ -80,6 +84,7 @@ class TrackMoon:
         return rad2deg([self._moon.az, self._moon.alt])
 
 setiface.alarm.trackers.moon = TrackMoon
+setiface.alarm.trackers.Moon = TrackMoon
 
 class TrackMars:
     def __init__(self, args):
@@ -90,3 +95,4 @@ class TrackMars:
         return rad2deg([self._mars.az, self._mars.alt])
 
 setiface.alarm.trackers.mars = TrackMars
+setiface.alarm.trackers.Mars = TrackMars

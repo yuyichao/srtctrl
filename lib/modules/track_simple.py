@@ -27,3 +27,6 @@ class TrackSimple:
         return self._az, self._el
 
 setiface.alarm.trackers.simple = TrackSimple
+setiface.alarm.trackers.Simple = TrackSimple
+setiface.alarm.trackers.azel = TrackSimple
+setiface.alarm.trackers.AzEl = TrackSimple

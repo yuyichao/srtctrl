@@ -30,20 +30,21 @@ def _try_formats(tstr, formats):
     return
 
 _interval_guesser = [
-    [_re.compile("^(?P<sec>[.0-9]+)s?$"), lambda grp: float(grp("sec"))],
-    [_re.compile("^(?P<min>[.0-9]+)m$"), lambda grp: float(grp("min")) * 60],
-    [_re.compile("^(?P<hour>[.0-9]+)h$"), lambda grp: float(grp("hour")) * 3600],
-    [_re.compile("^(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^:?(?P<sec>[.0-9]+)s?$"), lambda grp: float(grp("sec"))],
+    [_re.compile("^:?(?P<min>[.0-9]+)m$"), lambda grp: float(grp("min")) * 60],
+    [_re.compile("^:?(?P<hour>[.0-9]+)h$"),
+     lambda grp: float(grp("hour")) * 3600],
+    [_re.compile("^:?(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
-    [_re.compile("^(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m$"),
+    [_re.compile("^:?(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m$"),
      lambda grp: float(grp("min")) * 60 + float(grp("hour")) * 3600],
-    [_re.compile("^(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^:?(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^(?P<hour>[.0-9]+)h?:(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^:?(?P<hour>[.0-9]+)h?:(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^:?(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
     ]
 
@@ -69,13 +70,18 @@ def guess_time(tstr):
         pass
     if not isstr(tstr):
         raise ValueError
-    t = _try_formats(tstr, ["%Y:%j:%H:%M:%S", "%Y:%m:%d:%H:%M:%S"])
+    t = _try_formats(tstr, ["%Y:%j:%H:%M:%S", "%Y:%m:%d:%H:%M:%S",
+                            ":%Y:%j:%H:%M:%S", ":%Y:%m:%d:%H:%M:%S"])
     if not t is None:
         return _time.mktime(t) - time.timezone
     t = _try_formats(tstr, ["l%Y:%j:%H:%M:%S", "l%Y:%m:%d:%H:%M:%S",
                             "L%Y:%j:%H:%M:%S", "L%Y:%m:%d:%H:%M:%S",
                             "%Y:%j:%H:%M:%Sl", "%Y:%m:%d:%H:%M:%Sl",
-                            "%Y:%j:%H:%M:%SL", "%Y:%m:%d:%H:%M:%SL",])
+                            "%Y:%j:%H:%M:%SL", "%Y:%m:%d:%H:%M:%SL",
+                            ":l%Y:%j:%H:%M:%S", ":l%Y:%m:%d:%H:%M:%S",
+                            ":L%Y:%j:%H:%M:%S", ":L%Y:%m:%d:%H:%M:%S",
+                            ":%Y:%j:%H:%M:%Sl", ":%Y:%m:%d:%H:%M:%Sl",
+                            ":%Y:%j:%H:%M:%SL", ":%Y:%m:%d:%H:%M:%SL",])
     if not t is None:
         return _time.mktime(t)
     raise ValueError

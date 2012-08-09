@@ -114,6 +114,8 @@ class ZwickyHelper(GObject.Object):
     def get_config(self, key, notify=True, non_null=True):
         return self._helper.get_config("zwicky", key,
                                        notify=notify, non_null=non_null)
+    def set_config(self, key, value):
+        return self._helper.set_config("zwicky", key, value)
     def send_remote(self, obj):
         self.remote_busy = True
         self._helper.send_remote(obj)
