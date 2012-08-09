@@ -141,6 +141,8 @@ class ZwickyHelper(GObject.Object):
         self._helper.send_invalid(sid)
     def send_chk_alarm(self, name, nid, args):
         return self._helper.send_chk_alarm(name, nid, args)
+    def get_all_props(self):
+        return self._helper.get_all_props()
 
     def reset(self):
         self.tracker.reset()

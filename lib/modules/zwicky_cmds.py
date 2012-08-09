@@ -76,7 +76,7 @@ def zwicky_radio(zwicky, count=1, interval=None, until=None, *w, **kw):
         # why would anyone ever want to take no data?...
         if not time_limit is None and time_limit < _time.time():
             break
-    return {"data": f_res, "frange": f_frange}
+    return {"data": f_res, "frange": f_frange, "props": zwicky.get_all_props()}
 
 setiface.cmds.zwicky.radio = zwicky_radio
 

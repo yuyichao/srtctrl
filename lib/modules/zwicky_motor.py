@@ -108,6 +108,7 @@ class ZwickyMoter:
         return self.configs.rod_t0 - acos(c) * (180 / pi)
     def az_c2d(self, count):
         degree = count / self.configs.az_c_per_deg + self.configs.az_lim[0]
+        degree -= self.configs.poffset[0]
         if degree > self.configs.az_lim[1]:
             return self.configs.az_lim[1]
         return degree
@@ -117,6 +118,7 @@ class ZwickyMoter:
             degree = self.degree_at_l(L0 - count / self.configs.rod_crate)
         else:
             degree = count / self.configs.el_c_per_deg + self.configs.el_lim[0]
+        degree -= self.configs.poffset[1]
         if degree > self.configs.el_lim[1]:
             return self.configs.el_lim[1]
         return degree

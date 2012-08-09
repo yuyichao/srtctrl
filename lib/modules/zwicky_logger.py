@@ -62,11 +62,12 @@ class ZwickyLogger:
             self._logger.write(self._format.format(data=d_str, **props))
     def _res_cb(self, iface, name, res, props, args, kwargs):
         if name == "radio":
-            self._write_radio(res["data"], cmd_name="radio", **props)
+            self._write_radio(res["data"], cmd_name="radio", **res["props"])
         elif name == "npoint":
             for r in res:
                 self._logger.write_comment("%f, %f" % tuple(r[0]))
-                self._write_radio(r[1]["data"], cmd_name="npoint", **props)
+                self._write_radio(r[1]["data"], cmd_name="npoint",
+                                  **r[1]["props"])
     def _log_cb(self, iface, name, content):
         string = "%s: %s" % (repr(name), repr(content))
         self._logger.write_comment(string)
