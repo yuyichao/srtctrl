@@ -67,7 +67,10 @@ def exec_with_fd(fname, args=None, fds=[]):
         args = [fname]
     else:
         args = [str(arg) for arg in args]
-    return fork_ps(_exec_fd_cb, fname, args, fds)
+    res = fork_ps(_exec_fd_cb, fname, args, fds)
+    for fd in fds:
+        os.close(fd)
+    return res
 
 def get_passed_fds():
     fds = read_env(__fds_env_name__, default='')

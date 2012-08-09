@@ -85,6 +85,7 @@ class SrtCenter(GObject.Object):
     def __init_remote__(self):
         if self._remote_err_id:
             self._remote.disconnect(self._remote_err_id)
+            self._remote.close()
         self._remote = SrtRemote(self._plugins)
         self._remote_err_id = self._remote.connect('error', self._remote_err_cb)
         self._remote.connect('initialized', self._remote_init_cb)

@@ -2,6 +2,8 @@
 #include <srtsock_buff.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 /***************************************************************************
  *   Copyright (C) 2012~2012 by Yichao Yu                                  *
@@ -438,7 +440,7 @@ srtsock_sock_get_property(GObject *obj, guint prop_id, GValue *value,
         g_value_set_int(value, g_socket_get_fd(sock));
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, prop_id, pspec);
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
     }
 }
 
@@ -446,28 +448,29 @@ static void
 srtsock_sock_set_property(GObject *obj, guint prop_id, const GValue *value,
                           GParamSpec *pspec)
 {
-    SrtSockSock *self;
-    self = SRTSOCK_SOCK(obj);
-    if (self->priv->sock) {
+    SrtSockSock *self = SRTSOCK_SOCK(obj);
+    SrtSockSockPrivate *priv = self->priv;
+    if (priv->sock) {
         return;
     }
     switch (prop_id) {
     case PROP_FAMILY:
-        self->priv->family = g_value_get_enum(value);
+        priv->family = g_value_get_enum(value);
         break;
     case PROP_TYPE:
-        self->priv->type = g_value_get_enum(value);
+        priv->type = g_value_get_enum(value);
         break;
     case PROP_PROTOCOL:
-        self->priv->protocol = g_value_get_enum(value);
+        priv->protocol = g_value_get_enum(value);
         break;
     case PROP_FD:
-        self->priv->fd = g_value_get_int(value);
-        if (self->priv->fd >= 0)
+        priv->fd = g_value_get_int(value);
+        if (priv->fd >= 0) {
             srtsock_sock_get_sock(self, NULL);
+        }
         break;
     default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, prop_id, pspec);
+        G_OBJECT_WARN_INVALID_PROPERTY_ID(obj, prop_id, pspec);
     }
 }
 
@@ -594,6 +597,7 @@ srtsock_sock_get_sock(SrtSockSock *self, GError **error)
     if (priv->sock)
         return priv->sock;
     if (priv->fd > 0) {
+        fcntl(priv->fd, F_SETFD, fcntl(priv->fd, F_GETFD) | FD_CLOEXEC);
         priv->sock = g_socket_new_from_fd(priv->fd, error);
         return priv->sock;
     }
@@ -604,6 +608,8 @@ srtsock_sock_get_sock(SrtSockSock *self, GError **error)
     if (priv->protocol == G_SOCKET_PROTOCOL_UNKNOWN)
         priv->protocol = G_SOCKET_PROTOCOL_DEFAULT;
     priv->sock = g_socket_new(priv->family, priv->type, priv->protocol, error);
+    priv->fd = g_socket_get_fd(priv->sock);
+    fcntl(priv->fd, F_SETFD, fcntl(priv->fd, F_GETFD) | FD_CLOEXEC);
     return priv->sock;
 }
 
@@ -641,6 +647,7 @@ SrtSockSock*
 srtsock_sock_new_from_fd(int fd, GError **error)
 {
     SrtSockSock *self;
+    fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
     self = g_object_new(SRTSOCK_TYPE_SOCK, "fd", fd, NULL);
     if (!srtsock_sock_get_sock(self, error)) {
         g_object_unref(self);

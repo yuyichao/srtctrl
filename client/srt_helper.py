@@ -286,6 +286,8 @@ class SrtHelper(GObject.Object):
             pkg = self.wait_types("init")
         if self._name is None:
             return
+        self.wait_ready()
+        self.emit("ready")
         try:
             self._device = self.plugins.helper[self._name](self)
         except Exception as err:
@@ -293,8 +295,6 @@ class SrtHelper(GObject.Object):
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
                         "msg": "error running helper [%s]" % self._name})
             return
-        self.wait_ready()
-        self.emit("ready")
         self.send_ready()
         while True:
             pkg = self.recv_slave()
