@@ -19,6 +19,7 @@
 from __future__ import print_function, division
 import sys
 from srt_comm import *
+from os import path
 
 def main():
     import srt_slave
@@ -39,9 +40,10 @@ def main():
     except:
         print_except()
 
-def start_slave(host, fname=None, args=[], sync=True, **kw):
+def start_slave(host, pwd, fname=None, args=[], sync=True, **kw):
     if not isstr(fname):
         return False
+    fname = path.abspath(path.join(pwd, fname))
     if (isstr(args) or isnum(args)):
         args = [str(args)]
     else:

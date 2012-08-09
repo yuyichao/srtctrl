@@ -35,8 +35,8 @@ def main():
     srtcenter.connect('error', err_cb)
     host, slave = conn_pair(gtype=JSONSock)
     srtcenter.add_slave_from_jsonsock(host)
-    srtcenter.create_slave_by_name("python",
-                                   {"fname": "%s/test_slave.py" % dirname})
+    srtcenter.create_slave_by_name("python", dirname,
+                                   {"fname": "test_slave.py"})
     slave.start_recv()
     slave.start_send()
     slave.connect("got-obj", get_obj_cb)

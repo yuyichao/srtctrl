@@ -85,9 +85,9 @@ class SrtHost(GObject.Object):
                              "ping": None}
         self._lookup_id[id(sock)] = sid
         return True
-    def create_slave_by_name(self, name, args):
+    def create_slave_by_name(self, name, pwd, args):
         try:
-            if self._plugins.slave[name](self, **args):
+            if self._plugins.slave[name](self, pwd, **args):
                 return True
         except Exception as err:
             print_except()
@@ -283,11 +283,11 @@ class SrtHost(GObject.Object):
         return True
     # def _handle_name(self, sid, **kw):
     #     return True
-    def _handle_start(self, sid, name=None, args={}, **kw):
+    def _handle_start(self, sid, name=None, pwd='.', args={}, **kw):
         if name is None:
             return
         args = std_arg({}, args)
-        if not self.create_slave_by_name(name, args):
+        if not self.create_slave_by_name(name, pwd, args):
             return
         return True
     def _handle_config(self, sid, field=None, name=None, notify=False,

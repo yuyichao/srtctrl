@@ -269,8 +269,8 @@ class SrtCenter(GObject.Object):
         self._host.init(name)
     def do_ready(self):
         self._host.ready()
-    def create_slave_by_name(self, name, args):
-        return self._host.create_slave_by_name(name, args)
+    def create_slave_by_name(self, name, pwd, args):
+        return self._host.create_slave_by_name(name, pwd, args)
     def add_slave_from_jsonsock(self, sock):
         return self._host.add_slave_from_jsonsock(sock)
     def run(self):
