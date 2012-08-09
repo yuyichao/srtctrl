@@ -27,7 +27,7 @@ except InvalidRequest:
     print_except()
 printb("RES:", cmd.move("galactic", offset=[30, 40]))
 printb("config", config.zwicky.station)
-config.zwicky.station = [10, 10, 10]
+set_config("zwicky", "station", [10, 10, 10])
 printb("RES:", cmd.set_freq(1420.8, 1))
 printb("RES:", cmd.calib(1))
 printb("RES:", cmd.offset(10, -10))

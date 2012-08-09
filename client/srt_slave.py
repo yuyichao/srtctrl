@@ -405,7 +405,8 @@ def new_iface(conn, sync=True, as_default=True):
         "get_name": get_name,
         "make_time": make_time,
         "time_passed": lambda t: _time.time() >= t,
-        "config": new_wrapper2(get_config, set_config),
+        "config": new_wrapper2(get_config, None),
+        "set_config": set_config,
         "start": send_start,
         "prop": new_wrapper(send_prop, None) if sync else send_prop,
         "cmd": new_wrapper(lambda name:
