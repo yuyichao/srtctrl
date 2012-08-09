@@ -18,24 +18,22 @@
 
 from __future__ import print_function, division
 from srt_comm import *
-import srt_slave
-
-import time
+from srt_slave.default import *
 
 printbg("TEST SLAVE")
 try:
-    printb("RES:", srt_slave.cmd.move("galacti", offset=[30, 40]))
-except:
+    printb("RES:", cmd.move("galacti", offset=[30, 40]))
+except InvalidRequest:
     print_except()
-printb("RES:", srt_slave.cmd.move("galactic", offset=[30, 40]))
-printb("config", srt_slave.config.zwicky.station)
-srt_slave.config.zwicky.station = [10, 10, 10]
-printb("RES:", srt_slave.cmd.set_freq(1420.8, 1))
-printb("RES:", srt_slave.cmd.calib(1))
-printb("RES:", srt_slave.cmd.move(args=[40, 30]))
-t = srt_slave.make_time("10s")
-while not srt_slave.time_passed(t):
-    printb("RES:", srt_slave.cmd.radio())
-printb("RES:", srt_slave.cmd.reset())
+printb("RES:", cmd.move("galactic", offset=[30, 40]))
+printb("config", config.zwicky.station)
+config.zwicky.station = [10, 10, 10]
+printb("RES:", cmd.set_freq(1420.8, 1))
+printb("RES:", cmd.calib(1))
+printb("RES:", cmd.move(args=[40, 30]))
+t = make_time("10s")
+while not time_passed(t):
+    printb("RES:", cmd.radio())
+printb("RES:", cmd.reset())
 printbg("TEST QUIT")
-srt_slave.quit()
+quit()

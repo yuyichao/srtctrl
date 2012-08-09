@@ -168,6 +168,10 @@ function(PYTHON_INSTALL SOURCE_FILE DESINATION_DIR)
   python_install_all(${DESINATION_DIR} ${SOURCE_FILE})
 endfunction()
 
+function(PYTHON_INSTALL_AS_MODULE)
+  python_install_all(${PYTHON_SITE_PACKAGES_INSTALL_DIR} ${ARGN})
+endfunction()
+
 function(PYTHON_INSTALL_MODULE MODULE_NAME)
   python_install_all(${PYTHON_SITE_PACKAGES_INSTALL_DIR}/${MODULE_NAME} ${ARGN})
 endfunction()
