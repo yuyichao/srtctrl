@@ -34,6 +34,11 @@ def zwicky_freq_mode(zwicky):
 
 setiface.props.zwicky.freq_mode = zwicky_freq_mode
 
+def zwicky_nfreq(zwicky):
+    return zwicky.radio.get_nfreq()
+
+setiface.props.zwicky.nfreq = zwicky_nfreq
+
 def zwicky_calib(zwicky):
     return zwicky.radio.get_calib()
 

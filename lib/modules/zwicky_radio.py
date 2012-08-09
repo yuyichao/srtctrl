@@ -99,12 +99,16 @@ class ZwickyRadio:
                  (1 + self.configs.curv_corr * curv_corr_c[i]**2))
                 for i in range(len(reply))]
     def set_freq(self, freq, mode):
-        if not mode in [1, 2, 3, 4, 5]:
+        if not mode in {1, 2, 3, 4, 5}:
             mode = 1
         self._freq = freq
         self._mode = mode
     def get_freq(self):
         return {"freq": self._freq, "mode": self._mode}
+    def get_nfreq(self):
+        if self._mode in {1, 2, 3}:
+            return len(gray_corr)
+        return (len(gray_corr) - overlap) * (self._mode * 2 - 5) + overlap
     def get_frange(self):
         freq, mode = self._freq, self._mode
         cfreqc = cfreq2count(freq)
