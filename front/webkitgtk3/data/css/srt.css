@@ -20,7 +20,9 @@ html, body {
   box-shadow:         0px 5px 10px 10px #ccc;
 }
 
+input.command {
+}
+
 #footer {
-    height: 44px;
     width: 100%;
 }

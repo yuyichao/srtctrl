@@ -1,29 +1,49 @@
-function srt_cal_size() {
-    var body = $(window);
-    var header = $("#header");
-    var content = $("#content");
-    var footer = $("#footer");
-    var full_height = body.height();
-    var head_height = header.height();
-    var footer_height = footer.height();
-    content.height(full_height - head_height - footer_height);
-}
+var add_resize_cb;
 
-$(function () {
-    srt_cal_size();
-    $("#footer").resize(srt_cal_size);
-    $("#header").resize(srt_cal_size);
-    $(window).resize(srt_cal_size);
-    $(".header-button").button();
-    $("button").button();
-    Back.Source.connect("event::move", function (src, evt, div) {
-        div.text(evt.az + ", " + evt.el);
-    }, $('#mvevent'));
-    $('#quit-button').click(function (ev) {
-        Back.Source.quit();
-        return false;
+(function () {
+    var resize_cbs = [];
+    add_resize_cb = function (cb) {
+        resize_cbs.push(cb);
+    };
+    $(function () {
+        var resize_timeout = false;
+        $("button").button();
+        $(".header-button").button();
+        function srt_cal_size() {
+            var body = $(window);
+            var header = $("#header");
+            var content = $("#content");
+            var footer = $("#footer");
+            var full_height = body.height();
+            var head_height = header.height();
+            var footer_height = footer.height();
+            content.height(full_height - head_height - footer_height);
+            for (var i in resize_cbs) {
+                resize_cbs[i]();
+            }
+        }
+        function resize_wrapper() {
+            if (resize_timeout !== false) {
+                srt_cal_size();
+                clearTimeout(resize_timeout);
+            }
+            resize_timeout = setTimeout(srt_cal_size, 200);
+        }
+        $("#footer").resize(resize_wrapper);
+        $("#header").resize(resize_wrapper);
+        $("body").resize(resize_wrapper);
+        $("html").resize(resize_wrapper);
+        $(window).resize(resize_wrapper);
+        resize_wrapper();
+        // Back.Source.connect("event::move", function (src, evt, div) {
+        //     div.text(evt.az + ", " + evt.el);
+        // }, $('#mvevent'));
+        $('#quit-button').click(function (ev) {
+            Back.Source.quit();
+            return false;
+        });
     });
-});
+})();
 
 var add_dialog = (function () {
     var _dialog_list = [];
@@ -50,10 +70,13 @@ var add_dialog = (function () {
             open: function () {
                 _close_except(id);
             }
-        }).bind("clickoutside", function () {
-            if (dialog.dialog("isOpen"))
-                dialog.dialog("close");
         });
+        if (modal) {
+            dialog.bind("clickoutside", function () {
+                if (dialog.dialog("isOpen"))
+                    dialog.dialog("close");
+            });
+        }
         button.click(function () {
             if (dialog.dialog("isOpen")) {
                 dialog.dialog("close");
