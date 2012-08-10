@@ -6,19 +6,32 @@
     <script src="js/jquery-ui-1.8.22.custom.min.js"></script>
     <script src="js/srt.js"></script>
     <link rel="stylesheet" type="text/css"
-          href="css/ui-lightness/jquery-ui-1.8.22.custom.css">
+          href="css/start/jquery-ui-1.8.22.custom.css">
     <link rel="stylesheet" type="text/css" href="css/srt.css">
+    <link rel="stylesheet" type="text/css" href="css/scroll-bar.css">
   </head>
   <body>
-    <div id="wrapper">
-      <div id="header">
-        <button type="button" id="quit" class="header-button">Quit</button>
+    <div id="header">
+      <div id="header-buttons-line" class="ui-widget-header ui-corner-all">
+        <button type="button" id="about-button" class="header-button">
+          About
+        </button>
+        <button type="button" id="quit-button" class="header-button">
+          Quit
+        </button>
       </div>
-      <div id="content">
-        <div id="mvevent">MVEvent</div>
-      </div>
-      <div id="push"></div>
+    </div>
+    <div id="content">
+      <div id="mvevent">MVEvent</div>
     </div>
     <div id="footer">footer</div>
+
+    <div id="about-dialog" title="About">
+      <p>
+        A Flexible, Plugins Based Client to control the Small Radio Telescope
+        used by 8.1{3,4} of MIT.
+      </p>
+    </div>
+
   </body>
 </html>

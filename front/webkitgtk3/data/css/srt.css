@@ -1,27 +1,27 @@
 html, body {
     height: 100%;
     width: 100%;
-}
-
-#wrapper {
-    min-height: 100%;
-    height: auto !important;
-    height: 100%;
-    min-width: 100%;
-    width: auto !important;
-    width: 100%;
-    margin: 0 auto -44px;
+    padding: 0;
+    margin: 0;
 }
 
 #header {
     width: 100%;
 }
-
-#footer, #push {
-    height: 44px;
+#header-buttons-line {
     width: 100%;
 }
+#content {
+    min-height: 100%;
+    height: 100%;
+}
 
-.header-button {
+#mvevent {
+    min-height: 100%;
+    height: 100%;
+}
+
+#footer {
+    height: 44px;
     width: 100%;
 }

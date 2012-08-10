@@ -3,7 +3,7 @@ set(frontend_src
   )
 
 install(FILES ${frontend_src}
-  DESTINATION ${DATA_INSTALL_DIR})
+  DESTINATION "${SRT_WKGTK_DATA_DIR}")
 
-# add_subdirectory(css)
-# add_subdirectory(js)
+install(DIRECTORY css/ js/
+  DESTINATION "${SRT_WKGTK_DATA_DIR}")
