@@ -20,8 +20,25 @@ from __future__ import print_function, division
 import sys
 from srt_comm import *
 from os import path
+import time as _time
+
+def try_get_time(line):
+    try:
+        tstr, rest = line.split(None, 1)
+    except:
+        return 0, rest
+    try:
+        t = guess_interval(tstr)
+        return t, rest
+    except:
+        pass
+
+def sep_line(line):
+    pass
 
 def exec_line(iface, line):
+    if line.startswith('#') or line.startswith('*') or not line:
+        return
     printy(line)
 
 def main():
@@ -29,7 +46,7 @@ def main():
     fname = sys.argv[1]
     fh = open(fname, 'r')
     for line in fh:
-        exec_line(default, line.strip())
+        exec_line(default, line.strip(' \n\r\t\b:'))
 
 def start_zwicky_cmd(host, pwd, fname=None, **kw):
     if not isstr(fname):

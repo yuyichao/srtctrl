@@ -34,12 +34,40 @@ def zwicky_move(zwicky, name="", args=None, offset=[0., 0.], time=0,
 
 setiface.cmds.zwicky.move = zwicky_move
 
+def zwicky_galactic(zwicky, gaz=0, gel=0, *w, **kw):
+    return zwicky_move(zwicky, "galactic", args=[gaz, gel])
+
+setiface.cmds.zwicky.galactic = zwicky_galactic
+setiface.cmds.zwicky.gala = zwicky_galactic
+setiface.cmds.zwicky.Galactic = zwicky_galactic
+setiface.cmds.zwicky.Gala = zwicky_galactic
+
+setiface.cmds.zwicky.sun = lambda zwicky, *w, **kw: zwicky_move(zwicky, "sun")
+setiface.cmds.zwicky.Sun = lambda zwicky, *w, **kw: zwicky_move(zwicky, "sun")
+
+def zwicky_azel(zwicky, az=0, el=0, *w, **kw):
+    return zwicky_move(zwicky, "simple", args=[az, el])
+
+setiface.cmds.zwicky.azel = zwicky_azel
+setiface.cmds.zwicky.AzEl = zwicky_azel
+
+def _get_galactic(d):
+    return lambda zwicky, *w, **kw: zwicky_galactic(zwicky, d, 0)
+
+for d in range(0, 180, 5):
+    setiface.cmds.zwicky["G%d" % d] = _get_galactic(d)
+    setiface.cmds.zwicky["g%d" % d] = _get_galactic(d)
+
 def zwicky_calib(zwicky, count=1, *w, **kw):
     res = zwicky.calib(count)
     return res
 
 setiface.cmds.zwicky.calib = zwicky_calib
-setiface.cmds.zwicky.noicecal = zwicky_calib
+setiface.cmds.zwicky.noisecal = zwicky_calib
+setiface.cmds.zwicky.calibrate = zwicky_calib
+setiface.cmds.zwicky.Calib = zwicky_calib
+setiface.cmds.zwicky.NoiseCal = zwicky_calib
+setiface.cmds.zwicky.Calibrate = zwicky_calib
 
 def zwicky_reset(zwicky, *w, **kw):
     zwicky.reset()
