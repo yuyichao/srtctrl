@@ -53,10 +53,42 @@ def sep_line(line):
     cmd, arg = try_get_cmd(rest)
     return t, cmd, arg
 
+def get_next_arg():
+    pass
+
+def parse_arg(arg):
+    return [], {}
+
+def get_func(iface, cmd)
+    if cmd.lower() == 'record':
+        return iface.record
+    return iface.cmd[cmd]
+
+def exec_cmd(iface, cmd, arg):
+    func = get_func(iface, cmd)
+    args, kwargs = parse_arg(arg)
+    func(*args, **kwargs)
+
 def exec_line(iface, line):
     if line.startswith('#') or line.startswith('*') or not line:
         return
     t, cmd, arg = sep_line(line)
+    if t is None or t <= 0:
+        exec_cmd(iface, cmd, arg)
+        return
+    if not cmd:
+        sleep(t)
+        return
+    if cmd == 'radio':
+        rad_arg = arg
+        cmd = ''
+        arg = ''
+    else:
+        rad_arg = ''
+    t += _time.time()
+    while t <= _time.time():
+        exec_cmd(iface, 'radio', rad_arg)
+    exec_cmd(iface, cmd, arg)
 
 def main():
     from srt_slave import default

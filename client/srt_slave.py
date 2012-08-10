@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 import os
+from os import path
 import sys
 import types
 from srt_comm import *
@@ -41,9 +42,17 @@ _plugins = SrtPlugins()
 class SlaveLogger:
     def __init__(self):
         self._file = None
-    def set_fname(self, fname):
+    def set_fname(self, fname=None):
         if not self._file is None:
             self._file.close()
+        if not isstr(fname):
+            return
+        fname = path.abspath(fname)
+        dirname = path.dirname(fname)
+        try:
+            os.makedirs(dirname, 0o755, True)
+        except:
+            pass
         try:
             self._file = open(fname, 'a')
         except:
