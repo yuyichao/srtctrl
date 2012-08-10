@@ -99,6 +99,10 @@ class ZwickyRadio:
                  (1 + self.configs.curv_corr * curv_corr_c[i]**2))
                 for i in range(len(reply))]
     def set_freq(self, freq, mode):
+        if freq is None:
+            freq = self._freq
+        if mode is None:
+            mode = self._mode
         if not mode in {1, 2, 3, 4, 5}:
             mode = 1
         self._freq = freq

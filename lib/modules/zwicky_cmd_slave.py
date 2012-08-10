@@ -26,20 +26,37 @@ def try_get_time(line):
     try:
         tstr, rest = line.split(None, 1)
     except:
-        return 0, rest
+        return None, line
     try:
         t = guess_interval(tstr)
+        t = None if t <= 0 else t
         return t, rest
     except:
         pass
+    try:
+        t = guess_time(tstr) - _time.time()
+        t = None if t <= 0 else t
+        return t, rest
+    except:
+        pass
+    return None, line
+
+def try_get_cmd(rest):
+    try:
+        cmd, arg = rest.split(None, 1)
+        return cmd, arg
+    except:
+        return rest, ''
 
 def sep_line(line):
-    pass
+    t, rest = try_get_time(line)
+    cmd, arg = try_get_cmd(rest)
+    return t, cmd, arg
 
 def exec_line(iface, line):
     if line.startswith('#') or line.startswith('*') or not line:
         return
-    printy(line)
+    t, cmd, arg = sep_line(line)
 
 def main():
     from srt_slave import default

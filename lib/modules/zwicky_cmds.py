@@ -108,9 +108,9 @@ def zwicky_radio(zwicky, count=1, interval=None, until=None, *w, **kw):
 
 setiface.cmds.zwicky.radio = zwicky_radio
 
-def zwicky_set_freq(zwicky, freq=None, mode=1, *w, **kw):
-    freq = float(freq)
-    mode = int(mode)
+def zwicky_set_freq(zwicky, freq=None, mode=None, *w, **kw):
+    freq = None if freq is None else float(freq)
+    mode = None if mode is None else int(mode)
     if not mode > 0:
         raise TypeError
     zwicky.radio.set_freq(freq, mode)
