@@ -21,6 +21,7 @@ from pywkjs import *
 class SrtWindow:
     def __init__(self):
         self.window = Gtk.Window()
+        self.window.set_default_size(800, 600)
         self.webview = WebKit.WebView()
         self.window.add(self.webview)
         self.helper = Helper(self.webview)
