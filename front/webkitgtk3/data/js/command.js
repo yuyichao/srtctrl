@@ -27,6 +27,6 @@ $(function () {
     function command_size() {
         command.width((footer.width() - command_prompt.width()) * 0.9);
     }
-    add_resize_cb(command_size);
+    $("#footer").resize(command_size);
     command_size();
 });
