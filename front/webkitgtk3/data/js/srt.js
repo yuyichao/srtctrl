@@ -54,6 +54,8 @@ var add_dialog = (function () {
         dialog.dialog({
             autoOpen: false,
             modal: modal,
+            show: "blind",
+            hide: "highlight",
             open: function () {
                 _close_except(id);
             }

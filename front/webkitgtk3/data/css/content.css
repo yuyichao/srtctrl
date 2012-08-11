@@ -17,12 +17,15 @@
     float: left;
     height: 100%;
     cursor: pointer;
+    background-color: #bff;
+    -webkit-box-shadow: -2px 0px 2px 1px #ccc;
+    box-shadow:         -2px 0px 2px 1px #ccc;
 }
 
 #props-region-slider:hover {
     background-color: #eff;
-    -webkit-box-shadow: -2px 0px 2px 1px #ccc;
-    box-shadow:         -2px 0px 2px 1px #ccc;
+    -webkit-box-shadow: -2px 0px 4px 2px #ccc;
+    box-shadow:         -2px 0px 4px 2px #ccc;
 }
 
 .v-slider-right {
