@@ -12,3 +12,33 @@
     height: 100%;
     float: right;
 }
+
+#props-region-slider {
+    float: left;
+    height: 100%;
+    cursor: pointer;
+}
+
+#props-region-slider:hover {
+    background-color: #eff;
+    -webkit-box-shadow: -2px 0px 2px 1px #ccc;
+    box-shadow:         -2px 0px 2px 1px #ccc;
+}
+
+.v-slider-right {
+    width: 8px;
+    background-image: url('../img/back_n_force.png');
+    background-repeat: no-repeat;
+    background-position: 0 center;
+    background-attachment: scroll;
+    background-size: 16px 48px;
+}
+
+.v-slider-left {
+    width: 8px;
+    background-image: url('../img/back_n_force.png');
+    background-repeat: no-repeat;
+    background-position: -8px center;
+    background-attachment: scroll;
+    background-size: 16px 48px;
+}
