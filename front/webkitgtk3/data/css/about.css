@@ -15,6 +15,12 @@
     height: 100%;
 }
 
+#about-dialog-content {
+    padding: 1em 1em;
+}
+
 #about-dialog {
     overflow: hidden;
+    width: 100% !important;
+    padding: 0;
 }
