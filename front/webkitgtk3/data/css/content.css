@@ -1,2 +1,14 @@
 #content {
 }
+
+#plot-region {
+    width: 69%;
+    height: 100%;
+    float: left;
+}
+
+#props-region {
+    width: 29%;
+    height: 100%;
+    float: right;
+}
