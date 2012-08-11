@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# coding=utf-8
 
 #   Copyright (C) 2012~2012 by Yichao Yu
 #   yyc1992@gmail.com
@@ -17,25 +17,17 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
-from srt_comm import *
-from srt_slave.default import *
-import time as _time
+from .util import *
+from gi.repository import GLib
 
-printbg("TEST SLAVE")
-wait_main(10)
-try:
-    printb("RES:", cmd.move("galacti", offset=[30, 40]))
-except InvalidRequest:
-    print_except()
-printbg("QUERY:", query.cmds)
-printb("RES:", cmd.move("galactic", offset=[30, 40]))
-printb("config", config.zwicky.station)
-set_config("zwicky", "station", [10, 10, 10])
-printb("RES:", cmd.set_freq(1420.8, 4))
-printb("RES:", cmd.calib(1))
-printb("RES:", cmd.offset(10, -10))
-printb("RES:", cmd.radio(1))
-printb("RES:", cmd.move(args=[40, 30]))
-printb("RES:", cmd.npoint(count=2))
-printb("RES:", cmd.reset())
-printbg("TEST QUIT")
+def wait_main_milli(t):
+    _state = {"ready": False}
+    c = GLib.main_context_default()
+    def _func():
+        _state["ready"] = True
+    GLib.timeout_add(int(t), _func)
+    while not _state["ready"]:
+        c.iteration(True)
+
+def wait_main(t):
+    wait_main_milli(t * 1000)

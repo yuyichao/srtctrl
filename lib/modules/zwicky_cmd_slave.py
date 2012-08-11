@@ -206,7 +206,7 @@ def exec_line(iface, line):
         exec_cmd(iface, cmd, arg)
         return
     if not cmd:
-        sleep(t)
+        wait_main(t)
         return
     if cmd == 'radio':
         rad_arg = arg

@@ -92,21 +92,20 @@ def new_iface(conn, sync=True, as_default=True):
     def disconn_cb(conn):
         iface.emit("quit")
     conn.connect("disconn", disconn_cb)
-    if not sync:
-        conn.start_send()
-        conn.start_recv()
-        def got_obj_cb(conn, pkg):
-            if pkg is None:
-                iface.emit("quit")
-                return
-            try:
-                pkg = __check_packages(**pkg)
-            except:
-                return
-            if pkg is None:
-                return
-            __package_action(**pkg)
-        conn.connect("got-obj", got_obj_cb)
+    conn.start_send()
+    conn.start_recv()
+    def got_obj_cb(conn, pkg):
+        if pkg is None:
+            iface.emit("quit")
+            return
+        try:
+            pkg = __check_packages(**pkg)
+        except:
+            return
+        if pkg is None:
+            return
+        __package_action(**pkg)
+    conn.connect("got-obj", got_obj_cb)
     def send(obj):
         conn.send(obj)
         if sync:

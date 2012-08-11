@@ -1,5 +1,6 @@
 record ../../build/test_cmd.rad
 
+10
 move galactic offset=[30, 40]
 set_freq 1420.8 4
 calib 1
