@@ -12,44 +12,13 @@ html, body {
 #header-buttons-line {
     width: 100%;
 }
-#content {
-}
 
 .ui-dialog {
   -webkit-box-shadow: 0px 5px 10px 10px #ccc;
   box-shadow:         0px 5px 10px 10px #ccc;
 }
 
-.about-dialog-tabs {
-    overflow: scroll;
-    width: 100%;
-    padding: 0 !important;
-}
-
-.about-dialog-tab-content {
-    padding: 1em 1em;
-}
-
-#about-dialog-tabs {
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-}
-
-#about-dialog {
-    overflow: hidden;
-}
-
 input.command {
-}
-
-#npoint-dialog-content {
-    padding: 1em 1em;
-}
-
-#npoint-dialog {
-    width: 100% !important;
-    padding: 0;
 }
 
 #footer {

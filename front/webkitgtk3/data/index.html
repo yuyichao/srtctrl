@@ -14,6 +14,9 @@
     <link rel="stylesheet" type="text/css"
           href="css/start/jquery-ui-1.8.22.custom.css">
     <link rel="stylesheet" type="text/css" href="css/srt.css">
+    <link rel="stylesheet" type="text/css" href="css/content.css">
+    <link rel="stylesheet" type="text/css" href="css/about.css">
+    <link rel="stylesheet" type="text/css" href="css/npoint.css">
     <link rel="stylesheet" type="text/css" href="css/scroll-bar.css">
   </head>
   <body>
@@ -31,7 +34,15 @@
       </div>
     </div>
     <div id="content" style="height: 100%;">
-      <canvas id="sky-map"></canvas>
+      <div id="plot-region">
+        <div id="data-plot-region"></div>
+        <div id="sky-map-region">
+          <canvas id="sky-map"></canvas>
+        </div>
+        <div id="status-region"></div>
+      </div>
+      <div id="props-region">
+      </div>
     </div>
     <div id="footer" class="ui-widget">
       <label id="command-prompt" for="command">Command: </label>
