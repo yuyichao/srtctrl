@@ -30,6 +30,9 @@ class SrtHost(GObject.Object):
         "prop": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
                  (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING)),
+        "query": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING)),
         "cmd": (GObject.SignalFlags.RUN_FIRST,
                 GObject.TYPE_NONE,
                 (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
@@ -55,6 +58,8 @@ class SrtHost(GObject.Object):
         self._name = None
         self._ready = False
         self.__init_cmd__()
+        GLib.timeout_add_seconds(30, self._ping_lock_cb)
+        GLib.timeout_add_seconds(600, self._ping_everyone_cb)
     def __init_cmd__(self):
         self._lock = -1
         self._processing = False
@@ -99,7 +104,6 @@ class SrtHost(GObject.Object):
         if None in [type, sid]:
             return
         if self._lock >= 0 and not sid == self._lock:
-            self._ping_sid(sid)
             return
         if type == "lock":
             if lock:
@@ -139,9 +143,14 @@ class SrtHost(GObject.Object):
                 if self._process_cmd(**self._cmd_queue.pop(i)) is None:
                     self._check_queue()
                 return
+        self._ping_sid(self._lock)
     def _slave_got_obj_cb(self, slave, pkg):
         pkgtype = get_dict_fields(pkg, "type")
         sid = self._find_sid(slave)
+        try:
+            self._clear_ping(sid)
+        except:
+            pass
         if sid is None:
             self._send_invalid(slave)
             return
@@ -156,6 +165,8 @@ class SrtHost(GObject.Object):
             res = self._handle_float(sid, **pkg)
         elif pkgtype == "prop":
             res = self._handle_prop(sid, **pkg)
+        elif pkgtype == "query":
+            res = self._handle_query(sid, **pkg)
         elif pkgtype == "pong":
             res = self._handle_pong(sid, **pkg)
         elif pkgtype == "cmd":
@@ -169,26 +180,49 @@ class SrtHost(GObject.Object):
         if res is None:
             self._send_invalid(slave)
     def _ping_sid_cb(self, sid):
-        if (not sid in self._slave) or self._slave[sid]["ping"] is None:
+        if (not sid in self._slaves) or self._slaves[sid]["ping"] is None:
             return False
         try:
-            self._slave[sid]["sock"].close()
+            self._slaves[sid]["sock"].close()
         except:
             pass
         try:
-            del self._slave[sid]
+            del self._slaves[sid]
         except:
             pass
         self._check_float()
         return False
+    def _ping_lock_cb(self):
+        try:
+            self._ping_sid(self._lock)
+        except:
+            pass
+        return True
+    def _ping_everyone_cb(self):
+        try:
+            for sid in self._slaves:
+                self._ping_sid(sid)
+        except:
+            pass
+        return True
+    def _clear_ping(self, sid):
+        if not sid in self._slaves:
+            return True
+        if self._slaves[sid]["ping"] is None:
+            return True
+        try:
+            GLib.source_remove(self._slaves[sid]["ping"])
+        except:
+            pass
+        self._slaves[sid]["ping"] = None
+        return True
     def _ping_sid(self, sid):
         if not sid in self._slaves:
             return
-        if not self._slave[sid]["ping"] is None:
+        if not self._slaves[sid]["ping"] is None:
             return
-        self._slave[sid]["ping"] = GLib.timeout_add_seconds(1,
-                                                            self._ping_sid_cb,
-                                                            sid)
+        self._slaves[sid]["ping"] = GLib.timeout_add_seconds(
+            15, self._ping_sid_cb, sid)
         self._send_sid(sid, {"type": "ping"})
     def _send_invalid(self, slave):
         slave.send({"type": "error", "errno": SRTERR_UNKNOWN_CMD,
@@ -273,15 +307,7 @@ class SrtHost(GObject.Object):
         self._check_queue()
         return True
     def _handle_pong(self, sid, **kw):
-        if not sid in self._slaves:
-            return True
-        if self._slave[sid]["ping"] is None:
-            return True
-        try:
-            GLib.source_remove(self._slave[sid]["ping"])
-        except:
-            pass
-        self._slave[sid]["ping"] = None
+        self._clear_ping(sid)
         return True
     def _handle_prop(self, sid, name=None, **kw):
         if not isstr(name):
@@ -291,6 +317,11 @@ class SrtHost(GObject.Object):
                                  "value": self._name})
             return True
         self.emit("prop", sid, name)
+        return True
+    def _handle_query(self, sid, name=None, **kw):
+        if not isstr(name):
+            return
+        self.emit("query", sid, name)
         return True
     def _handle_float(self, sid, float=True, **kw):
         try:
@@ -351,6 +382,9 @@ class SrtHost(GObject.Object):
     def feed_prop(self, sid, name, value):
         return self._send_sid(sid, {"type": "prop",
                                     "name": name, "value": value})
+    def feed_query(self, sid, name, name_list):
+        return self._send_sid(sid, {"type": "query",
+                                    "name": name, "name_list": name_list})
     def feed_got_cmd(self, sid):
         self._processing = False
         res = self._send_sid(sid, {"type": "cmd"})

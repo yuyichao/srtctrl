@@ -92,21 +92,20 @@ def new_iface(conn, sync=True, as_default=True):
     def disconn_cb(conn):
         iface.emit("quit")
     conn.connect("disconn", disconn_cb)
-    if not sync:
-        conn.start_send()
-        conn.start_recv()
-        def got_obj_cb(conn, pkg):
-            if pkg is None:
-                iface.emit("quit")
-                return
-            try:
-                pkg = __check_packages(**pkg)
-            except:
-                return
-            if pkg is None:
-                return
-            __package_action(**pkg)
-        conn.connect("got-obj", got_obj_cb)
+    conn.start_send()
+    conn.start_recv()
+    def got_obj_cb(conn, pkg):
+        if pkg is None:
+            iface.emit("quit")
+            return
+        try:
+            pkg = __check_packages(**pkg)
+        except:
+            return
+        if pkg is None:
+            return
+        __package_action(**pkg)
+    conn.connect("got-obj", got_obj_cb)
     def send(obj):
         conn.send(obj)
         if sync:
@@ -128,6 +127,16 @@ def new_iface(conn, sync=True, as_default=True):
         if pkg["type"] == "error":
             raise InvalidRequest
         return pkg["value"]
+    def send_query(name):
+        send({"type": "query", "name": name})
+        if not sync:
+            return
+        pkg = wait_with_cb(lambda pkg: (pkg["type"] == "error" or
+                                        (pkg["type"] == "query" and
+                                         pkg["name"] == name)))
+        if pkg["type"] == "error":
+            raise InvalidRequest
+        return pkg["name_list"]
     def send_cmd(name, *args, **kwargs):
         iface.emit("log", "cmd", [name, args, kwargs])
         send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
@@ -210,6 +219,8 @@ def new_iface(conn, sync=True, as_default=True):
             return _check_config(**pkg)
         elif type == "prop":
             return _check_prop(**pkg)
+        elif type == "query":
+            return _check_query(**pkg)
         elif type == "alarm":
             return _check_alarm(**pkg)
         elif type == "error":
@@ -239,6 +250,8 @@ def new_iface(conn, sync=True, as_default=True):
             return _config_action(**pkg)
         elif type == "prop":
             return _prop_action(**pkg)
+        elif type == "query":
+            return _query_action(**pkg)
         elif type == "alarm":
             return _alarm_action(**pkg)
         elif type == "error":
@@ -328,6 +341,8 @@ def new_iface(conn, sync=True, as_default=True):
                 "field": field, "name": name, "value": value}
     def _check_prop(name=None, value=None, **kw):
         return {"type": "prop", "name": name, "value": value}
+    def _check_query(name=None, name_list=None, **kw):
+        return {"type": "query", "name": name, "name_list": name_list}
     def _check_alarm(name=None, nid=None, alarm=None,
                       success=None, **kw):
         if not isidentifier(name):
@@ -372,6 +387,8 @@ def new_iface(conn, sync=True, as_default=True):
         iface.emit("config", field, name, value)
     def _prop_action(name=None, value=None, **kw):
         iface.emit("prop", name, value)
+    def _query_action(name=None, name_list=None, **kw):
+        iface.emit("query", name, name_list)
     def _alarm_action(name=None, nid=None, alarm=None,
                       success=None, **kw):
         if not success is None:
@@ -445,6 +462,9 @@ def new_iface(conn, sync=True, as_default=True):
             "prop": (GObject.SignalFlags.RUN_FIRST,
                      GObject.TYPE_NONE,
                      (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
+            "query": (GObject.SignalFlags.RUN_FIRST,
+                      GObject.TYPE_NONE,
+                      (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
             "signal": (GObject.SignalFlags.RUN_FIRST |
                        GObject.SignalFlags.DETAILED,
                        GObject.TYPE_NONE,
@@ -480,6 +500,7 @@ def new_iface(conn, sync=True, as_default=True):
         "set_config": set_config,
         "start": send_start,
         "prop": new_wrapper(send_prop, None) if sync else send_prop,
+        "query": new_wrapper(send_query, None) if sync else send_query,
         "cmd": new_wrapper(lambda name:
                            (lambda *args, **kwargs:
                             send_cmd(name, *args, **kwargs)), None),

@@ -8,6 +8,7 @@ set(srt_comm_py
   srtconn.py
   srtaddr.py
   util.py
+  gutil.py
   "${CMAKE_CURRENT_BINARY_DIR}/_config.py"
   config.py
   ps.py

@@ -36,9 +36,14 @@ def main():
     if sync:
         iface.wait_ready()
         iface.lock(wait=True)
+    fname = path.abspath(fname)
     d = {"__file__": fname, "__name__": "__main__"}
     if "SRT_AUTOLOG_FILE" in os.environ:
         iface.record(os.environ["SRT_AUTOLOG_FILE"])
+    try:
+        os.chdir(path.dirname(fname))
+    except:
+        print_except()
     try:
         execfile(fname, d, d)
     except:

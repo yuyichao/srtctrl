@@ -139,6 +139,8 @@ class SrtHelper(GObject.Object):
             return {"type": "ready"}
         elif type == "config":
             return self._check_config(**pkg)
+        elif type == "query":
+            return self._check_query(**pkg)
         elif type == "init":
             return self._check_init(**pkg)
         elif type == "prop":
@@ -159,6 +161,8 @@ class SrtHelper(GObject.Object):
             return self._init_action(**pkg)
         elif type == "prop":
             return self._prop_action(**pkg)
+        elif type == "query":
+            return self._query_action(**pkg)
         elif type == "alarm":
             return self._alarm_action(**pkg)
         elif type == "slave":
@@ -181,6 +185,11 @@ class SrtHelper(GObject.Object):
             self.send_invalid(sid)
             return
         return {"type": "prop", "name": name, "sid": sid}
+    def _check_query(self, name=None, sid=None, **kw):
+        if not (name == "props" or name == "cmds"):
+            self.send_invalid(sid)
+            return
+        return {"type": "query", "name": name, "sid": sid}
     def _check_alarm(self, name=None, nid=None, alarm=None,
                      success=None, **kw):
         if not isidentifier(name):
@@ -225,6 +234,15 @@ class SrtHelper(GObject.Object):
             self.send_invalid(sid)
             return
         self.send_prop(sid,  name, value)
+    def _query_action(self, name=None, sid=None, **kw):
+        try:
+            name_list = dir(self.plugins[name][self._name])
+        except Exception as err:
+            print_except()
+            self.send_invalid(sid)
+            return
+        self._send({"type": "query", "sid": sid, "name": name,
+                    "name_list": name_list})
     def _alarm_action(self, name=None, nid=None, alarm=None,
                       success=None, **kw):
         if not success is None:

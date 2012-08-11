@@ -27,6 +27,7 @@ from .jsonsock import JSONSock
 from .jsonstm import get_json
 from .ps import *
 from .util import *
+from .gutil import *
 from . import config
 from .module import SrtPlugins
 from .error import *

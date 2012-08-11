@@ -59,7 +59,7 @@ for d in range(0, 180, 5):
     setiface.cmds.zwicky["g%d" % d] = _get_galactic(d)
 
 def zwicky_calib(zwicky, count=1, *w, **kw):
-    res = zwicky.calib(count)
+    res = zwicky.calib(int(count))
     return res
 
 setiface.cmds.zwicky.calib = zwicky_calib
@@ -133,6 +133,7 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
     y_half = int(y_half)
     x_step = float(x_step)
     y_step = float(y_step)
+    count = int(count)
     if x_half < 0 or y_half < 0 or x_step < 0 or y_step < 0:
         raise Exception
     track_obj = zwicky.tracker.get_track()
