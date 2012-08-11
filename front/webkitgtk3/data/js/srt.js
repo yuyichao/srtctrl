@@ -22,12 +22,23 @@ $(function () {
     $("#footer").resize(resize_wrapper);
     $("#header").resize(resize_wrapper);
     $(window).resize(resize_wrapper);
+    $(window).keydown(function (ev) {
+        if (ev.keyCode == 116) {
+            window.top.location.reload();
+            return false;
+        }
+        return true;
+    });
     resize_wrapper();
     // Back.Source.connect("event::move", function (src, evt, div) {
     //     div.text(evt.az + ", " + evt.el);
     // }, $('#mvevent'));
     $('#quit-button').click(function (ev) {
         Back.Source.quit();
+        return false;
+    });
+    $('#refresh-button').click(function (ev) {
+        window.top.location.reload();
         return false;
     });
 });
