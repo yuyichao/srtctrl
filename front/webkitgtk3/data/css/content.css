@@ -28,20 +28,9 @@
     box-shadow:         -2px 0px 4px 2px #ccc;
 }
 
-.v-slider-right {
-    width: 8px;
-    background-image: url('../img/back_n_force.png');
-    background-repeat: no-repeat;
-    background-position: 0 center;
-    background-attachment: scroll;
-    background-size: 16px 48px;
-}
-
-.v-slider-left {
-    width: 8px;
-    background-image: url('../img/back_n_force.png');
-    background-repeat: no-repeat;
-    background-position: -8px center;
-    background-attachment: scroll;
-    background-size: 16px 48px;
+#real-props-region {
+    float: right;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
 }
