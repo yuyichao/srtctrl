@@ -10,10 +10,18 @@ $(function () {
     add_dialog($("#about-button"), about_dialog, true);
     $(".about-tab-buttons").click(function () {
         about_dialog.resize();
+        about_dialog_content.resize();
+        about_dialog_tabs.resize();
     });
     about_dialog.resize(function () {
         about_dialog_content.outerHeight(
-            $(this).height()
+            about_dialog.height()
+        );
+        return false;
+    });
+    about_dialog_content.resize(function () {
+        about_dialog_tabs.outerHeight(
+            about_dialog_content.height()
         );
         return false;
     });
@@ -25,8 +33,6 @@ $(function () {
                       - tabs[tname].outerHeight()
                       + tabs[tname].height());
             tabs[tname].height(height);
-            console.log(tname);
-            console.log(height);
         }
         return false;
     });
