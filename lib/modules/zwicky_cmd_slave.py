@@ -53,11 +53,37 @@ def sep_line(line):
     cmd, arg = try_get_cmd(rest)
     return t, cmd, arg
 
-def get_next_arg():
-    pass
+def _py_to_str_end(string, start=0, endc='"'):
+    l = len(string)
+    _pass = False
+    for i in range(start, l):
+        if _pass:
+            _pass = False
+            continue
+        c = jstr[i]
+        if c == endc:
+            return i + 1
+        elif c == '\\':
+            _pass = True
+    return 0
+
+def get_next_arg(arg):
+    arg = arg.strip()
+    if not arg:
+        return '', '', ''
 
 def parse_arg(arg):
-    return [], {}
+    args = []
+    kwargs = {}
+    arg = arg.strip()
+    while arg:
+        key, value, arg = get_next_arg(arg)
+        if key:
+            kwargs[key] = value
+        else:
+            arg.append(valu)
+        arg = arg.strip()
+    return args, kwargs
 
 def get_func(iface, cmd)
     if cmd.lower() == 'record':
