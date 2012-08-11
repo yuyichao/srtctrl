@@ -39,7 +39,7 @@ def main():
     #                                {"fname": "test_slave.py",
     #                                 "autolog": path.abspath("test_slave2.rad")})
     srtcenter.create_slave_by_name("zwicky_cmd", dirname,
-                                   {"fname": "test_slave.py",
+                                   {"fname": "test_slave.cmd",
                                     "autolog": path.abspath("test_slave2.rad")})
     slave.start_recv()
     slave.start_send()

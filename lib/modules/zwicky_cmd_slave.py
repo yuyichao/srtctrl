@@ -26,7 +26,8 @@ def try_get_time(line):
     try:
         tstr, rest = line.split(None, 1)
     except:
-        return None, line
+        tstr = line
+        rest = ''
     try:
         t = guess_interval(tstr)
         t = None if t <= 0 else t
@@ -60,17 +61,119 @@ def _py_to_str_end(string, start=0, endc='"'):
         if _pass:
             _pass = False
             continue
-        c = jstr[i]
+        c = string[i]
         if c == endc:
             return i + 1
         elif c == '\\':
             _pass = True
     return 0
 
+def _py_find_pair(string, start=0):
+    l = len(string)
+    i = start
+    count = {'{}': 0,
+             '[]': 0,
+             '()': 0}
+    found = False
+    while i < l:
+        c = string[i]
+        if c in '"'"'":
+            i = _py_to_str_end(string, i + 1, endc=c)
+            if i == 0:
+                return start
+            continue
+        elif c == '{':
+            count['{}'] += 1
+        elif c == '}':
+            count['{}'] -= 1
+        elif c == '[':
+            count['[]'] += 1
+        elif c == ']':
+            count['[]'] -= 1
+        elif c == '(':
+            count['()'] += 1
+        elif c == ')':
+            count['()'] -= 1
+        i += 1
+        if count['{}'] or count['[]'] or count['()']:
+            found = True
+            if count['{}'] < 0 or count['[]'] < 0 or count['()'] < 0:
+                return i
+        else:
+            if found:
+                return i
+    return start
+
+def _py_to_bare_end(string, start=0, extra=""):
+    l = len(string)
+    if start >= l:
+        return start
+    for i in range(start, l):
+        c = string[i]
+        if not (c.isalnum() or isidentifier(c) or c in "-" or c in extra):
+            return i
+    return i + 1
+
 def get_next_arg(arg):
     arg = arg.strip()
     if not arg:
-        return '', '', ''
+        return None, None, ''
+    if arg[0] == ',':
+        return None, None, arg[1:].strip()
+    if arg[0] in '"'"'":
+        i = _py_to_str_end(arg, start=1, endc=arg[0])
+        if i == 0:
+            raise SyntaxError("Unclosed quote")
+        left = arg[i:].strip()
+        if left and left[0] == ',':
+            left = left[1:].strip()
+        arg = eval(arg[:i], {}, {})
+        return None, arg, left
+    if arg[0] in "([{":
+        i = _py_find_pair(arg, start=0)
+        left = arg[i:].strip()
+        if left and left[0] == ',':
+            left = left[1:].strip()
+        arg = eval(arg[:i], {}, {})
+        return None, arg, left
+    i = _py_to_bare_end(arg, start=1, extra="-./")
+    left = arg[i:].strip()
+    key = arg[:i]
+    if not isidentifier(key):
+        try:
+            key = float(key)
+        except:
+            pass
+        if left and left[0] == ',':
+            left = left[1:].strip()
+        return None, key, left
+    if left and left[0] == '=':
+        left = left[1:].strip()
+        if left and left[0] in "([{":
+            i = _py_find_pair(left, start=0)
+            left1 = left[i:].strip()
+            if left1 and left1[0] == ',':
+                left1 = left1[1:].strip()
+            arg = eval(left[:i], {}, {})
+            return key, arg, left1
+        elif left and left[0] in '"'"'":
+            i = _py_to_str_end(left, start=1, endc=left[0])
+            if i == 0:
+                raise SyntaxError("Unclosed quote")
+            left1 = left[i:].strip()
+            if left1 and left1[0] == ',':
+                left1 = left1[1:].strip()
+            arg = eval(left[:i], {}, {})
+            return key, arg, left1
+        i = _py_to_bare_end(left, start=1)
+        left1 = left[i:].strip()
+        if left1 and left1[0] == ',':
+            left1 = left[1:].strip()
+        arg = eval(left[:i], {}, {})
+        return key, arg, left1
+    elif left and left[0] == ',':
+        left = left[1:].strip()
+    return None, key, left
 
 def parse_arg(arg):
     args = []
@@ -81,18 +184,18 @@ def parse_arg(arg):
         if key:
             kwargs[key] = value
         else:
-            arg.append(valu)
+            args.append(value)
         arg = arg.strip()
     return args, kwargs
 
-def get_func(iface, cmd)
+def get_func(iface, cmd):
     if cmd.lower() == 'record':
         return iface.record
     return iface.cmd[cmd]
 
 def exec_cmd(iface, cmd, arg):
-    func = get_func(iface, cmd)
     args, kwargs = parse_arg(arg)
+    func = get_func(iface, cmd)
     func(*args, **kwargs)
 
 def exec_line(iface, line):
@@ -112,7 +215,7 @@ def exec_line(iface, line):
     else:
         rad_arg = ''
     t += _time.time()
-    while t <= _time.time():
+    while t >= _time.time():
         exec_cmd(iface, 'radio', rad_arg)
     exec_cmd(iface, cmd, arg)
 
