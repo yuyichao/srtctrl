@@ -22,8 +22,17 @@ class SrtWindow:
     def __init__(self):
         self.window = Gtk.Window()
         self.webview = WebKit.WebView()
+        self.webview.connect("new-window-policy-decision-requested",
+                             self._new_window_requested)
         self.window.add(self.webview)
         self.helper = Helper(self.webview)
+    def _new_window_requested(self, view, frame, request, action, decision):
+        decision.ignore()
+        uri = request.get_uri()
+        import subprocess
+        browser = 'xdg-open'
+        subprocess.Popen([browser, uri])
+        return True
     def show_all(self):
         self.window.show_all()
     def load_uri(self, uri):
