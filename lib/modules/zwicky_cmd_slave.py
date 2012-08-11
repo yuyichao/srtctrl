@@ -26,20 +26,95 @@ def try_get_time(line):
     try:
         tstr, rest = line.split(None, 1)
     except:
-        return 0, rest
+        return None, line
     try:
         t = guess_interval(tstr)
+        t = None if t <= 0 else t
         return t, rest
     except:
         pass
+    try:
+        t = guess_time(tstr) - _time.time()
+        t = None if t <= 0 else t
+        return t, rest
+    except:
+        pass
+    return None, line
+
+def try_get_cmd(rest):
+    try:
+        cmd, arg = rest.split(None, 1)
+        return cmd, arg
+    except:
+        return rest, ''
 
 def sep_line(line):
-    pass
+    t, rest = try_get_time(line)
+    cmd, arg = try_get_cmd(rest)
+    return t, cmd, arg
+
+def _py_to_str_end(string, start=0, endc='"'):
+    l = len(string)
+    _pass = False
+    for i in range(start, l):
+        if _pass:
+            _pass = False
+            continue
+        c = jstr[i]
+        if c == endc:
+            return i + 1
+        elif c == '\\':
+            _pass = True
+    return 0
+
+def get_next_arg(arg):
+    arg = arg.strip()
+    if not arg:
+        return '', '', ''
+
+def parse_arg(arg):
+    args = []
+    kwargs = {}
+    arg = arg.strip()
+    while arg:
+        key, value, arg = get_next_arg(arg)
+        if key:
+            kwargs[key] = value
+        else:
+            arg.append(valu)
+        arg = arg.strip()
+    return args, kwargs
+
+def get_func(iface, cmd)
+    if cmd.lower() == 'record':
+        return iface.record
+    return iface.cmd[cmd]
+
+def exec_cmd(iface, cmd, arg):
+    func = get_func(iface, cmd)
+    args, kwargs = parse_arg(arg)
+    func(*args, **kwargs)
 
 def exec_line(iface, line):
     if line.startswith('#') or line.startswith('*') or not line:
         return
-    printy(line)
+    t, cmd, arg = sep_line(line)
+    if t is None or t <= 0:
+        exec_cmd(iface, cmd, arg)
+        return
+    if not cmd:
+        sleep(t)
+        return
+    if cmd == 'radio':
+        rad_arg = arg
+        cmd = ''
+        arg = ''
+    else:
+        rad_arg = ''
+    t += _time.time()
+    while t <= _time.time():
+        exec_cmd(iface, 'radio', rad_arg)
+    exec_cmd(iface, cmd, arg)
 
 def main():
     from srt_slave import default
