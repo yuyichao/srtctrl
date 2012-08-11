@@ -35,12 +35,12 @@ def main():
     srtcenter.connect('error', err_cb)
     host, slave = conn_pair(gtype=JSONSock)
     srtcenter.add_slave_from_jsonsock(host)
-    # srtcenter.create_slave_by_name("python", dirname,
-    #                                {"fname": "test_slave.py",
-    #                                 "autolog": path.abspath("test_slave2.rad")})
-    srtcenter.create_slave_by_name("zwicky_cmd", dirname,
-                                   {"fname": "test_slave.cmd",
+    srtcenter.create_slave_by_name("python", dirname,
+                                   {"fname": "test_slave.py",
                                     "autolog": path.abspath("test_slave2.rad")})
+    # srtcenter.create_slave_by_name("zwicky_cmd", dirname,
+    #                                {"fname": "test_slave.cmd",
+    #                                 "autolog": path.abspath("test_slave2.rad")})
     slave.start_recv()
     slave.start_send()
     slave.send({"type": "float", "float": True})

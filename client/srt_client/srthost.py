@@ -30,6 +30,9 @@ class SrtHost(GObject.Object):
         "prop": (GObject.SignalFlags.RUN_FIRST,
                  GObject.TYPE_NONE,
                  (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING)),
+        "query": (GObject.SignalFlags.RUN_FIRST,
+                  GObject.TYPE_NONE,
+                  (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING)),
         "cmd": (GObject.SignalFlags.RUN_FIRST,
                 GObject.TYPE_NONE,
                 (GObject.TYPE_PYOBJECT, GObject.TYPE_STRING,
@@ -156,6 +159,8 @@ class SrtHost(GObject.Object):
             res = self._handle_float(sid, **pkg)
         elif pkgtype == "prop":
             res = self._handle_prop(sid, **pkg)
+        elif pkgtype == "query":
+            res = self._handle_query(sid, **pkg)
         elif pkgtype == "pong":
             res = self._handle_pong(sid, **pkg)
         elif pkgtype == "cmd":
@@ -292,6 +297,11 @@ class SrtHost(GObject.Object):
             return True
         self.emit("prop", sid, name)
         return True
+    def _handle_query(self, sid, name=None, **kw):
+        if not isstr(name):
+            return
+        self.emit("query", sid, name)
+        return True
     def _handle_float(self, sid, float=True, **kw):
         try:
             self._slaves[sid]["float"] = bool(float)
@@ -351,6 +361,9 @@ class SrtHost(GObject.Object):
     def feed_prop(self, sid, name, value):
         return self._send_sid(sid, {"type": "prop",
                                     "name": name, "value": value})
+    def feed_query(self, sid, name, name_list):
+        return self._send_sid(sid, {"type": "query",
+                                    "name": name, "name_list": name_list})
     def feed_got_cmd(self, sid):
         self._processing = False
         res = self._send_sid(sid, {"type": "cmd"})

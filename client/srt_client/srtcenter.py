@@ -53,6 +53,7 @@ class SrtCenter(GObject.Object):
     def __init_host__(self):
         self._host = SrtHost(self._plugins)
         self._host.connect("prop", self._host_prop_cb)
+        self._host.connect("query", self._host_query_cb)
         self._host.connect("cmd", self._host_cmd_cb)
         self._host.connect("config", self._host_config_cb)
         self._host.connect("set-config", self._host_set_config_cb)
@@ -103,6 +104,8 @@ class SrtCenter(GObject.Object):
         self._helper_alarm = {}
     def _host_prop_cb(self, host, sid, name):
         self._helper.send({"type": "prop", "sid": sid, "name": name})
+    def _host_query_cb(self, host, sid, name):
+        self._helper.send({"type": "query", "sid": sid, "name": name})
     def _host_cmd_cb(self, host, sid, name, args, kwargs):
         try:
             args = list(args)
@@ -153,6 +156,9 @@ class SrtCenter(GObject.Object):
         elif pkgtype == "prop":
             self._helper_handle_prop(**pkg)
             return
+        elif pkgtype == "query":
+            self._helper_handle_query(**pkg)
+            return
         elif pkgtype == "signal":
             self._helper_handle_signal(**pkg)
             return
@@ -195,6 +201,10 @@ class SrtCenter(GObject.Object):
         if None in [name, value]:
             return
         self._host.feed_prop(sid, name, value)
+    def _helper_handle_query(self, sid=None, name=None, name_list=None, **kw):
+        if None in [name, name_list]:
+            return
+        self._host.feed_query(sid, name, name_list)
     def _helper_handle_got_cmd(self, sid=None, **kw):
         self._host.feed_got_cmd(sid)
     def _helper_handle_slave(self, sid=None, obj=None, **kw):

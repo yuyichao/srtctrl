@@ -25,6 +25,7 @@ try:
     printb("RES:", cmd.move("galacti", offset=[30, 40]))
 except InvalidRequest:
     print_except()
+printbg("QUERY:", query.cmds)
 printb("RES:", cmd.move("galactic", offset=[30, 40]))
 printb("config", config.zwicky.station)
 set_config("zwicky", "station", [10, 10, 10])
