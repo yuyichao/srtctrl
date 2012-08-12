@@ -30,11 +30,11 @@ $(function () {
         return true;
     });
     resize_wrapper();
-    // Back.Source.connect("event::move", function (src, evt, div) {
+    // Back.IFace.connect("event::move", function (src, evt, div) {
     //     div.text(evt.az + ", " + evt.el);
     // }, $('#mvevent'));
     $('#quit-button').click(function (ev) {
-        Back.Source.quit();
+        Back.IFace.quit();
         return false;
     });
     $('#refresh-button').click(function (ev) {
