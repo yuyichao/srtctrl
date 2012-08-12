@@ -30,9 +30,11 @@ $(function () {
         return true;
     });
     resize_wrapper();
-    // Back.IFace.connect("event::move", function (src, evt, div) {
-    //     div.text(evt.az + ", " + evt.el);
-    // }, $('#mvevent'));
+    Back.IFace.slave.connect("signal", function (src, name, value, props) {
+        console.log(name);
+        console.log(value.toString());
+        console.log(props.toString());
+    });
     $('#quit-button').click(function (ev) {
         Back.IFace.quit();
         return false;
