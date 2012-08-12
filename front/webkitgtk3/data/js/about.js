@@ -6,26 +6,23 @@ $(function () {
         copy: $("#about-dialog-tab-copy"),
         desc: $("#about-dialog-tab-description")
     };
-    about_dialog_tabs.tabs();
+    about_dialog_tabs.tabs({
+        fx: {
+            opacity: "toggle",
+            duration: 200
+        }
+    });
     add_dialog($("#about-button"), about_dialog, true);
     $(".about-tab-buttons").click(function () {
         about_dialog.resize();
-        about_dialog_content.resize();
-        about_dialog_tabs.resize();
     });
     about_dialog.resize(function () {
         about_dialog_content.outerHeight(
             about_dialog.height()
         );
-        return false;
-    });
-    about_dialog_content.resize(function () {
         about_dialog_tabs.outerHeight(
             about_dialog_content.height()
         );
-        return false;
-    });
-    about_dialog_tabs.resize(function () {
         for (var tname in tabs) {
             var height;
             height = (about_dialog_tabs.height()
