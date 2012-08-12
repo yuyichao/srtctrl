@@ -87,7 +87,7 @@ class SrtConn(_sock.Sock):
                 return
             self._buffer += self._decode(newbuf)
     def send(self, buff):
-        util.printp(repr(buff))
+        # util.printp(repr(buff))
         try:
             buff = buff.encode('utf-8')
         except:

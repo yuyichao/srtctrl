@@ -28,19 +28,10 @@ def try_get_time(line):
     except:
         tstr = line
         rest = ''
-    try:
-        t = guess_interval(tstr)
-        t = None if t <= 0 else t
-        return t, rest
-    except:
-        pass
-    try:
-        t = guess_time(tstr) - _time.time()
-        t = None if t <= 0 else t
-        return t, rest
-    except:
-        pass
-    return None, line
+    t = try_get_interval(tstr)
+    if t is None:
+        return None, line
+    return t, rest
 
 def try_get_cmd(rest):
     try:

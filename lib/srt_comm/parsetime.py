@@ -85,3 +85,16 @@ def guess_time(tstr):
     if not t is None:
         return _time.mktime(t)
     raise ValueError
+
+def try_get_interval(tstr):
+    try:
+        t = guess_interval(tstr)
+        return t
+    except:
+        pass
+    try:
+        t = guess_time(tstr) - _time.time()
+        return t
+    except:
+        pass
+    return None

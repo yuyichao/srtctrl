@@ -19,6 +19,8 @@ from pywkjs import *
 
 from gi.repository import WebKit, Gtk
 from .window import SrtWindow
+from .inspector import SrtInspector
+import srt_comm
 
 class Obj(object):
     pass
@@ -31,6 +33,7 @@ class SrtUI:
         self._window.webview.connect("load-finished", self._load_finish_cb)
         self._window.webview.connect("console-message", self._console_log_cb)
         self._window.load_uri(uri)
+        self._inspector = None
         self._exp_dict = exp_dict
     def _win_clr_cb(self, helper, frame, winobj):
         self._winobj = winobj
@@ -39,7 +42,9 @@ class SrtUI:
         winobj.UI.WebKit = WebKit
         winobj.UI.window = self._window.window
         winobj.UI.webview = self._window.webview
+        winobj.UI.show_inspector = self.show_inspector
         winobj.Back = self._exp_dict
+        winobj.SrtUtil = srt_comm
     def _load_finish_cb(self, view, frame):
         pass
     def _win_close_cb(self, win):
@@ -48,3 +53,10 @@ class SrtUI:
         return False
     def show_all(self):
         self._window.show_all()
+    def show_inspector(self):
+        view = self._window.webview
+        view.get_settings().set_property("enable-developer-extras",True)
+        inspector = self._window.webview.get_inspector()
+        if self._inspector is None:
+            self._inspector = SrtInspector(inspector)
+        inspector.show()
