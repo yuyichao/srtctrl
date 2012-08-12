@@ -161,6 +161,8 @@ def new_iface(conn, sync=True, as_default=True):
         iface.emit("log", "quit", "")
         send({"type": "quit"})
         iface.emit("quit")
+    def send_slave_error(name=None, msg=None):
+        send({"type": "slave-error", "name": name, "msg": msg})
     def send_alarm(name, nid="", **args):
         send({"type": "alarm", "name": name, "nid": nid, "args": args})
         if not sync:
@@ -507,6 +509,7 @@ def new_iface(conn, sync=True, as_default=True):
         "lock": lambda wait=True: send_lock(True, wait=wait),
         "unlock": lambda: send_lock(False),
         "quit": send_quit,
+        "slave_error": send_slave_error,
         "alarm": new_wrapper(lambda name:
                              (lambda nid, **args:
                               send_alarm(name, nid, **args)), None),
