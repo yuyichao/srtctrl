@@ -47,6 +47,8 @@ def main():
     try:
         execfile(fname, d, d)
     except:
+        import traceback
+        iface.slave_error(fname, traceback.format_exc())
         print_except()
 
 def start_slave(host, pwd, fname=None, args=[], sync=True, autolog=None, **kw):

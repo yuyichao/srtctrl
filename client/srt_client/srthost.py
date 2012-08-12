@@ -165,6 +165,8 @@ class SrtHost(GObject.Object):
             res = self._handle_float(sid, **pkg)
         elif pkgtype == "prop":
             res = self._handle_prop(sid, **pkg)
+        elif pkgtype == "slave-error":
+            res = self._handle_slave_error(sid, **pkg)
         elif pkgtype == "query":
             res = self._handle_query(sid, **pkg)
         elif pkgtype == "pong":
@@ -317,6 +319,9 @@ class SrtHost(GObject.Object):
                                  "value": self._name})
             return True
         self.emit("prop", sid, name)
+        return True
+    def _handle_slave_error(self, sid, name=None, msg="", **kw):
+        self._broadcast({"type": "slave-error", "name": name, "msg": msg})
         return True
     def _handle_query(self, sid, name=None, **kw):
         if not isstr(name):
