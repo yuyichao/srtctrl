@@ -13,10 +13,7 @@ $(function () {
         }
     });
     add_dialog($("#about-button"), about_dialog, true);
-    $(".about-tab-buttons").click(function () {
-        about_dialog.resize();
-    });
-    about_dialog.resize(function () {
+    function resize_about_dialog() {
         about_dialog_content.outerHeight(
             about_dialog.height()
         );
@@ -26,11 +23,13 @@ $(function () {
         for (var tname in tabs) {
             var height;
             height = (about_dialog_tabs.height()
-                      - tabs[tname].position().top
-                      - tabs[tname].outerHeight()
-                      + tabs[tname].height());
+                      - $("#about-dialog-tabs-bar").outerHeight());
             tabs[tname].height(height);
         }
         return false;
+    }
+    $(".about-tab-buttons").click(function () {
+        resize_about_dialog();
     });
+    about_dialog.resize(resize_about_dialog);
 });
