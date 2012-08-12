@@ -47,7 +47,7 @@ class ZwickyTracker:
     def reset(self):
         self._az = -10
         self._el = -10
-        self.track(offset=[-10, -10], track=False)
+        self.track(args=[-10, -10], track=False)
     def set_pos(self, az, el):
         self._az = float(az)
         self._el = float(el)

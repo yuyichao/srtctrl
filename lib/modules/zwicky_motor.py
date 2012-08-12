@@ -18,6 +18,7 @@
 
 from __future__ import print_function, division
 from math import *
+from srt_comm import *
 
 DIRECT_HDEC = 0
 DIRECT_HINC = 1
@@ -41,8 +42,8 @@ class ZwickyMoter:
     def reset(self):
         self._az_c = 0
         self._el_c = 0
-        self._az_set = 0
-        self._el_set = 0
+        self._az_set = -10
+        self._el_set = -10
         self._az_edge = -1
         self._el_edge = -1
         self.move_signal()
