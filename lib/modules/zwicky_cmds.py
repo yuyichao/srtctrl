@@ -21,13 +21,12 @@ from srt_comm import *
 import time as _time
 
 def zwicky_move(zwicky, name="", args=None, offset=[0., 0.], time=0,
-                abstime=False, track=True, *w, **kw):
+                track=True, *w, **kw):
     name = std_arg("", name)
     offset = std_arg([0., 0.], offset)
-    abstime = std_arg(False, abstime)
     track = std_arg(False, track)
     if not zwicky.track(name=name, offset=offset, time=time,
-                        abstime=abstime, track=track, args=args):
+                        track=track, args=args):
         raise Exception
     zwicky.motor.pos_chk()
     return True
@@ -137,7 +136,8 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
     if x_half < 0 or y_half < 0 or x_step < 0 or y_step < 0:
         raise Exception
     track_obj = zwicky.tracker.get_track()
-    track_obj["abstime"] = not track_obj["track"]
+    if not track_obj["track"]:
+        abstime = track_obj["time"]
     x_base, y_base = track_obj["offset"]
     if y_first:
         offsets = ((x * x_step, y * y_step)
@@ -150,6 +150,8 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
     results = []
     for x_off, y_off in offsets:
         track_obj["offset"] = [x_base + x_off, y_base + y_off]
+        if not track_obj["track"]:
+            track_obj["time"] - _time.time()
         if not zwicky.track(**track_obj):
             raise Exception
         zwicky.motor.pos_chk()

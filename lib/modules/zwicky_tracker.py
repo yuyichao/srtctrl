@@ -53,9 +53,9 @@ class ZwickyTracker:
         self._el = float(el)
     def _update_pos(self):
         self._zwicky.move(self._az, self._el)
-    def track(self, name="", offset=[0, 0], time=0, abstime=False, track=True,
+    def track(self, name="", offset=[0, 0], time=0, track=True,
               args=None, **kw):
-        if self._track(name, offset, time, abstime, track, args):
+        if self._track(name, offset, time, track, args):
             self._zwicky.send_signal("track", self._track_obj)
             return True
         return False
@@ -70,30 +70,13 @@ class ZwickyTracker:
                          pkg["name"] == "track" and
                          pkg["nid"] == "zwicky"), check_only=True)
         return True
-    def _track(self, name, offset, time, abstime, track, args):
+    def _track(self, name, offset, time, track, args):
         offset = std_arg([0., 0.], offset)
-        if track:
-            if abstime:
-                try:
-                    time = guess_time(time) - _time.time()
-                except:
-                    time = 0
-            else:
-                try:
-                    time = guess_interval(time)
-                except:
-                    time = 0
-        else:
-            if abstime:
-                try:
-                    time = guess_time(time)
-                except:
-                    time = _time.time()
-            else:
-                try:
-                    time = guess_interval(time) + _time.time()
-                except:
-                    time = _time.time()
+        time = try_get_interval(time)
+        if t is None:
+            time = 0
+        if not track:
+            time += _time.time()
         track_obj = {"name": name, "offset": offset, "time": time,
                      "track": track, "args": args}
         return self._apply_track(track_obj)
