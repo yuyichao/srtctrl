@@ -47,7 +47,7 @@ def start_webkitgtk3(host, pwd, uri="", **kw):
     conn = exec_n_conn(sys.executable,
                        args=[sys.executable, __file__, uri, pwd],
                        n=1, gtype=JSONSock)[0]
-    # conn.connect("disconn", lambda conn: host.emit("quit"))
+    conn.connect("disconn", lambda conn: host.emit("quit"))
     return host.add_slave_from_jsonsock(conn)
 
 if __name__ == '__main__':
