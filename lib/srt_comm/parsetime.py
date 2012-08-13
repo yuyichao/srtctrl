@@ -20,6 +20,7 @@ from __future__ import print_function, division
 import time as _time
 import re as _re
 from .util import *
+import datetime
 
 def _try_formats(tstr, formats):
     for f in formats:
@@ -30,21 +31,21 @@ def _try_formats(tstr, formats):
     return
 
 _interval_guesser = [
-    [_re.compile("^:?(?P<sec>[.0-9]+)s?$"), lambda grp: float(grp("sec"))],
-    [_re.compile("^:?(?P<min>[.0-9]+)m$"), lambda grp: float(grp("min")) * 60],
-    [_re.compile("^:?(?P<hour>[.0-9]+)h$"),
+    [_re.compile("^(?P<sec>[.0-9]+)s?$"), lambda grp: float(grp("sec"))],
+    [_re.compile("^(?P<min>[.0-9]+)m$"), lambda grp: float(grp("min")) * 60],
+    [_re.compile("^(?P<hour>[.0-9]+)h$"),
      lambda grp: float(grp("hour")) * 3600],
-    [_re.compile("^:?(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
-    [_re.compile("^:?(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m$"),
+    [_re.compile("^(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m$"),
      lambda grp: float(grp("min")) * 60 + float(grp("hour")) * 3600],
-    [_re.compile("^:?(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^(?P<hour>[.0-9]+)h(?P<min>[.0-9]+)m(?P<sec>[.0-9]+)s?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^:?(?P<hour>[.0-9]+)h?:(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^(?P<hour>[.0-9]+)h?:(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^:?(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
+    [_re.compile("^(?P<min>[.0-9]+)m?:(?P<sec>[.0-9]+)s?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
     ]
 
@@ -87,6 +88,20 @@ def guess_time(tstr):
                             "%Y:%j:%H:%M:%Sl", "%Y:%m:%d:%H:%M:%Sl"])
     if not t is None:
         return _time.mktime(t)
+    regex = _re.compile("^(ls?t?)?:?(?P<tstr>.*)$")
+    res = regex.search(tstr)
+    if not res is None:
+        try:
+            t = guess_interval(res.group("tstr"))
+            day = datetime.date.today()
+            begin_of_day = _time.mktime(day.timetuple())
+            now = _time.mktime()
+            t += begin_of_day
+            if t < now - 3600:
+                t += 86400
+            return t
+        except:
+            pass
     raise ValueError
 
 def try_get_interval(tstr):
