@@ -55,6 +55,11 @@ def guess_interval(tstr):
         pass
     if not isstr(tstr):
         raise ValueError
+    tstr = tstr.strip(' \n\r\t\b:').lower()
+    try:
+        return float(tstr)
+    except:
+        pass
     for guesser in _interval_guesser:
         try:
             m = guesser[0].search(tstr)
@@ -70,18 +75,16 @@ def guess_time(tstr):
         pass
     if not isstr(tstr):
         raise ValueError
-    t = _try_formats(tstr, ["%Y:%j:%H:%M:%S", "%Y:%m:%d:%H:%M:%S",
-                            ":%Y:%j:%H:%M:%S", ":%Y:%m:%d:%H:%M:%S"])
+    tstr = tstr.strip(' \n\r\t\b:').lower()
+    try:
+        return float(tstr)
+    except:
+        pass
+    t = _try_formats(tstr, ["%Y:%j:%H:%M:%S", "%Y:%m:%d:%H:%M:%S"])
     if not t is None:
         return _time.mktime(t) - time.timezone
     t = _try_formats(tstr, ["l%Y:%j:%H:%M:%S", "l%Y:%m:%d:%H:%M:%S",
-                            "L%Y:%j:%H:%M:%S", "L%Y:%m:%d:%H:%M:%S",
-                            "%Y:%j:%H:%M:%Sl", "%Y:%m:%d:%H:%M:%Sl",
-                            "%Y:%j:%H:%M:%SL", "%Y:%m:%d:%H:%M:%SL",
-                            ":l%Y:%j:%H:%M:%S", ":l%Y:%m:%d:%H:%M:%S",
-                            ":L%Y:%j:%H:%M:%S", ":L%Y:%m:%d:%H:%M:%S",
-                            ":%Y:%j:%H:%M:%Sl", ":%Y:%m:%d:%H:%M:%Sl",
-                            ":%Y:%j:%H:%M:%SL", ":%Y:%m:%d:%H:%M:%SL",])
+                            "%Y:%j:%H:%M:%Sl", "%Y:%m:%d:%H:%M:%Sl"])
     if not t is None:
         return _time.mktime(t)
     raise ValueError
