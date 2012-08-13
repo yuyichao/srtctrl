@@ -7,10 +7,7 @@ $(function () {
         var header = $("#header");
         var content = $("#content");
         var footer = $("#footer");
-        var full_height = body.height();
-        var head_height = header.height();
-        var footer_height = footer.height();
-        content.height(full_height - head_height - footer_height);
+        content.height(body.height() - header.height() - footer.height() - 6);
     }
     function resize_wrapper() {
         if (resize_timeout !== false) {
@@ -19,6 +16,12 @@ $(function () {
         }
         resize_timeout = setTimeout(srt_cal_size, 200);
     }
+    $(document).bind("contextmenu", function(e) {
+        //TODO
+        return false;
+    });
+    $(window).keypress(function (ev) {
+    });
     $("#footer").resize(resize_wrapper);
     $("#header").resize(resize_wrapper);
     $(window).resize(resize_wrapper);
@@ -30,9 +33,8 @@ $(function () {
         return true;
     });
     resize_wrapper();
-    // Back.IFace.connect("event::move", function (src, evt, div) {
-    //     div.text(evt.az + ", " + evt.el);
-    // }, $('#mvevent'));
+    Back.IFace.slave.connect("signal", function (src, name, value, props) {
+    });
     $('#quit-button').click(function (ev) {
         Back.IFace.quit();
         return false;

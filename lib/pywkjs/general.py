@@ -72,7 +72,7 @@ def py2js(ctx, pyobj):
     if pyobj is None:
         return ctx.make_null()
     elif isinstance(pyobj, bool):
-        return ctx.make_boolean(pyobj)
+        return ctx.make_bool(pyobj)
     elif isnum(pyobj):
         return ctx.make_number(float(pyobj))
     elif isinstance(pyobj, str):

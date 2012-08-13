@@ -44,4 +44,6 @@ input.command {
     -webkit-box-shadow: 0px 0px 2px 2px #02f inset;
     box-shadow:         0px 0px 2px 2px #02f inset;
     width: 100%;
+    position: absolute;
+    bottom: 0;
 }

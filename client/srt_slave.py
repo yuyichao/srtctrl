@@ -395,7 +395,7 @@ def new_iface(conn, sync=True, as_default=True):
     def _prop_action(name=None, value=None, **kw):
         iface.emit("prop", name, value)
     def _query_action(name=None, name_list=None, **kw):
-        iface.emit("query", name, name_list)
+        iface.emit("query::%s" % name.replace('_', '-'), name, name_list)
     def _alarm_action(name=None, nid=None, alarm=None,
                       success=None, **kw):
         if not success is None:
@@ -416,7 +416,8 @@ def new_iface(conn, sync=True, as_default=True):
     def _cmd_action(**kw):
         iface.emit("cmd")
     def _res_action(res=None, name=None, props={}, args=[], kwargs={}, **kw):
-        iface.emit("res", name, res, props, args, kwargs)
+        iface.emit("res::%s" % name.replace('_', '-'),
+                   name, res, props, args, kwargs)
     def _signal_action(name=None, value=None, props={}, **kw):
         iface.emit("signal::%s" % name.replace('_', '-'),
                    name, value, props)
@@ -442,7 +443,8 @@ def new_iface(conn, sync=True, as_default=True):
             "cmd": (GObject.SignalFlags.RUN_FIRST,
                     GObject.TYPE_NONE,
                     ()),
-            "res": (GObject.SignalFlags.RUN_FIRST,
+            "res": (GObject.SignalFlags.RUN_FIRST |
+                    GObject.SignalFlags.DETAILED,
                     GObject.TYPE_NONE,
                     (GObject.TYPE_STRING,
                      GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT,
@@ -469,7 +471,8 @@ def new_iface(conn, sync=True, as_default=True):
             "prop": (GObject.SignalFlags.RUN_FIRST,
                      GObject.TYPE_NONE,
                      (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
-            "query": (GObject.SignalFlags.RUN_FIRST,
+            "query": (GObject.SignalFlags.RUN_FIRST |
+                      GObject.SignalFlags.DETAILED,
                       GObject.TYPE_NONE,
                       (GObject.TYPE_STRING, GObject.TYPE_PYOBJECT)),
             "signal": (GObject.SignalFlags.RUN_FIRST |
