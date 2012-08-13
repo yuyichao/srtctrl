@@ -31,6 +31,7 @@ def main():
         pass
     conn = get_passed_conns(gtype=JSONSock)[0]
     iface = srt_slave.new_iface(conn, False)
+    # TODO
     iface.slave.connect("quit", Gtk.main_quit)
     ui = srt_wkgtk.SrtUI(uri, {"IFace": iface})
     ui.show_all()
@@ -46,6 +47,7 @@ def start_webkitgtk3(host, pwd, uri="", **kw):
     conn = exec_n_conn(sys.executable,
                        args=[sys.executable, __file__, uri, pwd],
                        n=1, gtype=JSONSock)[0]
+    # conn.connect("disconn", lambda conn: host.emit("quit"))
     return host.add_slave_from_jsonsock(conn)
 
 if __name__ == '__main__':

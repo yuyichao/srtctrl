@@ -106,6 +106,11 @@ def new_iface(conn, sync=True, as_default=True):
             return
         __package_action(**pkg)
     conn.connect("got-obj", got_obj_cb)
+    def _pong_back_cb():
+        if not conn.send_buff_is_empty():
+            send({"type": "pong"})
+        return True
+    GLib.timeout_add_seconds(10, _pong_back_cb)
     def send(obj):
         conn.send(obj)
         if sync:
