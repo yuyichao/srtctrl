@@ -950,6 +950,19 @@ srtsock_sock_update_out_src(SrtSockSock *self)
 }
 
 /**
+ * send_buff_is_empty:
+ * @self: (transfer none) (allow-none):
+ *
+ * Returns:
+ **/
+gboolean
+srtsock_sock_send_buff_is_empty(SrtSockSock *self)
+{
+    g_return_val_if_fail(SRTSOCK_IS_SOCK(self), TRUE);
+    return srtsock_buff_empty(self->priv->send_buff);
+}
+
+/**
  * srtsock_sock_accept:
  * @self: (transfer none) (allow-none):
  * @error: (allow-none):

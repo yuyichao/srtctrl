@@ -90,6 +90,7 @@ extern "C" {
     gboolean srtsock_sock_start_send(SrtSockSock *self);
     void srtsock_sock_stop_send(SrtSockSock *self);
     gboolean srtsock_sock_wait_send(SrtSockSock *self, GError **error);
+    gboolean srtsock_sock_send_buff_is_empty(SrtSockSock *self);
 
     gboolean srtsock_sock_close(SrtSockSock *self, GError **error);
     gboolean srtsock_sock_shutdown(SrtSockSock *self, gboolean read,
