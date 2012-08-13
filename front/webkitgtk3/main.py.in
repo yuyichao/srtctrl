@@ -3,14 +3,30 @@ from __future__ import print_function, division
 from srt_client import *
 from srt_comm import *
 from gi.repository import GLib
-import sys
+import sys, os
+from os import path
+
+SRT_WEBKITGTK3_PATH = "@SRT_WEBKITGTK3_PATH@"
+SRT_WEBKITGTK3_PATH = read_env('SRT_WEBKITGTK3_PATH',
+                               default=SRT_WEBKITGTK3_PATH)
+SRT_WEBKITGTK3_URI = read_env('SRT_WEBKITGTK3_URI',
+                              default=GLib.filename_to_uri(SRT_WEBKITGTK3_PATH,
+                                                           None))
 
 def main():
-    path = sys.argv[1]
-    uri = GLib.filename_to_uri(path, None)
     srtcenter = SrtCenter()
     srtcenter.create_slave_by_name("webkitgtk3", None,
-                                   {"uri": uri})
+                                   {"uri": SRT_WEBKITGTK3_URI})
+    try:
+        fname = sys.argv[1]
+        if fname.endswith(".py"):
+            srtcenter.create_slave_by_name("python", os.getcwd(),
+                                           {"fname": fname})
+        else:
+            srtcenter.create_slave_by_name("zwicky_cmd", os.getcwd(),
+                                           {"fname": fname})
+    except:
+        pass
     srtcenter.run()
 
 if __name__ == '__main__':
