@@ -17,7 +17,6 @@ add_subdirectory(srt_wkgtk)
 add_subdirectory(data)
 
 if(ENABLE_TEST)
-  add_subdirectory(test)
   set(BINARY_LIB_DIR "${PROJECT_BINARY_DIR}/lib")
   set(FRONT_DIR "${PROJECT_BINARY_DIR}/front/webkitgtk3")
   add_run(test_webkitgtk_main
