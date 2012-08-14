@@ -5,28 +5,34 @@ from srt_comm import *
 from gi.repository import GLib
 import sys, os
 from os import path
+import argparse
 
 SRT_WEBKITGTK3_PATH = "@SRT_WEBKITGTK3_PATH@"
 SRT_WEBKITGTK3_PATH = read_env('SRT_WEBKITGTK3_PATH',
                                default=SRT_WEBKITGTK3_PATH)
 SRT_WEBKITGTK3_URI = read_env('SRT_WEBKITGTK3_URI',
-                              default=GLib.filename_to_uri(SRT_WEBKITGTK3_PATH,
-                                                           None))
+                              default=GLib.filename_to_uri(
+                                  path.abspath(SRT_WEBKITGTK3_PATH), None))
 
 def main():
+    parser = argparse.ArgumentParser(description="Start the Srt Client")
+    parser.add_argument('-nw', '--no-window', dest='gui',
+                        action='store_false', help='start with no gui.')
+    parser.add_argument('-f', '--file', dest='file',
+                        action='store', help='execute a script')
+    arg_res = parser.parse_args()
     srtcenter = SrtCenter()
-    srtcenter.create_slave_by_name("webkitgtk3", None,
-                                   {"uri": SRT_WEBKITGTK3_URI})
-    try:
-        fname = sys.argv[1]
+    if arg_res.gui:
+        srtcenter.create_slave_by_name("webkitgtk3", None,
+                                       {"uri": SRT_WEBKITGTK3_URI})
+    if arg_res.file:
+        fname = arg_res.file
         if fname.endswith(".py"):
             srtcenter.create_slave_by_name("python", os.getcwd(),
                                            {"fname": fname})
         else:
             srtcenter.create_slave_by_name("zwicky_cmd", os.getcwd(),
                                            {"fname": fname})
-    except:
-        pass
     srtcenter.run()
 
 if __name__ == '__main__':

@@ -31,5 +31,5 @@ if(ENABLE_TEST)
     "SRT_MODULES_PATH=${PROJECT_SOURCE_DIR}/lib/modules"
     "SRT_WEBKITGTK3_PATH=${CMAKE_CURRENT_SOURCE_DIR}/data/index.html"
     "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_BINARY_DIR}/main.py"
-    "${PROJECT_SOURCE_DIR}/client/test/test_slave.cmd")
+    -f "${PROJECT_SOURCE_DIR}/client/test/test_slave.cmd")
 endif()
