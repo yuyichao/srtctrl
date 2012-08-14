@@ -223,8 +223,13 @@ class SrtHost(GObject.Object):
             return
         if not self._slaves[sid]["ping"] is None:
             return
+        # Normally a slave is connected through a unix domain socket
+        # (or other local connection) which will be disconnected if the remote
+        # side crashes. This really long timeout here (~20min) is only for
+        # "remote" slaves (not likely) or slaves that is hanging nowhere for
+        # unreasonablely long time.
         self._slaves[sid]["ping"] = GLib.timeout_add_seconds(
-            15, self._ping_sid_cb, sid)
+            1000, self._ping_sid_cb, sid)
         self._send_sid(sid, {"type": "ping"})
     def _send_invalid(self, slave):
         slave.send({"type": "error", "errno": SRTERR_UNKNOWN_CMD,
