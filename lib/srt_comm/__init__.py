@@ -33,6 +33,7 @@ from .module import SrtPlugins
 from .error import *
 from .parsetime import *
 from .srtangl import *
+from .parse_cmd import *
 
 import locale as _locale
 _locale.setlocale(_locale.LC_ALL, '')

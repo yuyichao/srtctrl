@@ -16,6 +16,7 @@ set(srt_comm_py
   error.py
   jsonsock.py
   parsetime.py
+  parse_cmd.py
   srtangl.py
   )
 
