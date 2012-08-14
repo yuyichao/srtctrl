@@ -47,6 +47,10 @@ def arcsecd(t):
 def arccscd(t):
     return arcsind(1 / t)
 
+def rot_2d(x, y, agl):
+    return [x * cosd(agl) + y * sind(agl),
+            y * cosd(agl) - x * sind(agl)]
+
 def absagl(t):
     return abs((t + 180) % 360 - 180)
 

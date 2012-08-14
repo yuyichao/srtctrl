@@ -50,6 +50,12 @@ def zwicky_azel(zwicky, az=0, el=0, *w, **kw):
 setiface.cmds.zwicky.azel = zwicky_azel
 setiface.cmds.zwicky.AzEl = zwicky_azel
 
+def zwicky_radec(zwicky, ra=0, dec=0, *w, **kw):
+    return zwicky_move(zwicky, "radec", args=[ra, dec])
+
+setiface.cmds.zwicky.radec = zwicky_radec
+setiface.cmds.zwicky.RaDec = zwicky_radec
+
 def _get_galactic(d):
     return lambda zwicky, *w, **kw: zwicky_galactic(zwicky, d, 0)
 
@@ -127,22 +133,18 @@ setiface.cmds.zwicky.set_offset = zwicky_set_offset
 setiface.cmds.zwicky.offset = zwicky_set_offset
 
 def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
-                  count=1, interval=None, y_first=True, *w, **kw):
+                  count=1, interval=None, angle=0, *w, **kw):
     x_half = int(x_half)
     y_half = int(y_half)
     x_step = float(x_step)
     y_step = float(y_step)
+    angle = float(angle)
     count = int(count)
     if x_half < 0 or y_half < 0 or x_step < 0 or y_step < 0:
         raise Exception
-    if y_first:
-        offsets = ((x * x_step, y * y_step)
-                   for x in range(-x_half, x_half + 1)
-                   for y in range(-y_half, y_half + 1))
-    else:
-        offsets = ((x * x_step, y * y_step)
-                   for y in range(-y_half, y_half + 1)
-                   for x in range(-x_half, x_half + 1))
+    offsets = (rot_2d(x * x_step, y * y_step, angle)
+               for y in range(-y_half, y_half + 1)
+               for x in range(-x_half, x_half + 1))
     results = []
     base_x, base_y = zwicky.tracker.get_offset()
     for x_off, y_off in offsets:
@@ -156,3 +158,21 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
     return results;
 
 setiface.cmds.zwicky.npoint = zwicky_npoint
+
+def zwicky_set_track_offset(zwicky, x_off=0, y_off=0, *w, **kw):
+    az = float(az)
+    el = float(el)
+    zwicky.tracker.set_offset(az, el)
+    zwicky.motor.pos_chk()
+
+setiface.cmds.zwicky.set_track_offset = zwicky_set_track_offset
+setiface.cmds.zwicky.track_offset = zwicky_set_track_offset
+
+def zwicky_add_track_offset(zwicky, az=0, el=0, *w, **kw):
+    az = float(az)
+    el = float(el)
+    zwicky.tracker.add_offset(az, el)
+    zwicky.motor.pos_chk()
+
+setiface.cmds.zwicky.add_track_offset = zwicky_add_track_offset
+setiface.cmds.zwicky.add_offset = zwicky_add_track_offset

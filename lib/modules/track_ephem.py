@@ -96,3 +96,18 @@ class TrackMars:
 
 setiface.alarm.trackers.mars = TrackMars
 setiface.alarm.trackers.Mars = TrackMars
+
+class TrackRaDec:
+    def __init__(self, args):
+        self._p = ephem.FixedBody()
+        try:
+            self._p._ra, self._p._dec = [float(i) for i in args]
+        except:
+            self._p._ra, self._p._dec = [0, 0]
+    def __call__(self, station, time):
+        o = mk_observer(station, time)
+        self._p.compute(o)
+        return rad2deg([self._p.az, self._p.alt])
+
+setiface.alarm.trackers.radec = TrackRaDec
+setiface.alarm.trackers.RaDec = TrackRaDec
