@@ -94,7 +94,7 @@ class SrtHost(GObject.Object):
         try:
             if self._plugins.slave[name](self, pwd, **args):
                 return True
-        except Exception as err:
+        except:
             print_except()
         return False
     def _process_cmd(self, type=None, sid=None, lock=False,
@@ -258,7 +258,7 @@ class SrtHost(GObject.Object):
         try:
             alarm = self._plugins.alarm[name](**args)
             alarm.connect("alarm", self._slave_alarm_cb, name, nid, sid)
-        except Exception as err:
+        except:
             print_except()
             self._send_sid(sid, {"type": "alarm", "name": name, "nid": nid,
                                  "success": False})

@@ -70,7 +70,7 @@ class SrtRemote(SrtConn):
     def _do_dispatch(self, buff):
         try:
             return self._dispatch(buff)
-        except Exception as e:
+        except:
             return super(SrtRemote, self)._do_dispatch(buff)
     def set_name(self, name):
         if not self._name is None:

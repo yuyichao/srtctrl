@@ -177,7 +177,7 @@ class SrtCenter(GObject.Object):
         try:
             alarm = self._plugins.alarm[name](**args)
             alarm.connect("alarm", self._helper_alarm_cb, name, nid)
-        except Exception as err:
+        except:
             print_except()
             self._helper.send({"type": "alarm", "name": name, "nid": nid,
                                "success": False})

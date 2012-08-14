@@ -76,7 +76,7 @@ class SrtPlugins:
             g = {'setiface': self._setter, 'getiface': self._getter,
                  '__file__': fname}
             execfile(fname, g, g)
-        except Exception as err:
+        except BaseException as err:
             print_except()
         return True
     def _try_get_iface(self, *keys):

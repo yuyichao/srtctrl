@@ -89,7 +89,7 @@ def guess_time(tstr):
                             "%Y:%j:%H:%M:%Sl", "%Y:%m:%d:%H:%M:%Sl"])
     if not t is None:
         return _time.mktime(t)
-    regex = _re.compile("^(ls?t?)?:?(?P<tstr>.*)$")
+    regex = _re.compile("^(ls?t?)?:*(?P<tstr>.*)$")
     res = regex.search(tstr)
     if not res is None:
         try:

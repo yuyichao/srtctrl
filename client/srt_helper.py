@@ -229,7 +229,9 @@ class SrtHelper(GObject.Object):
     def _prop_action(self, name=None, sid=None, **kw):
         try:
             value = self.plugins.props[self._name][name](self._device)
-        except Exception as err:
+        except SystemExit:
+            raise SystemExit
+        except:
             print_except()
             self.send_invalid(sid)
             return
@@ -237,7 +239,9 @@ class SrtHelper(GObject.Object):
     def _query_action(self, name=None, sid=None, **kw):
         try:
             name_list = dir(self.plugins[name][self._name])
-        except Exception as err:
+        except SystemExit:
+            raise SystemExit
+        except:
             print_except()
             self.send_invalid(sid)
             return
@@ -259,13 +263,15 @@ class SrtHelper(GObject.Object):
             return {}
         try:
             props_plugins = self.plugins.props[self._name]
-        except Exception as err:
+        except:
             return {}
         props = {}
         for name in props_plugins:
             try:
                 props[name] = props_plugins[name](self._device)
-            except Exception as err:
+            except SystemExit:
+                raise SystemExit
+            except:
                 print_except()
         return props
     # receive utils
@@ -307,7 +313,9 @@ class SrtHelper(GObject.Object):
         self.wait_ready()
         try:
             self._device = self.plugins.helper[self._name](self)
-        except Exception as err:
+        except SystemExit:
+            raise SystemExit
+        except:
             print_except()
             self._send({"type": "error", "errno": SRTERR_PLUGIN,
                         "msg": "error running helper [%s]" % self._name})
@@ -323,7 +331,9 @@ class SrtHelper(GObject.Object):
         try:
             res = self.plugins.cmds[self._name][name](self._device,
                                                       *args, **kwargs)
-        except Exception as err:
+        except SystemExit:
+            raise SystemExit
+        except:
             self.cmd_busy = False
             print_except()
             self.send_invalid(sid)
@@ -392,7 +402,9 @@ def main():
     helper = SrtHelper(sock)
     try:
         helper.start()
-    except Exception as err:
+    except SystemExit:
+        pass
+    except:
         print_except()
 
 if __name__ == '__main__':

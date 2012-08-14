@@ -147,3 +147,10 @@ def ae_offset_of(ae_b, ae,
     out_xyz = ae2xyz(ae)
     in_xyz = xyz_out_ae(out_xyz, ae_b)
     return xyz2ae(in_xyz)
+
+def guess_angle(angle):
+    try:
+        return float(angle)
+    except:
+        pass
+    raise ValueError
