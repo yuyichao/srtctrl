@@ -118,14 +118,14 @@ def get_next_arg(arg):
         left = arg[i:].strip()
         if left and left[0] == ',':
             left = left[1:].strip()
-        arg = eval(arg[:i], {}, {})
+        arg = eval(arg[:i], {"__builtins__": None}, {"__builtins__": None})
         return None, arg, left
     if arg[0] in "([{":
         i = _py_find_pair(arg, start=0)
         left = arg[i:].strip()
         if left and left[0] == ',':
             left = left[1:].strip()
-        arg = eval(arg[:i], {}, {})
+        arg = eval(arg[:i], {"__builtins__": None}, {"__builtins__": None})
         return None, arg, left
     i = _py_to_bare_end(arg, start=1, extra="-./")
     left = arg[i:].strip()
@@ -145,7 +145,8 @@ def get_next_arg(arg):
             left1 = left[i:].strip()
             if left1 and left1[0] == ',':
                 left1 = left1[1:].strip()
-            arg = eval(left[:i], {}, {})
+            arg = eval(left[:i], {"__builtins__": None},
+                       {"__builtins__": None})
             return key, arg, left1
         elif left and left[0] in '"'"'":
             i = _py_to_str_end(left, start=1, endc=left[0])
@@ -154,13 +155,14 @@ def get_next_arg(arg):
             left1 = left[i:].strip()
             if left1 and left1[0] == ',':
                 left1 = left1[1:].strip()
-            arg = eval(left[:i], {}, {})
+            arg = eval(left[:i], {"__builtins__": None},
+                       {"__builtins__": None})
             return key, arg, left1
         i = _py_to_bare_end(left, start=1)
         left1 = left[i:].strip()
         if left1 and left1[0] == ',':
             left1 = left[1:].strip()
-        arg = eval(left[:i], {}, {})
+        arg = eval(left[:i], {"__builtins__": None}, {"__builtins__": None})
         return key, arg, left1
     elif left and left[0] == ',':
         left = left[1:].strip()
