@@ -33,6 +33,7 @@ class SrtTracker(GObject.Object):
         super(SrtTracker, self).__init__()
         if not name:
             name = "simple"
+        self._args = args
         self._plugin = getiface.alarm.trackers[name](args)
         self._name = name
         try:
@@ -63,6 +64,11 @@ class SrtTracker(GObject.Object):
             GLib.timeout_add_seconds(1, self._timeout_cb)
         GLib.idle_add(self._idle_cb)
         self._active = True
+    def _get_track_obj(self):
+        return {"name": self._name, "offset": [self._off_az, self._off_el],
+                "time": self._time, "track": self._track, "args": self._args,
+                "station": [self._station_az, self._station_el,
+                            self._station_hi]}
     def _timeout_cb(self):
         return self._update_cb()
     def _idle_cb(self):
@@ -86,7 +92,8 @@ class SrtTracker(GObject.Object):
             az = (az - _az) % 360 + _az
         else:
             az = (az - _az) % 360 + _az - 360
-        self.emit("alarm", {"az": az, "el": el})
+        self.emit("alarm", {"az": az, "el": el,
+                            "track": self._get_track_obj()})
         return self._track
     def stop(self):
         self._active = False

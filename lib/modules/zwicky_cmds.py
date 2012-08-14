@@ -135,10 +135,6 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
     count = int(count)
     if x_half < 0 or y_half < 0 or x_step < 0 or y_step < 0:
         raise Exception
-    track_obj = zwicky.tracker.get_track()
-    if not track_obj["track"]:
-        abstime = track_obj["time"]
-    x_base, y_base = track_obj["offset"]
     if y_first:
         offsets = ((x * x_step, y * y_step)
                    for x in range(-x_half, x_half + 1)
@@ -148,18 +144,13 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
                    for y in range(-y_half, y_half + 1)
                    for x in range(-x_half, x_half + 1))
     results = []
+    base_x, base_y = zwicky.tracker.get_offset()
     for x_off, y_off in offsets:
-        track_obj["offset"] = [x_base + x_off, y_base + y_off]
-        if not track_obj["track"]:
-            track_obj["time"] - _time.time()
-        if not zwicky.track(**track_obj):
-            raise Exception
+        zwicky.tracker.set_offset(x_off + base_x, y_off + base_y)
         zwicky.motor.pos_chk()
         res = zwicky_radio(zwicky, count=count, interval=interval)
         results.append([(x_off, y_off), res])
-    track_obj["offset"] = [x_base, y_base]
-    if not zwicky.track(**track_obj):
-        raise Exception
+    zwicky.tracker.set_offset(base_x, base_y)
     zwicky.motor.pos_chk()
     zwicky.send_signal("npoint", results)
     return results;

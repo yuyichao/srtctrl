@@ -23,22 +23,37 @@ from srt_comm import *
 class ZwickyTracker:
     def __init__(self, zwicky):
         self._zwicky = zwicky
+        self._waiting = 0
         self._track_obj = None
+        self._station_changed = False
         self._zwicky.get_config("station")
         self._zwicky.connect("alarm::track", self._track_cb)
         self._zwicky.connect("config", self._config_cb)
         self.reset()
     def _config_cb(self, zwicky, field, name, value):
         if field == "zwicky" and name == "station":
-            if self._track_obj is None:
-                return
-            track_obj = self.get_track()
-            self._apply_track(track_obj)
+            self._check_station()
             return
+    def _check_station(self):
+        if not self._station_changed:
+            return
+        if self._waiting:
+            return
+        if self._track_obj is None:
+            return
+        track_obj = self.get_track()
+        self._apply_track(track_obj)
     def _track_cb(self, zwicky, name, nid, args):
-        az, el = get_dict_fields(args, ["az", "el"])
-        if None in [az, el]:
+        try:
+            az, el = args["az"], args["el"]
+        except:
             return
+        try:
+            if not args["track"] == self._track_obj:
+                self._track_obj = args["track"]
+                self._zwicky.send_signal("track", self._track_obj)
+        except:
+            pass
         try:
             self.set_pos(az, el)
         except:
@@ -55,25 +70,26 @@ class ZwickyTracker:
         self._zwicky.move(self._az, self._el)
     def track(self, name="", offset=[0, 0], time=0, track=True,
               args=None, **kw):
-        if self._track(name, offset, time, track, args):
-            self._zwicky.send_signal("track", self._track_obj)
-            return True
-        return False
+        return self._track(name, offset, time, track, args)
     def _apply_track(self, track_obj):
         track_obj["station"] = self._zwicky.configs.station
+        self._waiting += 1
         res = self._zwicky.send_chk_alarm("track", "zwicky", track_obj)
         if res is None:
+            self._waiting -= 1
+            self._check_station()
             return
-        self._track_obj = track_obj
         res = self._zwicky.wait_with_cb(
             lambda pkg: (pkg["type"] == "alarm" and
                          pkg["name"] == "track" and
                          pkg["nid"] == "zwicky"), check_only=True)
+        self._waiting -= 1
+        self._check_station()
         return True
     def _track(self, name, offset, time, track, args):
         offset = std_arg([0., 0.], offset)
         time = try_get_interval(time)
-        if t is None:
+        if time is None:
             time = 0
         if not track:
             time += _time.time()
@@ -82,5 +98,16 @@ class ZwickyTracker:
         return self._apply_track(track_obj)
     def get_track(self):
         return self._track_obj.copy()
+    def set_offset(self, off_x, off_y):
+        if self._waiting:
+            raise Exception
+        track_obj = self.get_track()
+        track_obj["offset"] = [off_x, off_y]
+        self._apply_track(track_obj)
+    def get_offset(self):
+        return self.get_track()["offset"]
+    def add_offset(self, add_x, add_y):
+        off_x, off_y = self.get_offset()
+        self.set_offset(off_x + add_x, off_y + add_y)
 
 setiface.device.zwicky.tracker = ZwickyTracker
