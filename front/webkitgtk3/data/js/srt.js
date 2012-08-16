@@ -33,8 +33,8 @@ $(function () {
         return true;
     });
     resize_wrapper();
-    Back.IFace.slave.connect("signal", function (src, name, value, props) {
-    });
+    // Back.IFace.slave.connect("signal", function (src, name, value, props) {
+    // });
     $('#quit-button').click(function (ev) {
         Back.IFace.quit();
         return false;

@@ -1,0 +1,10 @@
+.srt-popup-dialog {
+    overflow: hidden !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+.srt-popup-dialog-content {
+    overflow: hidden;
+    padding: 1em 1em;
+}

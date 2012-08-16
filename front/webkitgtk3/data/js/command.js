@@ -16,15 +16,15 @@ $(function () {
         res.splice(4);
         return res;
     };
-    Back.IFace.slave.connect("query::cmds", function (slave, name, name_list) {
-        if (name != "cmds")
-            return;
-        comp_waiting.forEach(function (value, i) {
-            value.response(comp_from_list(value.term, name_list,
-                                          value.prefix));
-        });
-        comp_waiting = [];
-    });
+    // Back.IFace.slave.connect("query::cmds", function (slave, name, name_list) {
+    //     if (name != "cmds")
+    //         return;
+    //     comp_waiting.forEach(function (value, i) {
+    //         value.response(comp_from_list(value.term, name_list,
+    //                                       value.prefix));
+    //     });
+    //     comp_waiting = [];
+    // });
     function add_wait_comp(term, response, prefix) {
         if (comp_waiting.length == 0) {
             Back.IFace.query("cmds");

@@ -1,7 +1,5 @@
 $(function () {
     var about_dialog_tabs = $("#about-dialog-tabs");
-    var about_dialog = $("#about-dialog");
-    var about_dialog_content = $("#about-dialog-content");
     var tabs = {
         copy: $("#about-dialog-tab-copy"),
         desc: $("#about-dialog-tab-description")
@@ -12,14 +10,10 @@ $(function () {
             duration: 200
         }
     });
-    add_dialog($("#about-button"), about_dialog, true);
+    about_dialog_tabs.popup("#about-button", {
+        modal: true
+    });
     function resize_about_dialog() {
-        about_dialog_content.outerHeight(
-            about_dialog.height()
-        );
-        about_dialog_tabs.outerHeight(
-            about_dialog_content.height()
-        );
         for (var tname in tabs) {
             var height;
             height = (about_dialog_tabs.height()
@@ -31,5 +25,5 @@ $(function () {
     $(".about-tab-buttons").click(function () {
         resize_about_dialog();
     });
-    about_dialog.resize(resize_about_dialog);
+    about_dialog_tabs.resize(resize_about_dialog);
 });
