@@ -64,6 +64,10 @@
     };
     $.extend({
         input_dialog: function (ele, entries, buttons) {
+            var ui_entries = [];
+            var ui_buttons = [];
+            var ui_button_block = null;
+            var ui_value_block = null;
             ele = $(ele);
         }
     });
