@@ -10,49 +10,60 @@
                 dialog.dialog("close");
         }
     };
-    function add_dialog(button, dialog, modal) {
-        var id = dialog_list.length;
-        dialog_list.push({
-            button: button,
-            dialog: dialog
-        });
-        dialog.dialog({
-            autoOpen: false,
-            modal: modal,
-            show: "blind",
-            hide: "highlight",
-            open: function () {
-                close_except(id);
+    $.extend({
+        add_dialog: function (button, dialog, option) {
+            var id = dialog_list.length;
+            var setting = $.extend({}, {
+                modal: false,
+                open: null
+            }, option);
+            dialog_list.push({
+                button: button,
+                dialog: dialog
+            });
+            dialog.dialog({
+                autoOpen: false,
+                modal: setting.modal,
+                show: "blind",
+                hide: "highlight",
+                open: function () {
+                    close_except(id);
+                    if (setting.open)
+                        setting.open();
+                }
+            });
+            function open() {
+                if (!dialog.dialog("isOpen")) {
+                    dialog.dialog("option", {
+                        height: $(window).height() * 2 / 3,
+                        width: $(window).width() * 2 / 3
+                    });
+                    dialog.dialog("open");
+                }
             }
-        });
-        function open() {
-            if (!dialog.dialog("isOpen")) {
-                dialog.dialog("option", {
-                    height: $(window).height() * 2 / 3,
-                    width: $(window).width() * 2 / 3
+            if (setting.modal) {
+                dialog.parent().bind("clickoutside", function () {
+                    if (dialog.dialog("isOpen"))
+                        dialog.dialog("close");
                 });
-                dialog.dialog("open");
             }
-        }
-        if (modal) {
-            dialog.parent().bind("clickoutside", function () {
-                if (dialog.dialog("isOpen"))
+            button.click(function () {
+                if (dialog.dialog("isOpen")) {
                     dialog.dialog("close");
+                } else {
+                    open();
+                }
+                return false;
             });
         }
-        button.click(function () {
-            if (dialog.dialog("isOpen")) {
-                dialog.dialog("close");
-            } else {
-                open();
-            }
-            return false;
-        });
-    };
+    });
+})();
+(function () {
     $.fn.extend({
         popup: function (button, option) {
             var setting = $.extend({}, {
-                modal: false
+                modal: false,
+                open: null
             }, option);
             var ele = $(this).detach();
             var content = $("<div></div>");
@@ -74,7 +85,13 @@
             }
             dialog.resize(resize_dialog);
             $("body").append(dialog);
-            add_dialog($(button), dialog, setting.modal);
+            $.add_dialog($(button), dialog, {
+                modal: setting.modal,
+                open: setting.open
+            });
+            return dialog;
         }
     });
+})();
+(function () {
 })();
