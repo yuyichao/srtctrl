@@ -54,7 +54,10 @@ def js2py(ctx, jsobj, jsthis=None):
     elif jstype == _gwkjs.ValueType.BOOLEAN:
         return ctx.to_boolean(jsobj)
     elif jstype == _gwkjs.ValueType.NUMBER:
-        return ctx.to_number(jsobj)
+        num = ctx.to_number(jsobj)
+        if round(num) == num:
+            num = int(round(num))
+        return num
     elif jstype == _gwkjs.ValueType.STRING:
         return ctx.to_string(jsobj)
     if not jstype == _gwkjs.ValueType.OBJECT:

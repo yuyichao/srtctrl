@@ -17,7 +17,7 @@
 from __future__ import print_function, division
 from pywkjs import *
 
-from gi.repository import WebKit, Gtk
+from gi.repository import WebKit, Gtk, GLib, GObject
 from .window import SrtWindow
 from .inspector import SrtInspector
 import srt_comm
@@ -39,6 +39,8 @@ class SrtUI:
         self._winobj = winobj
         winobj.UI = Obj()
         winobj.UI.Gtk = Gtk
+        winobj.UI.GLib = GLib
+        winobj.UI.GObject = GObject
         winobj.UI.WebKit = WebKit
         winobj.UI.window = self._window.window
         winobj.UI.webview = self._window.webview

@@ -172,9 +172,9 @@ class WKPYObject(_gwkjs.Base):
         args = [js2py(ctx, arg) for arg in args]
         try:
             res = self._pyobj(*args)
-            return py2js(ctx, res)
         except:
-            pass
+            res = None
+        return py2js(ctx, res)
     def do_has_instance(self, ctx, ins):
         if (isinstance(self._pyobj, type) and
             isinstance(js2py(ctx, ins), self._pyobj)):
