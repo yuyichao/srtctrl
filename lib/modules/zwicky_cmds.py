@@ -159,7 +159,7 @@ def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
 
 setiface.cmds.zwicky.npoint = zwicky_npoint
 
-def zwicky_set_track_offset(zwicky, x_off=0, y_off=0, *w, **kw):
+def zwicky_set_track_offset(zwicky, az=0, el=0, *w, **kw):
     az = float(az)
     el = float(el)
     zwicky.tracker.set_offset(az, el)
