@@ -15,7 +15,8 @@
             var id = dialog_list.length;
             var setting = $.extend({}, {
                 modal: false,
-                open: null
+                open: null,
+                background: "white"
             }, option);
             dialog_list.push({
                 button: button,
@@ -31,6 +32,8 @@
                     if (setting.open)
                         setting.open();
                 }
+            }).parent().css({
+                background: setting.background
             });
             function open() {
                 if (!dialog.dialog("isOpen")) {
@@ -61,15 +64,17 @@
 (function () {
     $.fn.extend({
         popup: function (button, option) {
-            var setting = $.extend({}, {
-                modal: false,
-                open: null
-            }, option);
             var ele = $(this).detach();
             var content = $("<div></div>");
             var dialog = $("<div></div>");
+            var setting = $.extend({}, {
+                modal: false,
+                open: null,
+                title: ele.attr("title"),
+                background: "white"
+            }, option);
             dialog.attr({
-                title: ele.attr("title")
+                title: setting.title
             });
             dialog.css({
                 display: "none",
@@ -87,7 +92,8 @@
             $("body").append(dialog);
             $.add_dialog($(button), dialog, {
                 modal: setting.modal,
-                open: setting.open
+                open: setting.open,
+                background: setting.background
             });
             return dialog;
         }

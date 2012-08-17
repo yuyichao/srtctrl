@@ -20,8 +20,6 @@ $(function () {
         //TODO
         return false;
     });
-    $(window).keypress(function (ev) {
-    });
     $("#footer").resize(resize_wrapper);
     $("#header").resize(resize_wrapper);
     $(window).resize(resize_wrapper);

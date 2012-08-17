@@ -1,0 +1,23 @@
+.srt-entry-line {
+    padding: 0;
+    border: 0;
+    margin: .5em 0 .5em;
+}
+
+.srt-input-content {
+    overflow: hidden;
+    position: relative;
+    padding: 0;
+}
+
+.srt-input-buttons {
+    position: absolute;
+    bottom: 0;
+}
+
+.srt-input-values {
+    background-color: lightCyan;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: .5em .5em;
+}
