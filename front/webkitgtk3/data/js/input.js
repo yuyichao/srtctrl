@@ -126,6 +126,7 @@
                 if (entry.advanced) {
                     has_advanced = true;
                     ui_entry.block.css({display: "none"});
+                    ui_entry.label.css({"font-weight": "bold"});
                 }
                 ui_entry.block.addClass("srt-entry-line");
                 ui_entry.block.addClass("ui-helper-clearfix");
@@ -138,11 +139,11 @@
             }
             if (has_advanced) {
                 buttons.push({
-                    label: "Show Advanced",
+                    label: "Show More",
                     autoclose: false,
                     callback: function () {
                         if (advanced_show) {
-                            $(this).button("option", "label", "Show Advanced");
+                            $(this).button("option", "label", "Show More");
                             advanced_show = false;
                             for (var e_i in ui_entries) {
                                 if (ui_entries[e_i].advanced) {
@@ -151,8 +152,9 @@
                                     });
                                 }
                             }
+                            label_resize();
                         } else {
-                            $(this).button("option", "label", "Hide Advanced");
+                            $(this).button("option", "label", "Hide Less");
                             advanced_show = true;
                             for (var e_i in ui_entries) {
                                 if (ui_entries[e_i].advanced) {
@@ -161,6 +163,7 @@
                                     });
                                 }
                             }
+                            label_resize();
                         }
                     }
                 });
