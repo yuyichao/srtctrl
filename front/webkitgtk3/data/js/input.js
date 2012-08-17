@@ -154,7 +154,7 @@
                             }
                             label_resize();
                         } else {
-                            $(this).button("option", "label", "Hide Less");
+                            $(this).button("option", "label", "Show Less");
                             advanced_show = true;
                             for (var e_i in ui_entries) {
                                 if (ui_entries[e_i].advanced) {

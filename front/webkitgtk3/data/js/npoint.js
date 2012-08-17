@@ -21,8 +21,29 @@ $(function () {
         type: "text",
         advanced: true,
         default: 1
+    }, {
+        name: "angle",
+        label: "Angle of X Axis",
+        type: "text",
+        advanced: true,
+        default: "0"
+    }, {
+        name: "count",
+        label: "Count",
+        type: "text",
+        advanced: true,
+        default: 1
+    }, {
+        name: "interval",
+        label: "Interval",
+        type: "text",
+        advanced: true
     }], [{
-        label: "Run"
+        label: "Run",
+        callback: function (res) {
+        }
+    }, {
+        label: "Cancel"
     }], {
         title: "N Point Scan"
     });
