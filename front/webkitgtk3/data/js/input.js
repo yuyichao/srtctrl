@@ -88,13 +88,16 @@
         return max_width;
     }
     $.extend({
-        input_dialog: function (dialog_button, entries, buttons) {
+        input_dialog: function (dialog_button, entries, buttons, option) {
             var dialog;
             var ui_entries = [];
             var ui_buttons = [];
             var ui_content = $('<div></div>');
             var ui_button_block = $('<div></div>');
             var ui_value_block = $('<div></div>');
+            var setting = $.extend({}, {
+                title: "",
+            }, option);
             ui_button_block.addClass("srt-input-buttons");
             ui_button_block.addClass("ui-helper-clearfix");
             ui_value_block.addClass("srt-input-values");
@@ -171,7 +174,8 @@
                 ui_entries[i].label.resize(label_resize);
             }
             dialog = ui_content.popup(dialog_button, {
-                background: "lightCyan"
+                background: "lightCyan",
+                title: setting.title
             });
             return dialog;
         }

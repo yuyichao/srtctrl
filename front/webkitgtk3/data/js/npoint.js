@@ -17,5 +17,7 @@ $(function () {
         type: "text"
     }], [{
         label: "Run"
-    }]);
+    }], {
+        title: "N Point Scan"
+    });
 });
