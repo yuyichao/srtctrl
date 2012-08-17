@@ -46,7 +46,9 @@
             var input = $('<input class="ui-widget-content ui-corner-all"/>');
             return {
                 widget: input,
-                val: function () {
+                val: function (a) {
+                    if (arguments.length)
+                        return input.val(a);
                     return input.val();
                 }
             };
@@ -59,6 +61,8 @@
             return {
                 widget: input,
                 val: function () {
+                    if (arguments.length)
+                        return input.val(a);
                     return input.val();
                 }
             };
@@ -71,6 +75,8 @@
             return {
                 widget: input,
                 val: function () {
+                    if (arguments.length)
+                        return input.val(a);
                     return input.val();
                 }
             };
@@ -90,6 +96,8 @@
     $.extend({
         input_dialog: function (dialog_button, entries, buttons, option) {
             var dialog;
+            var advanced_show = false;
+            var has_advanced = false;
             var ui_entries = [];
             var ui_buttons = [];
             var ui_content = $('<div></div>');
@@ -102,6 +110,61 @@
             ui_button_block.addClass("ui-helper-clearfix");
             ui_value_block.addClass("srt-input-values");
             ui_content.addClass("srt-input-content");
+            for (var e_i in entries) {
+                var entry = entries[e_i];
+                var ui_entry = $.extend({
+                    name: entry.name,
+                    label: $('<div></div>').text(entry.label),
+                    block: $('<div></div>'),
+                    type: entry.type,
+                    option: entry.option,
+                    advanced: entry.advanced
+                }, new_input(entry.type, entry.option));
+                if (entry.default) {
+                    ui_entry.val(entry.default);
+                }
+                if (entry.advanced) {
+                    has_advanced = true;
+                    ui_entry.block.css({display: "none"});
+                }
+                ui_entry.block.addClass("srt-entry-line");
+                ui_entry.block.addClass("ui-helper-clearfix");
+                ui_entry.label.css({float: "left"});
+                ui_entry.widget.css({float: "right"});
+                ui_entry.block.append(ui_entry.label);
+                ui_entry.block.append(ui_entry.widget);
+                ui_entries.push(ui_entry);
+                ui_value_block.append(ui_entry.block);
+            }
+            if (has_advanced) {
+                buttons.push({
+                    label: "Show Advanced",
+                    autoclose: false,
+                    callback: function () {
+                        if (advanced_show) {
+                            $(this).button("option", "label", "Show Advanced");
+                            advanced_show = false;
+                            for (var e_i in ui_entries) {
+                                if (ui_entries[e_i].advanced) {
+                                    ui_entries[e_i].block.css({
+                                        display: "none"
+                                    });
+                                }
+                            }
+                        } else {
+                            $(this).button("option", "label", "Hide Advanced");
+                            advanced_show = true;
+                            for (var e_i in ui_entries) {
+                                if (ui_entries[e_i].advanced) {
+                                    ui_entries[e_i].block.css({
+                                        display: "block"
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
             for (var b_i in buttons) {
                 var button = $('<button></button>')
                     .text(buttons[b_i].label)
@@ -116,7 +179,7 @@
                             res[entry.name] = entry.val();
                         }
                         if (button.callback) {
-                            button.callback(res);
+                            button.callback.call(this, res);
                         }
                         if (!("autoclose" in button) || button.autoclose) {
                             dialog.dialog("close");
@@ -125,24 +188,6 @@
                     .css({float: "right"});
                 ui_buttons.push(button);
                 ui_button_block.append(button);
-            }
-            for (var e_i in entries) {
-                var entry = entries[e_i];
-                var ui_entry = $.extend({
-                    name: entry.name,
-                    label: $('<div></div>').text(entry.label),
-                    block: $('<div></div>'),
-                    type: entry.type,
-                    option: entry.option
-                }, new_input(entry.type, entry.option));
-                ui_entry.block.addClass("srt-entry-line");
-                ui_entry.block.addClass("ui-helper-clearfix");
-                ui_entry.label.css({float: "left"});
-                ui_entry.widget.css({float: "right"});
-                ui_entry.block.append(ui_entry.label);
-                ui_entry.block.append(ui_entry.widget);
-                ui_entries.push(ui_entry);
-                ui_value_block.append(ui_entry.block);
             }
             ui_content.append(ui_value_block);
             ui_content.append(ui_button_block);
