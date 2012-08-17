@@ -25,6 +25,17 @@ import srt_comm
 class Obj(object):
     pass
 
+def js_call_py(func, args, kwargs):
+    try:
+        args = list(args)
+    except:
+        args = []
+    try:
+        kwargs = dict((key, kwargs[key]) for key in kwargs)
+    except:
+        kwargs = {}
+    return func(*args, **kwargs)
+
 class SrtUI:
     def __init__(self, uri, exp_dict):
         self._window = SrtWindow()
@@ -47,6 +58,9 @@ class SrtUI:
         winobj.UI.show_inspector = self.show_inspector
         winobj.Back = self._exp_dict
         winobj.SrtUtil = srt_comm
+        winobj.PyUtil = {
+            "call": js_call_py
+        }
     def _load_finish_cb(self, view, frame):
         pass
     def _win_close_cb(self, win):

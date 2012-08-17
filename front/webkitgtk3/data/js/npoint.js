@@ -41,6 +41,13 @@ $(function () {
     }], [{
         label: "Run",
         callback: function (res) {
+            var kwargs = {};
+            for (var key in res) {
+                if (!res[key])
+                    continue;
+                kwargs[key] = res[key];
+            }
+            PyUtil.call(Back.IFace.cmd.npoint, [], kwargs);
         }
     }, {
         label: "Cancel"
