@@ -1,7 +1,6 @@
 $(function () {
     var resize_timeout = false;
-    $("button").button();
-    $(".header-button").button();
+    $("#header-buttons-line").buttonset();
     function srt_cal_size() {
         var body = $(window);
         var header = $("#header");
