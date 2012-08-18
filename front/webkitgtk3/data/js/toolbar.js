@@ -3,6 +3,10 @@
         var menu = $(this);
         var width;
         menu.outerHeight(($(document).height() - offset.top) * .8);
+        menu.css({
+            visibility: "visible",
+            display: "none"
+        });
         menu.offset({
             left: 0,
             top: 0
@@ -12,8 +16,40 @@
             display: "block"
         });
         width = menu.outerWidth();
-        offset.left = Math.min(offset.left, $(document).width() - width);
+        offset = {
+            left: Math.min(offset.left, $(document).width() - width),
+            top: offset.top
+        };
         menu.offset(offset);
+        menu.css({
+            visibility: "visible",
+            display: "none"
+        });
+        menu.fadeIn(100);
+    }
+    function menu_enter_leave(event) {
+        var ui_entry = event.data.ui_entry;
+        var offset;
+        if (ui_entry.close_timeout) {
+            clearTimeout(ui_entry.close_timeout);
+            ui_entry.close_timeout = null;
+        }
+        if (event.type == 'mouseleave') {
+            ui_entry.close_timeout = setTimeout(function () {
+                ui_entry.open = false;
+                ui_entry.submenu.fadeOut(100);
+            }, 100);
+        } else {
+            if (ui_entry.open)
+                return false;
+            ui_entry.open = true;
+            offset = ui_entry.button.offset();
+            show_menu.call(ui_entry.submenu, {
+                top: offset.top + ui_entry.button.outerHeight(),
+                left: offset.left
+            });
+        }
+        return false;
     }
     $.extend({
         toolbar: function (entries) {
@@ -31,26 +67,31 @@
                     ui_entry.submenu.css({
                         display: 'none'
                     });
+                    ui_entry.open = false;
+                    ui_entry.close_timeout = null;
                     $('body').append(ui_entry.submenu);
                     ui_entry.button.bind("mouseenter mouseleave", {
                         ui_entry: ui_entry
+                    }, menu_enter_leave);
+                    ui_entry.submenu.children().bind("mouseenter mouseleave", {
+                        ui_entry: ui_entry
+                    }, menu_enter_leave);
+                    ui_entry.submenu.find("*").click({
+                        ui_entry: ui_entry
                     }, function (event) {
                         var ui_entry = event.data.ui_entry;
-                        var offset;
-                        if (event.type == 'mouseleave') {
-                            ui_entry.submenu.fadeOut(100);
-                            return false;
+                        if (ui_entry.close_timeout) {
+                            clearTimeout(ui_entry.close_timeout);
+                            ui_entry.close_timeout = null;
                         }
-                        offset = ui_entry.button.offset();
-                        show_menu.call(ui_entry.submenu, {
-                            top: offset.top + ui_entry.button.outerHeight(),
-                            left: offset.left
-                        });
-                        return false;
+                        ui_entry.open = false;
+                        ui_entry.submenu.fadeOut(100);
+                        return true;
                     });
                 }
-                buttonset.append(ui_entry.li.append(ui_entry.button));
+                toolbar.append(ui_entry.button);
             }
+            return toolbar.buttonset();
         }
     });
 })();

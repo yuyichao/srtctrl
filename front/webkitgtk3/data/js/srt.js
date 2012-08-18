@@ -1,6 +1,27 @@
 $(function () {
     var resize_timeout = false;
-    $("#header-buttons-line").buttonset();
+    $("#header").append(
+        $.toolbar([{
+            label: "File",
+            submenu: [{
+                id: 'refresh-button',
+                label: "Refresh"
+            }, {
+                id: 'quit-button',
+                label: "Quit"
+            }]
+        }, {
+            label: "Commands",
+            submenu: [{
+                id: 'npoint-button',
+                label: "N-Point Scan"
+            }]
+        }, {
+            id: 'about-button',
+            label: "About"
+        }]).addClass('ui-widget-header')
+            .addClass('ui-corner-all')
+            .width("100%"));
     function srt_cal_size() {
         var body = $(window);
         var header = $("#header");
@@ -34,10 +55,10 @@ $(function () {
     // });
     $('#quit-button').click(function (ev) {
         Back.IFace.quit();
-        return false;
+        return true;
     });
     $('#refresh-button').click(function (ev) {
         window.top.location.reload();
-        return false;
+        return true;
     });
 });

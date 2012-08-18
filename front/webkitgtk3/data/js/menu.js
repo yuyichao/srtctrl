@@ -20,7 +20,7 @@
                 };
                 buttonset.append(ui_entry.li.append(ui_entry.button));
             }
-            buttonset.buttonset().menu();
+            buttonset.vbuttonset().menu();
             return menu.append(buttonset);
         }
     });
