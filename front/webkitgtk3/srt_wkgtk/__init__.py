@@ -22,6 +22,11 @@ from .window import SrtWindow
 from .inspector import SrtInspector
 import srt_comm
 
+def openuri(uri, *args):
+    import subprocess
+    browser = 'xdg-open'
+    subprocess.Popen([browser, uri])
+
 class Obj(object):
     pass
 
@@ -61,6 +66,7 @@ class SrtUI:
         winobj.PyUtil = {
             "call": js_call_py
         }
+        winobj.open = openuri
     def _load_finish_cb(self, view, frame):
         pass
     def _win_close_cb(self, win):
