@@ -12,13 +12,13 @@ $(function () {
     }, {
         name: "x_half",
         label: "Steps numbers(x)",
-        type: "text",
+        type: "number",
         advanced: true,
         default: 1
     }, {
         name: "y_half",
         label: "Steps numbers(y)",
-        type: "text",
+        type: "number",
         advanced: true,
         default: 1
     }, {
@@ -30,7 +30,7 @@ $(function () {
     }, {
         name: "count",
         label: "Count",
-        type: "text",
+        type: "number",
         advanced: true,
         default: 1
     }, {
