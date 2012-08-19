@@ -81,6 +81,42 @@ $(function () {
     }], {
         title: "Set Frequency"
     });
+    $.input_dialog("#calib-button", [{
+        name: "count",
+        label: "Count",
+        type: "number",
+        default: 1,
+        advanced: true
+    }], [{
+        label: "Calibrate",
+        callback: function (res) {
+            PyUtil.call(Back.IFace.cmd.calib, [], res);
+        }
+    }, {
+        label: "Cancel"
+    }], {
+        title: "Calibrate"
+    });
+    $.input_dialog("#offset-button", [{
+        name: "az",
+        label: "Azimuth",
+        type: "text",
+        default: 0
+    }, {
+        name: "el",
+        label: "Elevation",
+        type: "text",
+        default: 0
+    }], [{
+        label: "Set",
+        callback: function (res) {
+            PyUtil.call(Back.IFace.cmd.set_offset, [], res);
+        }
+    }, {
+        label: "Cancel"
+    }], {
+        title: "Set Offset"
+    });
     $.input_dialog("#npoint-button", [{
         name: "x_step",
         label: "Step width(x)",

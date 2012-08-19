@@ -41,6 +41,9 @@ $(function () {
                 id: 'npoint-button',
                 label: "N-Point Scan"
             }, {
+                id: 'offset-button',
+                label: "Set Offset"
+            }, {
                 id: 'stow-button',
                 label: "Stow"
             }]

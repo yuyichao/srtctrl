@@ -431,7 +431,6 @@ gwebkitjs_context_new_from_context(JSGlobalContextRef jsctx,
         _gwebkitjs_context_add_global_table(jsctx);
 
     jsctx = _gwebkitjs_context_get_global_context(jsctx);
-
     return gwebkitjs_context_init_context(self, jsctx);
 }
 
@@ -489,7 +488,7 @@ gwebkitjs_context_get_context(GWebKitJSContext *self)
  *
  * Get the global object of the #GWebKitJSContext.
  *
- * Return value: (transfer none): the global object of the #GWebKitJSContext.
+ * Return value: (transfer none) (allow-none): the global object of the #GWebKitJSContext.
  **/
 GWebKitJSValue*
 gwebkitjs_context_get_global(GWebKitJSContext *self)

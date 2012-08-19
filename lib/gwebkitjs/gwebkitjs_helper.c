@@ -137,6 +137,8 @@ gwebkitjs_helper_window_object_cleared_cb(WebKitWebView *webview,
     }
     g_signal_emit(self, signals[SIGNAL_WINDOW_OBJECT_CLEARED], 0,
                   frame, ctx, value);
+    g_object_unref(value);
+    g_object_unref(ctx);
 }
 
 /**

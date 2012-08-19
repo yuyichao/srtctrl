@@ -52,7 +52,6 @@ class SrtUI:
         self._inspector = None
         self._exp_dict = exp_dict
     def _win_clr_cb(self, helper, frame, winobj):
-        self._winobj = winobj
         winobj.UI = Obj()
         winobj.UI.Gtk = Gtk
         winobj.UI.GLib = GLib
