@@ -119,7 +119,7 @@
                     type: entry.type,
                     option: entry.option,
                     advanced: entry.advanced,
-                default: entry.default
+                    'default': entry.default
                 }, new_input(entry.type, entry.option));
                 ui_entry.val(ui_entry.default);
                 if (entry.advanced) {
