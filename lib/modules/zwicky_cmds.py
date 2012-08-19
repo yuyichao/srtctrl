@@ -64,7 +64,7 @@ for d in range(0, 180, 5):
     setiface.cmds.zwicky["g%d" % d] = _get_galactic(d)
 
 def zwicky_calib(zwicky, count=1, *w, **kw):
-    res = zwicky.calib(int(count))
+    res = zwicky.calib(int(round(float(count))))
     return res
 
 setiface.cmds.zwicky.calib = zwicky_calib
@@ -82,7 +82,7 @@ setiface.cmds.zwicky.reset = zwicky_reset
 setiface.cmds.zwicky.stow = zwicky_reset
 
 def zwicky_radio(zwicky, count=1, interval=None, until=None, *w, **kw):
-    count = int(count)
+    count = int(round(float(count)))
     time_limit = None
     try:
         int_limit = guess_interval(interval) + _time.time()
@@ -115,7 +115,7 @@ setiface.cmds.zwicky.radio = zwicky_radio
 
 def zwicky_set_freq(zwicky, freq=None, mode=None, *w, **kw):
     freq = None if freq is None else float(freq)
-    mode = None if mode is None else int(mode)
+    mode = None if mode is None else int(round(float(mode)))
     if not mode > 0:
         raise TypeError
     zwicky.radio.set_freq(freq, mode)
@@ -132,19 +132,20 @@ def zwicky_set_offset(zwicky, az=0., el=0., *w, **kw):
 setiface.cmds.zwicky.set_offset = zwicky_set_offset
 setiface.cmds.zwicky.offset = zwicky_set_offset
 
-def zwicky_npoint(zwicky, x_half=1, y_half=1, x_step=2, y_step=2,
+def zwicky_npoint(zwicky, x_count=3, y_count=3, x_step=2, y_step=2,
                   count=1, interval=None, angle=0, *w, **kw):
-    x_half = int(x_half)
-    y_half = int(y_half)
+    x_count = int(round(float(x_count)))
+    y_count = int(round(float(y_count)))
     x_step = float(x_step)
     y_step = float(y_step)
     angle = float(angle)
-    count = int(count)
-    if x_half < 0 or y_half < 0 or x_step < 0 or y_step < 0:
+    count = int(round(float(count)))
+    if x_count <= 0 or y_count < 0 or x_step < 0 or y_step < 0:
         raise Exception
-    offsets = (rot_2d(x * x_step, y * y_step, angle)
-               for y in range(-y_half, y_half + 1)
-               for x in range(-x_half, x_half + 1))
+    offsets = (rot_2d((x - (x_count - 1) / 2.) * x_step,
+                      (y - (y_count - 1) / 2.) * y_step, angle)
+               for y in range(y_count)
+               for x in range(x_count))
     results = []
     base_x, base_y = zwicky.tracker.get_offset()
     for x_off, y_off in offsets:
