@@ -740,7 +740,8 @@ gwebkitjs_base_is_valid_name(const gchar *name)
         "Error",
         "Date",
         "Function",
-        "RegExp"
+        "RegExp",
+        "Object"
     };
     int i;
     if (!name)
