@@ -118,11 +118,10 @@
                     block: $('<div></div>'),
                     type: entry.type,
                     option: entry.option,
-                    advanced: entry.advanced
+                    advanced: entry.advanced,
+                default: entry.default
                 }, new_input(entry.type, entry.option));
-                if (entry.default) {
-                    ui_entry.val(entry.default);
-                }
+                ui_entry.val(ui_entry.default);
                 if (entry.advanced) {
                     has_advanced = true;
                     ui_entry.block.css({display: "none"});
@@ -137,37 +136,55 @@
                 ui_entries.push(ui_entry);
                 ui_value_block.append(ui_entry.block);
             }
+            var advanced_id;
             if (has_advanced) {
+                function toggle_advance(show) {
+                    if (!show) {
+                        $(ui_buttons[advanced_id])
+                            .button("option", "label", "Show More");
+                        advanced_show = false;
+                        for (var e_i in ui_entries) {
+                            if (ui_entries[e_i].advanced) {
+                                ui_entries[e_i].block.css({
+                                    display: "none"
+                                });
+                            }
+                        }
+                        label_resize();
+                    } else {
+                        $(ui_buttons[advanced_id])
+                            .button("option", "label", "Show Less");
+                        advanced_show = true;
+                        for (var e_i in ui_entries) {
+                            if (ui_entries[e_i].advanced) {
+                                ui_entries[e_i].block.css({
+                                    display: "block"
+                                });
+                            }
+                        }
+                        label_resize();
+                    }
+                }
+                advanced_id = buttons.length;
                 buttons.push({
                     label: "Show More",
                     autoclose: false,
                     callback: function () {
-                        if (advanced_show) {
-                            $(this).button("option", "label", "Show More");
-                            advanced_show = false;
-                            for (var e_i in ui_entries) {
-                                if (ui_entries[e_i].advanced) {
-                                    ui_entries[e_i].block.css({
-                                        display: "none"
-                                    });
-                                }
-                            }
-                            label_resize();
-                        } else {
-                            $(this).button("option", "label", "Show Less");
-                            advanced_show = true;
-                            for (var e_i in ui_entries) {
-                                if (ui_entries[e_i].advanced) {
-                                    ui_entries[e_i].block.css({
-                                        display: "block"
-                                    });
-                                }
-                            }
-                            label_resize();
-                        }
+                        toggle_advance(!advanced_show);
                     }
                 });
             }
+            buttons.push({
+                label: "Set To Default",
+                autoclose: false,
+                callback: function () {
+                    for (var e_i in ui_entries) {
+                        ui_entries[e_i].val(ui_entries[e_i].default);
+                    }
+                    if (has_advanced)
+                        toggle_advance(false);
+                }
+            });
             for (var b_i in buttons) {
                 var button = $('<button></button>')
                     .text(buttons[b_i].label)
