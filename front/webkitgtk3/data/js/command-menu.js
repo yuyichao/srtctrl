@@ -7,11 +7,13 @@ $(function () {
     }, {
         name: "az",
         label: "Azimuth",
+        tooltip: "Has no effect for some targets, e.g. Sun, Mars, Moon...",
         type: "text",
         default: 0
     }, {
         name: "el",
         label: "Elevation",
+        tooltip: "Has no effect for some targets, e.g. Sun, Mars, Moon...",
         type: "text",
         default: 0
     }, {

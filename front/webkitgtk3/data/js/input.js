@@ -181,6 +181,8 @@
                     ui_entry.block.css({display: "none"});
                     ui_entry.label.css({"font-weight": "bold"});
                 }
+                if (entry.tooltip)
+                    ui_entry.block.attr({title: entry.tooltip});
                 ui_entry.block.addClass("srt-entry-line");
                 ui_entry.block.addClass("ui-helper-clearfix");
                 ui_entry.label.css({float: "left"});
