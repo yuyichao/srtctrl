@@ -38,7 +38,7 @@ $(function () {
         advanced: true,
         default: true
     }], [{
-        label: "Run",
+        label: "Move",
         callback: function (res) {
             if (!res.az)
                 res.az = 0;
@@ -56,6 +56,30 @@ $(function () {
         label: "Cancel"
     }], {
         title: "Move"
+    });
+    $.input_dialog("#set-freq-button", [{
+        name: "freq",
+        label: "Center Frequency",
+        type: "number",
+        default: 1420.4
+    }, {
+        name: "mode",
+        label: "Mode",
+        type: "number",
+        option: {
+            min: 1,
+            max: 5
+        },
+        default: 1
+    }], [{
+        label: "Set",
+        callback: function (res) {
+            PyUtil.call(Back.IFace.cmd.set_freq, [], res);
+        }
+    }, {
+        label: "Cancel"
+    }], {
+        title: "Set Frequency"
     });
     $.input_dialog("#npoint-button", [{
         name: "x_step",
