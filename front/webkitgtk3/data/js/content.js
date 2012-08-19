@@ -52,4 +52,5 @@ $(function () {
             });
         }
     });
+    $("canvas").autorefresh();
 });

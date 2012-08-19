@@ -1,4 +1,12 @@
 (function () {
+    function max_z_index() {
+        var max_z = 0;
+        $('*').each(function () {
+            var cur = parseInt($(this).css("z-index"));
+            max_z = cur > max_z ? cur : max_z;
+        });
+        return max_z;
+    }
     function show_menu(offset) {
         var menu = $(this);
         var width;
@@ -25,6 +33,7 @@
             visibility: "visible",
             display: "none"
         });
+        menu.css({"z-index": max_z_index() + 1});
         menu.fadeIn(100);
     }
     function menu_enter_leave(event) {
