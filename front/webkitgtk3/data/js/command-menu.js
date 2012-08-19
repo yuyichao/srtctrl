@@ -2,28 +2,34 @@ $(function () {
     $.input_dialog("#npoint-button", [{
         name: "x_step",
         label: "Step width(x)",
+        advanced: true,
         type: "text",
         default: 2
     }, {
         name: "y_step",
         label: "Step width(y)",
+        advanced: true,
         type: "text",
         default: 2
     }, {
-        name: "x_half",
-        label: "Steps numbers(x)",
+        name: "x_count",
+        label: "Steps count(x)",
         type: "number",
-        advanced: true,
-        default: 1
+        option: {
+            min: 1
+        },
+        default: 3
     }, {
-        name: "y_half",
-        label: "Steps numbers(y)",
+        name: "y_count",
+        label: "Steps count(y)",
         type: "number",
-        advanced: true,
-        default: 1
+        option: {
+            min: 1
+        },
+        default: 3
     }, {
         name: "angle",
-        label: "Angle of X Axis",
+        label: "Angle of X axis",
         type: "text",
         advanced: true,
         default: "0"
@@ -31,6 +37,9 @@ $(function () {
         name: "count",
         label: "Count",
         type: "number",
+        option: {
+            min: 1
+        },
         advanced: true,
         default: 1
     }, {
@@ -41,13 +50,7 @@ $(function () {
     }], [{
         label: "Run",
         callback: function (res) {
-            var kwargs = {};
-            for (var key in res) {
-                if (!res[key])
-                    continue;
-                kwargs[key] = res[key];
-            }
-            PyUtil.call(Back.IFace.cmd.npoint, [], kwargs);
+            PyUtil.call(Back.IFace.cmd.npoint, [], res);
         }
     }, {
         label: "Cancel"

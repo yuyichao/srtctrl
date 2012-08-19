@@ -1,4 +1,13 @@
 (function () {
+    function check_form(res) {
+        var kwargs = {};
+        for (var key in res) {
+            if (res[key] === null)
+                continue;
+            kwargs[key] = res[key];
+        }
+        return kwargs;
+    }
     $.extend({
         open_file: function (cur_file) {
             var sel_file = null;
@@ -49,20 +58,35 @@
                 val: function (a) {
                     if (arguments.length)
                         return input.val(a);
-                    return input.val();
+                    var val = input.val();
+                    return val ? val : null;
                 }
             };
         },
-        number: function () {
+        number: function (option) {
+            var setting = $.extend({}, option);
             var input = $(
                 '<input type="number" class="ui-widget-content ui-corner-all"/>'
-            );
+            ).attr({
+                min: setting.min,
+                max: setting.max
+            });
             return {
                 widget: input,
                 val: function (a) {
                     if (arguments.length)
                         return input.val(a);
-                    return input.val();
+                    var val = input.val();
+                    if (!val)
+                        return null;
+                    val = parseFloat(val);
+                    if (!isFinite(val))
+                        return null;
+                    if (val < setting.min)
+                        return setting.min;
+                    if (val > setting.max)
+                        return setting.max;
+                    return val;
                 }
             };
         },
@@ -76,7 +100,8 @@
                 val: function () {
                     if (arguments.length)
                         return input.val(a);
-                    return input.val();
+                    var val = input.val();
+                    return val ? val : null;
                 }
             };
         },
@@ -90,7 +115,8 @@
                 val: function () {
                     if (arguments.length)
                         return input.val(a);
-                    return input.val();
+                    var val = input.val();
+                    return val ? val : null;
                 }
             };
         }
@@ -211,6 +237,7 @@
                             var entry = ui_entries[e_i];
                             res[entry.name] = entry.val();
                         }
+                        res = check_form(res);
                         if (button.callback) {
                             button.callback.call(this, res);
                         }
