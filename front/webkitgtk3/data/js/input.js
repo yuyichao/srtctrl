@@ -63,6 +63,21 @@
                 }
             };
         },
+        boolean: function () {
+            var widget = $('<div></div>');
+            var input = $('<input type="checkbox"/>').css({
+                float: 'left'
+            });
+            widget.append(input);
+            return {
+                widget: widget,
+                val: function (a) {
+                    if (arguments.length)
+                        return input.prop('checked', a);
+                    return input.prop('checked');
+                }
+            };
+        },
         number: function (option) {
             var setting = $.extend({}, option);
             var input = $(

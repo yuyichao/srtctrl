@@ -52,7 +52,7 @@ def js2py(ctx, jsobj, jsthis=None):
                   _gwkjs.ValueType.NULL]:
         return None
     elif jstype == _gwkjs.ValueType.BOOLEAN:
-        return ctx.to_boolean(jsobj)
+        return ctx.to_bool(jsobj)
     elif jstype == _gwkjs.ValueType.NUMBER:
         num = ctx.to_number(jsobj)
         if round(num) == num:
