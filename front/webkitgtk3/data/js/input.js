@@ -53,6 +53,19 @@
                 }
             };
         },
+        number: function () {
+            var input = $(
+                '<input type="number" class="ui-widget-content ui-corner-all"/>'
+            );
+            return {
+                widget: input,
+                val: function (a) {
+                    if (arguments.length)
+                        return input.val(a);
+                    return input.val();
+                }
+            };
+        },
         open_file: function () {
             var input = $('<input class="ui-widget-content ui-corner-all"/>');
             input.click(function () {
