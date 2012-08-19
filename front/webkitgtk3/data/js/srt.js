@@ -29,6 +29,12 @@ $(function () {
                 id: 'set-freq-button',
                 label: "Set Frequency"
             }, {
+                id: 'take-data-button',
+                label: "Start Taking Data"
+            }, {
+                id: 'stop-button',
+                label: "Stop Taking Data"
+            }, {
                 id: 'calib-button',
                 label: "Calibrate"
             }, {
@@ -90,6 +96,10 @@ $(function () {
     });
     $('#feedback-button').click(function (ev) {
         open('https://github.com/yuyichao/srtctrl/issues/new');
+        return true;
+    });
+    $('#doc-button').click(function (ev) {
+        open('https://github.com/yuyichao/srtctrl/wiki');
         return true;
     });
 });
