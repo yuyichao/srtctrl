@@ -112,7 +112,7 @@
             });
             return {
                 widget: input,
-                val: function () {
+                val: function (a) {
                     if (arguments.length)
                         return input.val(a);
                     var val = input.val();
@@ -127,7 +127,7 @@
             });
             return {
                 widget: input,
-                val: function () {
+                val: function (a) {
                     if (arguments.length)
                         return input.val(a);
                     var val = input.val();

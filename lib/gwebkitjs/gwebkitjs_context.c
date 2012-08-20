@@ -1733,6 +1733,25 @@ gwebkitjs_context_make_date(GWebKitJSContext *self, size_t argc,
 }
 
 /**
+ * gwebkitjs_context_make_simple_object:
+ * @self: (allow-none) (transfer none):
+ *
+ * Return Value: (transfer full) (allow-none):
+ **/
+GWebKitJSValue*
+gwebkitjs_context_make_simple_object(GWebKitJSContext *self)
+{
+    JSContextRef jsctx;
+    JSValueRef jsres;
+
+    jsctx = gwebkitjs_context_get_context(self);
+    gwj_return_val_if_false(jsctx, NULL);
+
+    jsres = JSObjectMake(jsctx, NULL, NULL);
+    return gwebkitjs_value_new(GWEBKITJS_TYPE_VALUE, self, jsres);
+}
+
+/**
  * gwebkitjs_context_make_error:
  * @self: (allow-none) (transfer none):
  * @argc:

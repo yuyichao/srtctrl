@@ -3,29 +3,29 @@ $(function () {
         name: "name",
         label: "Target Name",
         type: "text",
-        default: 'azel'
+        'default': 'azel'
     }, {
         name: "az",
         label: "Azimuth",
         tooltip: "Has no effect for some targets, e.g. Sun, Mars, Moon...",
         type: "text",
-        default: 0
+        'default': 0
     }, {
         name: "el",
         label: "Elevation",
         tooltip: "Has no effect for some targets, e.g. Sun, Mars, Moon...",
         type: "text",
-        default: 0
+        'default': 0
     }, {
         name: "offset_x",
         label: "Offset(x)",
         advanced: true,
-        default: 0
+        'default': 0
     }, {
         name: "offset_y",
         label: "Offset(y)",
         advanced: true,
-        default: 0
+        'default': 0
     }, {
         name: "time",
         label: "Time",
@@ -36,7 +36,7 @@ $(function () {
         label: "Track",
         type: "boolean",
         advanced: true,
-        default: true
+        'default': true
     }], [{
         label: "Move",
         callback: function (res) {
@@ -61,7 +61,7 @@ $(function () {
         name: "freq",
         label: "Center Frequency",
         type: "number",
-        default: 1420.4
+        'default': 1420.4
     }, {
         name: "mode",
         label: "Mode",
@@ -70,7 +70,7 @@ $(function () {
             min: 1,
             max: 5
         },
-        default: 1
+        'default': 1
     }], [{
         label: "Set",
         callback: function (res) {
@@ -85,7 +85,7 @@ $(function () {
         name: "count",
         label: "Count",
         type: "number",
-        default: 1,
+        'default': 1,
         advanced: true
     }], [{
         label: "Calibrate",
@@ -101,12 +101,12 @@ $(function () {
         name: "az",
         label: "Azimuth",
         type: "text",
-        default: 0
+        'default': 0
     }, {
         name: "el",
         label: "Elevation",
         type: "text",
-        default: 0
+        'default': 0
     }], [{
         label: "Set",
         callback: function (res) {
@@ -122,13 +122,13 @@ $(function () {
         label: "Step width(x)",
         advanced: true,
         type: "text",
-        default: 2
+        'default': 2
     }, {
         name: "y_step",
         label: "Step width(y)",
         advanced: true,
         type: "text",
-        default: 2
+        'default': 2
     }, {
         name: "x_count",
         label: "Steps count(x)",
@@ -136,7 +136,7 @@ $(function () {
         option: {
             min: 1
         },
-        default: 3
+        'default': 3
     }, {
         name: "y_count",
         label: "Steps count(y)",
@@ -144,13 +144,13 @@ $(function () {
         option: {
             min: 1
         },
-        default: 3
+        'default': 3
     }, {
         name: "angle",
         label: "Angle of X axis",
         type: "text",
         advanced: true,
-        default: "0"
+        'default': "0"
     }, {
         name: "count",
         label: "Count",
@@ -159,7 +159,7 @@ $(function () {
             min: 1
         },
         advanced: true,
-        default: 1
+        'default': 1
     }, {
         name: "interval",
         label: "Interval",

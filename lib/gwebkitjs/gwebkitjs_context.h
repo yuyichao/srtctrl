@@ -77,7 +77,7 @@ extern "C" {
     GWebKitJSValue *gwebkitjs_context_make_string(GWebKitJSContext *self,
                                                   const gchar *str);
     GWebKitJSValue *gwebkitjs_context_make_undefined(GWebKitJSContext *self);
-
+    GWebKitJSValue *gwebkitjs_context_make_simple_object(GWebKitJSContext *self);
     GWebKitJSValueType gwebkitjs_context_get_value_type(GWebKitJSContext *self,
                                                         GWebKitJSValue *value);
     gchar *gwebkitjs_context_get_name_str(GWebKitJSContext *self,

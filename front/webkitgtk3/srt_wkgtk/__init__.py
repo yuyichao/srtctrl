@@ -62,6 +62,7 @@ class SrtUI:
         winobj.UI.show_inspector = self.show_inspector
         winobj.Back = self._exp_dict
         winobj.SrtUtil = srt_comm
+        winobj.SrtState = {}
         winobj.PyUtil = {
             "call": js_call_py
         }

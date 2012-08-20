@@ -45,6 +45,20 @@ def _js2array(ctx, jsobj):
             pass
     return res
 
+def _js2dict(ctx, jsobj):
+    try:
+        names = ctx.get_property_names(jsobj)
+    except _GLib.GError:
+        return {}
+    res = {}
+    for name in names:
+        try:
+            jsele = ctx.get_property(jsobj, name)
+            res[name] = js2py(ctx, jsele)
+        except _GLib.GError:
+            pass
+    return res
+
 def js2py(ctx, jsobj, jsthis=None):
     jstype = ctx.get_value_type(jsobj)
     if jstype in [_gwkjs.ValueType.UNKNOWN,
@@ -69,7 +83,16 @@ def js2py(ctx, jsobj, jsthis=None):
         return None
     if jsname == "[object Array]":
         return _js2array(ctx, jsobj)
+    if jsname == '[object Object]':
+        return _js2dict(ctx, jsobj)
     return WKJSObject(ctx, jsobj, jsthis=jsthis)
+
+if sys.version_info[0] >= 3:
+    def isstr(s):
+        return isinstance(s, str)
+else:
+    def isstr(s):
+        return isinstance(s, basestring)
 
 def py2js(ctx, pyobj):
     if pyobj is None:
@@ -78,7 +101,7 @@ def py2js(ctx, pyobj):
         return ctx.make_bool(pyobj)
     elif isnum(pyobj):
         return ctx.make_number(float(pyobj))
-    elif isinstance(pyobj, str):
+    elif isstr(pyobj):
         return ctx.make_string(pyobj)
     elif isinstance(pyobj, list) or isinstance(pyobj, tuple):
         ary = list(pyobj)
