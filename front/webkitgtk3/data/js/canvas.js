@@ -1,4 +1,21 @@
 (function () {
+    var _drawText = $.fn.drawText;
+    var _measureText = $.fn.measureText;
+    $.fn.extend({
+        drawText: function (option) {
+            return _drawText.call(this, $.extend({
+                font: $(this).css('font')
+            }, option))
+        },
+        measureText: function (option) {
+            return _measureText.call(this, $.extend({
+                font: $(this).css('font')
+            }, option))
+        }
+    });
+})();
+
+(function () {
     var auto_refresh = [];
     function redraw(obj) {
         var ele = obj.ele;
@@ -12,7 +29,7 @@
         });
         for (var i in obj.cbs) {
             try {
-                obj.cbs[i](ele);
+                obj.cbs[i].call(ele, ele);
             } catch (e) {
             }
         }
@@ -31,7 +48,7 @@
             res.resize = setTimeout(function () {
                 res.resize = null;
                 redraw(res);
-            }, 100);
+            }, 50);
         });
         return res;
     }

@@ -52,5 +52,4 @@ $(function () {
             });
         }
     });
-    $("canvas").autorefresh();
 });

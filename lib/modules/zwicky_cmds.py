@@ -100,14 +100,18 @@ def zwicky_radio(zwicky, count=1, interval=None, until=None, *w, **kw):
         count = 1
     f_res = []
     f_frange = None
-    for i in range(count):
+    i = 0
+    while True:
         zwicky.motor.pos_chk()
         res1 = zwicky.radio.radio()
         f_frange = res1["freq_range"]
         f_res.append(res1["data"])
         # so we will always take at least one set of data here
         # why would anyone ever want to take no data?...
-        if not time_limit is None and time_limit < _time.time():
+        i += 1
+        if i < count:
+            continue
+        if time_limit is None or time_limit < _time.time():
             break
     return {"data": f_res, "frange": f_frange, "props": zwicky.get_all_props()}
 

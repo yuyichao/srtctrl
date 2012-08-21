@@ -33,6 +33,7 @@
                         setting.open();
                 }
             }).parent().css({
+                position: "absolute",
                 background: setting.background
             });
             function open() {

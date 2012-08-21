@@ -87,8 +87,16 @@ $(function () {
         return true;
     });
     resize_wrapper();
-    // Back.IFace.slave.connect("signal", function (src, name, value, props) {
-    // });
+    try {
+        if (Back.SrtState.srt_signal) {
+            Back.IFace.slave.disconnect(Back.SrtState.srt_signal);
+        }
+        Back.SrtState.srt_signal = Back.IFace.slave.connect(
+            "signal", function (src, name, value, props) {
+                // update properties here
+            });
+    } catch (e) {
+    }
     $('#feedback-button').click(function (ev) {
         open('https://github.com/yuyichao/srtctrl/issues/new');
         return true;

@@ -42,6 +42,9 @@ _plugins = SrtPlugins()
 class SlaveLogger:
     def __init__(self):
         self._file = None
+        self._fname = None
+    def get_fname(self):
+        return self._fname
     def set_fname(self, fname=None):
         if not self._file is None:
             self._file.close()
@@ -55,8 +58,10 @@ class SlaveLogger:
             pass
         try:
             self._file = open(fname, 'a')
+            self._fname = fname
         except:
             self._file = None
+            self._fname = None
     def write(self, content):
         if self._file is None:
             return
@@ -142,9 +147,9 @@ def new_iface(conn, sync=True, as_default=True):
         if pkg["type"] == "error":
             raise InvalidRequest
         return pkg["name_list"]
-    def send_cmd(name, *args, **kwargs):
-        iface.emit("log", "cmd", [name, args, kwargs])
-        send({"type": "cmd", "name": name, "args": args, "kwargs": kwargs})
+    def send_cmd(_name, *args, **kwargs):
+        iface.emit("log", "cmd", [_name, args, kwargs])
+        send({"type": "cmd", "name": _name, "args": args, "kwargs": kwargs})
         if not sync:
             return
         wait_types("cmd")
@@ -168,12 +173,12 @@ def new_iface(conn, sync=True, as_default=True):
         iface.emit("quit")
     def send_slave_error(name=None, msg=None):
         send({"type": "slave-error", "name": name, "msg": msg})
-    def send_alarm(name, nid="", **args):
-        send({"type": "alarm", "name": name, "nid": nid, "args": args})
+    def send_alarm(_name, nid="", **args):
+        send({"type": "alarm", "name": _name, "nid": nid, "args": args})
         if not sync:
             return
         pkg = wait_with_cb(lambda pkg: (pkg["type"] == "alarm" and
-                                        pkg["name"] == name and
+                                        pkg["name"] == _name and
                                         pkg["nid"] == nid and
                                         "success" in pkg))
         if pkg["success"]:
@@ -522,6 +527,7 @@ def new_iface(conn, sync=True, as_default=True):
                              (lambda nid, **args:
                               send_alarm(name, nid, **args)), None),
         "slave": iface,
+        "logger": logger,
         "InvalidRequest": InvalidRequest
     }
     module = _add_module(module_dict, as_default)
