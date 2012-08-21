@@ -10,3 +10,10 @@ add_run(pywkjs_helper
   LD_LIBRARY_PATH="${CMAKE_CURRENT_BINARY_DIR}"/../../gwebkitjs
   "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test_helper.py"
   "${CMAKE_CURRENT_SOURCE_DIR}/helper.html")
+
+add_run(pywkjs_ref
+  COMMAND env GI_TYPELIB_PATH="${PROJECT_BINARY_DIR}/lib/gwebkitjs:${PROJECT_BINARY_DIR}/lib/srtsock"
+  PYTHONPATH="${PROJECT_BINARY_DIR}/lib"
+  LD_LIBRARY_PATH="${PROJECT_BINARY_DIR}/lib/gwebkitjs:${PROJECT_BINARY_DIR}/lib/srtsock"
+  "${PYTHON_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/test_ref.py"
+  "${CMAKE_CURRENT_SOURCE_DIR}/ref.html")

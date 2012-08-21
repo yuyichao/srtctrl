@@ -256,6 +256,7 @@ gwebkitjs_base_init_cb(gpointer ptr, JSGlobalContextRef jsctx,
                                           FALSE, TRUE)) {
         g_object_add_toggle_ref(G_OBJECT(self), gwebkitjs_base_toggle_cb,
                                 NULL);
+        gwebkitjs_value_unprotect_value(GWEBKITJS_VALUE(self));
         g_object_unref(self);
     }
     g_object_unref(ctx);
