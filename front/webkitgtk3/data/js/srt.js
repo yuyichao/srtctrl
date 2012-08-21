@@ -88,10 +88,10 @@ $(function () {
     });
     resize_wrapper();
     try {
-        if (Back.SrtState.srt_signal) {
-            Back.IFace.slave.disconnect(Back.SrtState.srt_signal);
+        if (SrtState.srt_signal) {
+            Back.IFace.slave.disconnect(SrtState.srt_signal);
         }
-        Back.SrtState.srt_signal = Back.IFace.slave.connect(
+        SrtState.srt_signal = Back.IFace.slave.connect(
             "signal", function (src, name, value, props) {
                 // update properties here
             });

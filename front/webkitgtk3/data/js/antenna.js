@@ -2,10 +2,10 @@ $(function () {
     var az = 0;
     var el = 0;
     try {
-        if (Back.SrtState.antenna_move) {
-            Back.IFace.slave.disconnect(Back.SrtState.antenna_move);
+        if (SrtState.antenna_move) {
+            Back.IFace.slave.disconnect(SrtState.antenna_move);
         }
-        Back.SrtState.antenna_move = Back.IFace.slave.connect(
+        SrtState.antenna_move = Back.IFace.slave.connect(
             "signal::move", function (src, name, value, props) {
                 az = value[0];
                 el = value[1];

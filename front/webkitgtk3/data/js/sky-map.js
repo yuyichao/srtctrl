@@ -158,6 +158,8 @@ var sky_map_azel;
         try {
             obj_list[i].remap.call(undefined, function (x, y) {
                 write_map(i, x, y);
+            }, {
+                font_height: font_height
             });
         } catch (e) {
         }

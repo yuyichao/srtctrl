@@ -86,7 +86,7 @@ class SrtHost(GObject.Object):
         if self._ready:
             sock.send({"type": "ready"})
         sid = self._new_usid()
-        self._slaves[sid] = {"sock": sock, "alarms": {},
+        self._slaves[sid] = {"sock": sock, "alarm": {},
                              "ping": None, "float": False}
         self._lookup_id[id(sock)] = sid
         return True
