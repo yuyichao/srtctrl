@@ -88,13 +88,9 @@ $(function () {
     });
     resize_wrapper();
     try {
-        if (SrtState.srt_signal) {
-            Back.IFace.slave.disconnect(SrtState.srt_signal);
-        }
-        SrtState.srt_signal = Back.IFace.slave.connect(
-            "signal", function (src, name, value, props) {
-                // update properties here
-            });
+        SrtIFace.connect("signal", function (src, name, value, props) {
+            // update properties here
+        });
     } catch (e) {
     }
     $('#feedback-button').click(function (ev) {

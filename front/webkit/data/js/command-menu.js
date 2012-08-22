@@ -50,7 +50,7 @@ $(function () {
             if (!res.offset_y)
                 res.offset_y = 0;
             res.offset = [res.offset_x, res.offset_y];
-            PyUtil.call(Back.IFace.cmd.move, [], res);
+            SrtSend.cmd('move', [], res);
         }
     }, {
         label: "Cancel"
@@ -74,7 +74,7 @@ $(function () {
     }], [{
         label: "Set",
         callback: function (res) {
-            PyUtil.call(Back.IFace.cmd.set_freq, [], res);
+            SrtSend.cmd('set_freq', [], res);
         }
     }, {
         label: "Cancel"
@@ -90,7 +90,7 @@ $(function () {
     }], [{
         label: "Calibrate",
         callback: function (res) {
-            PyUtil.call(Back.IFace.cmd.calib, [], res);
+            SrtSend.cmd('calib', [], res);
         }
     }, {
         label: "Cancel"
@@ -110,7 +110,7 @@ $(function () {
     }], [{
         label: "Set",
         callback: function (res) {
-            PyUtil.call(Back.IFace.cmd.set_offset, [], res);
+            SrtSend.cmd('set_offset', [], res);
         }
     }, {
         label: "Cancel"
@@ -168,7 +168,7 @@ $(function () {
     }], [{
         label: "Run",
         callback: function (res) {
-            PyUtil.call(Back.IFace.cmd.npoint, [], res);
+            SrtSend.cmd('npoint', [], res);
         }
     }, {
         label: "Cancel"
@@ -176,7 +176,7 @@ $(function () {
         title: "N Point Scan"
     });
     $('#stow-button').click(function () {
-        Back.IFace.cmd.reset();
+        SrtSend.cmd('reset', [], {});
         return false;
     });
 });
