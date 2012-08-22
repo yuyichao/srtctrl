@@ -18,10 +18,10 @@ option(ENABLE_TEST "Test build" Off)
 option(ENABLE_FRONT "Frontends" On)
 option(ENABLE_BACK "Beckend" On)
 
-option(ENABLE_FRONT_WEBKITGTK3 "GWebKitJS library for webkitgtk-3 frontend" On)
+# option(ENABLE_FRONT_WEBKITGTK3 "GWebKitJS library for webkitgtk-3 frontend" On)
 
 # This two options will automatically be enabled if needed
-option(ENABLE_GWEBKITJS "GWebKitJS library for webkitgtk-3 frontend" Off)
+# option(ENABLE_GWEBKITJS "GWebKitJS library for webkitgtk-3 frontend" Off)
 option(ENABLE_SRTSOCK "Srtsock library for communication in backend" Off)
 option(ENABLE_SRTCOMM "General python modules for backend" Off)
 
@@ -30,12 +30,12 @@ if(ENABLE_TEST)
 endif()
 
 if(NOT ENABLE_FRONT)
-  set(ENABLE_FRONT_WEBKITGTK3 Off)
+  # set(ENABLE_FRONT_WEBKITGTK3 Off)
 endif()
 
-if(ENABLE_FRONT_WEBKITGTK3)
-  set(ENABLE_GWEBKITJS On)
-endif()
+# if(ENABLE_FRONT_WEBKITGTK3)
+#   set(ENABLE_GWEBKITJS On)
+# endif()
 
 if(ENABLE_BACK)
   set(ENABLE_SRTSOCK On)
