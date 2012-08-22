@@ -223,6 +223,11 @@ var sky_map_azel;
             mouse_pos.x = undefined;
             mouse_pos.y = undefined;
             check_hover();
+        }).click(function () {
+            try {
+                obj_list[hover].click();
+            } catch (e) {
+            }
         });
     });
 })();
