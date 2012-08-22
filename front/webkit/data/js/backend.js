@@ -3,6 +3,7 @@ var SrtGotObj;
 var SrtCall;
 var SrtSend;
 var SrtOS;
+var SrtComm;
 var SrtIFace;
 
 function SrtObject(opt) {
@@ -114,6 +115,9 @@ function SrtObject(opt) {
     }
     SrtOS = function () {
         return SrtCall('os', Array.prototype.slice.call(arguments));
+    }
+    SrtComm = function () {
+        return SrtCall('srt', Array.prototype.slice.call(arguments));
     }
     open = function (uri) {
         return SrtCall('open', uri);

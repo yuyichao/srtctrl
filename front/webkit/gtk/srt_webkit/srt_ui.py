@@ -21,6 +21,7 @@ from .util import *
 from .view import SrtView
 from .inspector import SrtInspector
 from srt_comm import *
+import srt_comm
 import json
 import os
 
@@ -97,6 +98,8 @@ class SrtUI:
             res = self._handle_os(args)
         elif type == 'name':
             res = self._handle_name(args)
+        elif type == 'srt':
+            res = self._handle_srt(args)
         self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
         return True
     def _handle_open(self, uri):
@@ -114,3 +117,7 @@ class SrtUI:
         while not self._name:
             c.iteration(True)
         return self._name
+    def _handle_srt(args):
+        name = args[0]
+        args = args[1:]
+        return getattr(srt_comm, name)(*args)

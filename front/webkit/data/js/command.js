@@ -40,7 +40,7 @@ $(function () {
             var term = request.term.replace(/^[\s:]+|[\s:]+$/g, '');
             var time_cmd = term.split(/\s/g);
             var time = time_cmd.shift();
-            if (SrtUtil.try_get_interval(time) === null) {
+            if (SrtComm('try_get_interval', time) === null) {
                 add_wait_comp(time, response, '');
                 return;
             }

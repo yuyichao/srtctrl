@@ -44,19 +44,20 @@ var sky_map_azel;
         axis_size.y = x.height * 5 / 4;
         font_height = x.height;
     }
-    var axis_seps = [10, 20, 30, 45, 60, 90, 180, 360];
+    var v_axis_seps = [10, 15, 30, 45, 90];
+    var h_axis_seps = [10, 20, 30, 45, 60, 90, 180, 360];
     function redraw_axis() {
         var h_sep = 360 / Math.max(map_width / axis_size.x - 2, 0) * 2;
         var v_sep = 90 / Math.max(map_height / axis_size.y - 2, 0) * 2;
-        for (var i in axis_seps) {
-            if (h_sep < axis_seps[i]) {
-                h_sep = axis_seps[i];
+        for (var i in h_axis_seps) {
+            if (h_sep < h_axis_seps[i]) {
+                h_sep = h_axis_seps[i];
                 break;
             }
         }
-        for (var i in axis_seps) {
-            if (v_sep < axis_seps[i]) {
-                v_sep = axis_seps[i];
+        for (var i in v_axis_seps) {
+            if (v_sep < v_axis_seps[i]) {
+                v_sep = v_axis_seps[i];
                 break;
             }
         }
