@@ -37,6 +37,7 @@ class SrtUI:
         self._view.load_uri(uri)
         self._conn = conn
         self._name = None
+        self._inspector = None
         self._conn.connect('disconn', self._disconn_cb)
         GLib.timeout_add_seconds(10, self._pong_back_cb)
         self.__init_conn__()
@@ -100,6 +101,8 @@ class SrtUI:
             res = self._handle_name(args)
         elif type == 'srt':
             res = self._handle_srt(args)
+        elif type == 'dev':
+            res = self._handle_dev(args)
         self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
         return True
     def _handle_open(self, uri):
@@ -117,7 +120,9 @@ class SrtUI:
         while not self._name:
             c.iteration(True)
         return self._name
-    def _handle_srt(args):
+    def _handle_srt(self, args):
         name = args[0]
         args = args[1:]
         return getattr(srt_comm, name)(*args)
+    def _handle_dev(self, args):
+        return self.show_inspector()

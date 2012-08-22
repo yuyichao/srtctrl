@@ -34,7 +34,13 @@ class ZwickyMoter:
             self._zwicky.get_config(key)
         self.configs = self._zwicky.configs
         self._zwicky.connect("alarm::timer", self._timer_cb)
+        self._zwicky.connect("config", self._config_cb)
         self.reset()
+    def _config_cb(self, zwicky, field, name, value):
+        if field == "zwicky" and name == "poffset":
+            self.move_signal()
+            self.pos_chk()
+            return
     def _timer_cb(self, zwicky, name, nid, args):
         if zwicky.cmd_busy:
             return

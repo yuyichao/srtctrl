@@ -56,6 +56,9 @@ $(function () {
                 id: 'feedback-button',
                 label: "Feedback"
             }, {
+                id: 'dev-tool-button',
+                label: "Develop Tool"
+            }, {
                 id: 'about-button',
                 label: "About"
             }]
@@ -93,12 +96,4 @@ $(function () {
         });
     } catch (e) {
     }
-    $('#feedback-button').click(function (ev) {
-        open('https://github.com/yuyichao/srtctrl/issues/new');
-        return true;
-    });
-    $('#doc-button').click(function (ev) {
-        open('https://github.com/yuyichao/srtctrl/wiki');
-        return true;
-    });
 });
