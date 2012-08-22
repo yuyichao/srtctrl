@@ -1,0 +1,12 @@
+.about-dialog-tabs {
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
+    padding: 0 !important;
+}
+
+#about-dialog-tabs {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}

@@ -1,0 +1,39 @@
+#!@PYTHON_EXECUTABLE@
+from __future__ import print_function, division
+from srt_client import *
+from srt_comm import *
+from gi.repository import GLib
+import sys, os
+from os import path
+import argparse
+
+SRT_WEBKIT_PATH = "@SRT_WEBKIT_PATH@"
+SRT_WEBKIT_PATH = read_env('SRT_WEBKIT_PATH',
+                           default=SRT_WEBKIT_PATH)
+SRT_WEBKIT_URI = read_env('SRT_WEBKIT_URI',
+                          default=GLib.filename_to_uri(
+                              path.abspath(SRT_WEBKIT_PATH), None))
+
+def main():
+    parser = argparse.ArgumentParser(description="Start the Srt Client")
+    parser.add_argument('-n', '--no-window', dest='gui',
+                        action='store_false', help='start with no gui.')
+    parser.add_argument('-f', '--file', dest='file',
+                        action='store', help='execute a script')
+    arg_res = parser.parse_args()
+    srtcenter = SrtCenter()
+    if arg_res.gui:
+        srtcenter.create_slave_by_name("webkit", None,
+                                       {"uri": SRT_WEBKIT_URI})
+    if arg_res.file:
+        fname = arg_res.file
+        if fname.endswith(".py"):
+            srtcenter.create_slave_by_name("python", os.getcwd(),
+                                           {"fname": fname})
+        else:
+            srtcenter.create_slave_by_name("zwicky_cmd", os.getcwd(),
+                                           {"fname": fname})
+    srtcenter.run()
+
+if __name__ == '__main__':
+    main()

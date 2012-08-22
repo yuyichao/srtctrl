@@ -1,0 +1,67 @@
+#content {
+}
+
+#plot-region {
+    width: 69%;
+    height: 100%;
+    float: left;
+}
+
+#props-region {
+    width: 29%;
+    height: 100%;
+    float: right;
+}
+
+#props-region-slider {
+    float: left;
+    height: 100%;
+    cursor: pointer;
+    background-color: #bff;
+    -webkit-box-shadow: -2px 0px 2px 1px #ccc;
+    box-shadow:         -2px 0px 2px 1px #ccc;
+}
+
+#props-region-slider:hover {
+    background-color: #eff;
+    -webkit-box-shadow: -2px 0px 4px 2px #ccc;
+    box-shadow:         -2px 0px 4px 2px #ccc;
+}
+
+#real-props-region {
+    float: right;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.plot-regions {
+    width: 100%;
+}
+
+#data-plot-region {
+    height: 19%;
+}
+
+#sky-map-region {
+    height: 58%;
+    position: relative;
+}
+
+#status-region {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 19%;
+}
+
+.plot-region-spacing {
+    height: 1%;
+    width: 100%;
+}
+
+#sky-map {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
