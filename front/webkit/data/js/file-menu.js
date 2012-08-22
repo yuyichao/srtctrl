@@ -10,9 +10,9 @@ $(function () {
             if ($.type(fname) != "string")
                 return;
             if (fname.match(/\.py$/)) {
-                Back.IFace.start("python", {fname: fname});
+                SrtSend.start("python", {fname: fname});
             } else {
-                Back.IFace.start("zwicky_cmd", {fname: fname});
+                SrtSend.start("zwicky_cmd", {fname: fname});
             }
         }
     }, {
@@ -21,7 +21,7 @@ $(function () {
         title: "Run Script"
     });
     $('#quit-button').click(function (ev) {
-        Back.IFace.quit();
+        SrtSend.quit();
         return true;
     });
     $('#refresh-button').click(function (ev) {
