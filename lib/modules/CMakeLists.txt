@@ -8,6 +8,8 @@ set(srt_modules_py
   track_ephem.py
   tracker.py
   track_simple.py
+  webkit.py
+  # webkitgtk3.py
   zwicky_cmd_slave.py
   zwicky_cmds.py
   zwicky_helper.py
