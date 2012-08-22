@@ -90,6 +90,9 @@ function SrtObject(opt) {
     SrtIFace = SrtObject({
         signals: signals_def
     });
+    SrtIFace.get_name = function () {
+        return SrtCall('name');
+    };
 })();
 
 (function () {
@@ -213,18 +216,35 @@ function SrtObject(opt) {
         }
     }
     function handle_config(pkg) {
+        SrtIFace.emit('config',
+                      pkg.field, pkg.name, pkg.value);
     }
     function handle_prop(pkg) {
+        SrtIFace.emit('prop',
+                      pkg.name, pkg.value);
     }
     function handle_query(pkg) {
+        SrtIFace.emit("query::" + pkg.name.replace(/_/g, '-'),
+                      pkg.name, pkg.name_list)
     }
     function handle_alarm(pkg) {
+        if ('success' in pkg) {
+            SrtIFace.emit('alarm-success::' + pkg.name.replace(/_/g, '-'),
+                          pkg.name, pkg.nid, pkg.success);
+            return;
+        }
+        SrtIFace.emit('alarm::' + pkg.name.replace(/_/g, '-'),
+                      pkg.name, pkg.nid, pkg.alarm);
     }
     function handle_error(pkg) {
+        SrtIFace.emit("error", pkg.errno, pkg.msg);
     }
     function handle_cmd(pkg) {
+        SrtIFace.emit("cmd");
     }
     function handle_res(pkg) {
+        SrtIFace.emit('res::' + pkg.name.replace(/_/g, '-'),
+                      pkg.name, pkg.res, pkg.props, pkg.args, pkg.kwargs);
     }
     function handle_signal(pkg) {
         var name = pkg.name;

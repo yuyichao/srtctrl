@@ -49,38 +49,29 @@ $(function () {
         $(this).drawArc(arc);
         // TODO draw name
     }
-    function clear_target(target) {
-        if (SrtState['target_track_' + target.label]) {
-            Back.IFace.slave.disconnect(Back.SrtState['target_track_' +
-                                                      target.label]);
-            SrtState['target_track_' + target.label] = null;
-        }
-    }
     function register_target(target) {
         var success_conn;
         var az = -100;
         var el = -100;
-        PyUtil.call(Back.IFace.alarm.track,
-                    ['target_track_' + target.label], $.extend({
-                        station: station
-                    }, target.args));
-        success_conn = Back.IFace.slave.connect(
-            "alarm-success::track", function (src, name, nid, success) {
+        SrtSend.alarm('track', 'target_track_' + target.label, $.extend({
+            station: station
+        }, target.args))
+        success_conn = SrtIFace.connect(
+            "alarm-success::track", function (name, nid, success) {
                 if (nid != 'target_track_' + target.label)
                     return;
-                Back.IFace.slave.disconnect(success_conn);
+                SrtIFace.disconnect(success_conn);
                 success_conn = 0;
-                if (!success || SrtState['target_track_' + target.label])
+                if (!success)
                     return;
-                SrtState['target_track_' + target.label] =
-                    Back.IFace.slave.connect(
-                        "alarm::track", function (src, name, nid, alarm) {
-                            if (nid != 'target_track_' + target.label)
-                                return;
-                            az = alarm.az;
-                            el = alarm.el;
-                            redraw_sky_map();
-                        });
+                SrtIFace.connect(
+                    "alarm::track", function (name, nid, alarm) {
+                        if (nid != 'target_track_' + target.label)
+                            return;
+                        az = alarm.az;
+                        el = alarm.el;
+                        redraw_sky_map();
+                    });
                 add_sky_map({
                     redraw: function (setting) {
                         draw_target.call(this, az, el, target, setting);
@@ -92,24 +83,23 @@ $(function () {
     }
     var station;
     function register_all() {
-        for (var i in targets_list) {
-            clear_target(targets_list[i]);
-        }
-        var name = Back.IFace.get_name();
-        var station_conn = Back.IFace.slave.connect(
-            "config", function (slave, field, key, value) {
+        var name = SrtIFace.get_name();
+        console.log(name);
+        var station_conn = SrtIFace.connect(
+            "config", function (field, key, value) {
                 if (field != name || key != 'station')
                     return;
                 station = value;
-                Back.IFace.slave.disconnect(station_conn);
+                SrtIFace.disconnect(station_conn);
                 for (var i in targets_list) {
                     register_target(targets_list[i]);
                 }
             });
-        station = Back.IFace.config[name].station;
+        SrtSend.config(name, 'station');
     }
     try {
         register_all();
     } catch (e) {
+        console.log(e);
     }
 });

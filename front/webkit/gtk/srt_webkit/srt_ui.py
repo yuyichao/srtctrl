@@ -35,8 +35,10 @@ class SrtUI:
         self._view.connect("script-alert", self._script_alert_cb)
         self._view.load_uri(uri)
         self._conn = conn
+        self._name = None
         self._conn.connect('disconn', self._disconn_cb)
         GLib.timeout_add_seconds(10, self._pong_back_cb)
+        self.__init_conn__()
     def _pong_back_cb(self):
         if not self._conn.send_buff_is_empty():
             self._conn.send({"type": "pong"})
@@ -48,10 +50,21 @@ class SrtUI:
     def _disconn_cb(self, conn):
         self._got_obj_cb(conn, {'type': 'quit'})
     def _got_obj_cb(self, conn, pkg):
+        try:
+            pkgtype = pkg['type']
+        except:
+            return
+        if pkg['type'] == 'init':
+            try:
+                self._name = pkg['name']
+            except:
+                pass
+            if not self._name:
+                pkg = {'type': 'quit'}
         self._view.execute_script('SrtGotObj(%s)' %
                                   json.dumps(pkg))
     def _load_finish_cb(self, view, frame):
-        self.__init_conn__()
+        pass
     def _win_close_cb(self, win):
         Gtk.main_quit()
     def show_all(self):
@@ -82,6 +95,8 @@ class SrtUI:
             res = self._handle_send(args)
         elif type == 'os':
             res = self._handle_os(args)
+        elif type == 'name':
+            res = self._handle_name(args)
         self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
         return True
     def _handle_open(self, uri):
@@ -94,3 +109,8 @@ class SrtUI:
         name = args[0]
         args = args[1:]
         return getattr(os, name)(*args)
+    def _handle_name(self, args):
+        c = GLib.main_context_default()
+        while not self._name:
+            c.iteration(True)
+        return self._name
