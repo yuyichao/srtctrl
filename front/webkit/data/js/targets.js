@@ -84,7 +84,6 @@ $(function () {
     var station;
     function register_all() {
         var name = SrtIFace.get_name();
-        console.log(name);
         var station_conn = SrtIFace.connect(
             "config", function (field, key, value) {
                 if (field != name || key != 'station')
@@ -100,6 +99,5 @@ $(function () {
     try {
         register_all();
     } catch (e) {
-        console.log(e);
     }
 });
