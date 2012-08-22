@@ -17,7 +17,6 @@
 from __future__ import print_function, division
 
 from gi.repository import WebKit, Gtk
-from .window import SrtWindow
 import srt_comm
 
 class SrtInspector ():
