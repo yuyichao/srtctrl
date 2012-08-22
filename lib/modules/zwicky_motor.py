@@ -94,6 +94,10 @@ class ZwickyMoter:
             raise AttributeError(key)
     def move_signal(self):
         self._zwicky.send_signal("move", [self.az, self.el])
+    def heading_signal(self):
+        self._zwicky.send_signal("heading",
+                                 [self.az_c2d(self.az_d2c(self._az_set)),
+                                  self.el_c2d(self.el_d2c(self._el_set))])
     def l_rod(self, degree=None):
         if degree == None:
             degree = self.configs.el_lim[0]

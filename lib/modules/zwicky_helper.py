@@ -123,6 +123,7 @@ class ZwickyHelper(GObject.Object):
     def send_signal(self, name, value):
         self._helper.send_signal(name, value)
     def send_move(self, direct, count):
+        self.motor.heading_signal()
         count = int(count)
         count = count if count >= 0 else 0
         return self.send_remote({"type": "move", "direct": int(direct),
