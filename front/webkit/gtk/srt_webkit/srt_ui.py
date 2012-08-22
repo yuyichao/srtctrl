@@ -63,7 +63,7 @@ class SrtUI:
                 pass
             if not self._name:
                 pkg = {'type': 'quit'}
-        self._view.execute_script('SrtGotObj(%s)' %
+        self._view.execute_script('try{SrtGotObj(%s)}catch(e){}' %
                                   json.dumps(pkg))
     def _load_finish_cb(self, view, frame):
         pass

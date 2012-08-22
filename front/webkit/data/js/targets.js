@@ -34,7 +34,7 @@ $(function () {
             r_radius = 1;
         var radius;
         if (setting.hover) {
-            radius = r_radius * 2;
+            radius = r_radius * 1.5;
         } else {
             radius = r_radius;
         }
@@ -46,7 +46,8 @@ $(function () {
         };
         if (setting.hover) {
             $.extend(arc, {
-                strokeStyle: "blue",
+                fillStyle: "red",
+                strokeStyle: "black",
                 strokeWidth: radius / 3
             });
         }
@@ -59,6 +60,11 @@ $(function () {
         };
         var text_size = $(this).measureText(text);
         text.x += text_size.width / 2;
+        if (setting.hover) {
+            $.extend(text, {
+                fillStyle: 'red'
+            });
+        }
         $(this).drawText(text);
     }
     function register_target(target) {
