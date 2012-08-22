@@ -2,11 +2,8 @@ $(function () {
     var az = 0;
     var el = 0;
     try {
-        if (SrtState.antenna_move) {
-            Back.IFace.slave.disconnect(SrtState.antenna_move);
-        }
-        SrtState.antenna_move = Back.IFace.slave.connect(
-            "signal::move", function (src, name, value, props) {
+        SrtIFace.connect(
+            "signal::move", function (name, value, props) {
                 az = value[0];
                 el = value[1];
                 redraw_sky_map();

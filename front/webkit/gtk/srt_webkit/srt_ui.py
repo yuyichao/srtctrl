@@ -22,6 +22,7 @@ from .view import SrtView
 from .inspector import SrtInspector
 from srt_comm import *
 import json
+import os
 
 class SrtUI:
     def __init__(self, uri, conn):
@@ -30,13 +31,22 @@ class SrtUI:
         self._window.set_default_size(500, 400)
         self._window.add(self._view)
         self._window.connect("destroy", self._win_close_cb)
+        self._view.connect("load-finished", self._load_finish_cb)
         self._view.connect("script-alert", self._script_alert_cb)
         self._view.load_uri(uri)
         self._conn = conn
+        self._conn.connect('disconn', self._disconn_cb)
+        GLib.timeout_add_seconds(10, self._pong_back_cb)
+    def _pong_back_cb(self):
+        if not self._conn.send_buff_is_empty():
+            self._conn.send({"type": "pong"})
+        return True
     def __init_conn__(self):
         self._conn.start_send()
         self._conn.start_recv()
         self._conn.connect("got-obj", self._got_obj_cb)
+    def _disconn_cb(self, conn):
+        self._got_obj_cb(conn, {'type': 'quit'})
     def _got_obj_cb(self, conn, pkg):
         self._view.execute_script('SrtGotObj(%s)' %
                                   json.dumps(pkg))
@@ -66,9 +76,21 @@ class SrtUI:
             res = self._handle_open(args)
         elif type == 'file':
             res = self._handle_file(args)
+        elif type == 'quit':
+            Gtk.main_quit()
+        elif type == 'send':
+            res = self._handle_send(args)
+        elif type == 'os':
+            res = self._handle_os(args)
         self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
         return True
     def _handle_open(self, uri):
         return openuri(uri)
     def _handle_file(self, kw):
         return file_dialog(**kw)
+    def _handle_send(self, pkg):
+        self._conn.send(pkg)
+    def _handle_os(self, args):
+        name = args[0]
+        args = args[1:]
+        return getattr(os, name)(*args)
