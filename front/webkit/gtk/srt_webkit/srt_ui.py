@@ -72,11 +72,21 @@ class SrtUI:
     def show_all(self):
         self._window.show_all()
     def show_inspector(self):
-        self._view.get_settings().set_property("enable-developer-extras",True)
+        self._view.get_settings().set_property("enable-developer-extras", True)
         inspector = self._view.get_inspector()
         if self._inspector is None:
             self._inspector = SrtInspector(inspector)
         inspector.show()
+        self._inspector.connect('destroy', self._inspector_destroy_cb)
+    def _inspector_destroy_cb(self, inspector):
+        self.hide_inspector()
+    def hide_inspector(self):
+        self._view.get_settings().set_property("enable-developer-extras",
+                                               False)
+        if not self._inspector is None:
+            inspector = self._inspector
+            self._inspector = None
+            inspector.destroy()
     def _script_alert_cb(self, view, frame, msg):
         try:
             return self.__srt_call(**json.loads(msg))

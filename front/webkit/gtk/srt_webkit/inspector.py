@@ -19,43 +19,28 @@ from __future__ import print_function, division
 from gi.repository import WebKit, Gtk
 import srt_comm
 
-class SrtInspector ():
-    def __init__ (self, inspector):
-        self.webview = WebKit.WebView()
+class SrtInspector(Gtk.Window):
+    def __init__(self, inspector):
+        super(SrtInspector, self).__init__()
+        self._view = WebKit.WebView()
 
         scrolled_window = Gtk.ScrolledWindow()
-        scrolled_window.add(self.webview)
+        scrolled_window.add(self._view)
         scrolled_window.show_all()
 
-        self.window = Gtk.Window()
-        self.window.add(scrolled_window)
-        self.window.set_default_size(500, 400)
-        self.window.set_title("Srt Inspector")
-        self.window.connect("delete-event", self.on_delete_event)
+        self.add(scrolled_window)
+        self.set_default_size(500, 400)
+        self.set_title("Srt Inspector")
 
         inspector.set_property("javascript-profiling-enabled", True)
-        inspector.connect("inspect-web-view", self.on_inspect_web_view)
-        inspector.connect("show-window", self.on_show_window)
-        inspector.connect("close-window", self.on_close_window)
-        inspector.connect("finished", self.on_finished)
+        inspector.connect("inspect-web-view", self._inspect_web_view_cb)
+        inspector.connect("show-window", self._show_window_cb)
+        inspector.connect("finished", self._finished_cb)
 
-    def __del__ (self):
-        self.window.destory()
-
-    def on_delete_event (self, widget, event):
-        self.window.hide()
+    def _inspect_web_view_cb(self, inspector, web_view):
+        return self._view
+    def _show_window_cb(self, inspector):
+        self.present()
         return True
-
-    def on_inspect_web_view (self, inspector, web_view):
-        return self.webview
-
-    def on_show_window (self, inspector):
-        self.window.present()
-        return True
-
-    def on_close_window (self, inspector):
-        self.window.hide()
-        return True
-
-    def on_finished (self, inspector):
-        self.window.hide()
+    def _finished_cb(self, inspector):
+        self.destroy()
