@@ -38,6 +38,7 @@ class ZwickyMoter:
         self.reset()
     def _config_cb(self, zwicky, field, name, value):
         if field == "zwicky" and name == "poffset":
+            self.heading_signal()
             self.move_signal()
             self.pos_chk()
             return
