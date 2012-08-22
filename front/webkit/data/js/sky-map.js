@@ -140,6 +140,8 @@ var sky_map_azel;
     }
 
     function write_map(id, x, y) {
+        x = Math.round(x);
+        y = Math.round(y);
         if (!(x >= 0 && x < map_width && y >= 0 && y < map_height))
             return;
         obj_map[x * map_height + y] = id;
@@ -157,7 +159,7 @@ var sky_map_azel;
     }
     function remap_point(i) {
         try {
-            obj_list[i].remap.call(undefined, function (x, y) {
+            obj_list[i].remap.call(sky_map, function (x, y) {
                 write_map(i, x, y);
             }, {
                 font_height: font_height
@@ -180,6 +182,11 @@ var sky_map_azel;
         if (hover === new_hover)
             return false;
         hover = new_hover;
+        if (obj_list[hover] && obj_list[hover].click) {
+            sky_map.css('cursor', 'pointer');
+        } else {
+            sky_map.css('cursor', 'auto');
+        }
         redraw_all();
         return true;
     }
@@ -187,7 +194,8 @@ var sky_map_azel;
         var id = obj_list.length;
         obj = $.extend({
             remap: null,
-            redraw: null
+            redraw: null,
+            click: null
         }, obj);
         obj_list.push(obj);
         remap_point(id);
@@ -199,7 +207,7 @@ var sky_map_azel;
             return;
         redraw_timeout = setTimeout(function () {
             var redraw_timeout = undefined;
-            redraw_all();
+            remap_all();
         }, 100);
     };
     $(function () {

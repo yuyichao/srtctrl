@@ -29,11 +29,15 @@ $(function () {
             az: az,
             el: el
         });
-        var radius = setting.font_height / 3;
-        if (radius < 1)
-            radius = 1;
-        if (setting.hover)
-            radius = radius * 2;
+        var r_radius = setting.font_height / 3;
+        if (r_radius < 1)
+            r_radius = 1;
+        var radius;
+        if (setting.hover) {
+            radius = r_radius * 2;
+        } else {
+            radius = r_radius;
+        }
         var arc = {
             fillStyle: "black",
             x: xy.x,
@@ -47,7 +51,15 @@ $(function () {
             });
         }
         $(this).drawArc(arc);
-        // TODO draw name
+        var text = {
+            fillStyle: 'black',
+            x: xy.x + r_radius * 2,
+            y: xy.y,
+            text: target.label
+        };
+        var text_size = $(this).measureText(text);
+        text.x += text_size.width / 2;
+        $(this).drawText(text);
     }
     function register_target(target) {
         var success_conn;
@@ -77,6 +89,39 @@ $(function () {
                         draw_target.call(this, az, el, target, setting);
                     },
                     remap: function (write_remap, setting) {
+                        var xy = sky_map_azel({
+                            az: az,
+                            el: el
+                        });
+                        xy.x = Math.round(xy.x);
+                        xy.y = Math.round(xy.y);
+                        var radius = setting.font_height * (2 / 3);
+                        if (radius < 2) {
+                            radius = 2;
+                        } else {
+                            radius = Math.round(radius);
+                        }
+                        for (var x = -radius;x <= radius;x++) {
+                            for (var y = -radius;y < radius;y++) {
+                                if (x * x + y * y <= radius * radius) {
+                                    write_remap(xy.x + x, xy.y + y);
+                                }
+                            }
+                        }
+                        var text = {
+                            x: xy.x + radius,
+                            y: xy.y,
+                            text: target.label
+                        };
+                        var text_size = $(this).measureText(text);
+                        text.y -= text_size.height / 2;
+                        for (var x = 0;x <= text_size.width;x++) {
+                            for (var y = 0;y <= text_size.height;y++) {
+                                write_remap(text.x + x, text.y + y);
+                            }
+                        }
+                    },
+                    click: function () {
                     }
                 });
             });
