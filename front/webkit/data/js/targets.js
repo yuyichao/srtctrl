@@ -5,10 +5,29 @@ $(function () {
     var track = true;
     var TrackObj = SrtObject({
         signals: {
+            'time': 0
         }
     });
     SetMapTime = function (_time) {
-    }
+        var new_interval = SrtComm('guess_interval', _time);
+        if (isFinite(new_interval)) {
+            if (new_interval == time && track == true)
+                return;
+            time = new_interval;
+            track = true;
+            TrackObj.emit('time');
+            return;
+        }
+        var new_interval = SrtComm('guess_interval', _time);
+        if (isFinite(new_interval)) {
+            if (new_interval == time && track == true)
+                return;
+            time = new_interval;
+            track = true;
+            TrackObj.emit('time');
+            return;
+        }
+    };
     /**
      * Initialize the target list
      **/

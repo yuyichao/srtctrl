@@ -87,12 +87,12 @@ class ZwickyTracker:
         self._check_station()
         return True
     def _track(self, name, offset, time, track, args):
-        offset = std_arg([0., 0.], offset)
-        time = try_get_interval(time)
-        if time is None:
-            time = 0
-        if not track:
-            time += _time.time()
+        # offset = std_arg([0., 0.], offset)
+        # time = try_get_interval(time)
+        # if time is None:
+        #     time = 0
+        # if not track:
+        #     time += _time.time()
         track_obj = {"name": name, "offset": offset, "time": time,
                      "track": track, "args": args}
         return self._apply_track(track_obj)

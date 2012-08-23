@@ -102,7 +102,7 @@ class SrtUI:
         try:
             res = self.__handle_calls(type, args)
         except:
-            print_except()
+            # print_except()
             res = None
         self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
     def __handle_calls(self, type, args):
