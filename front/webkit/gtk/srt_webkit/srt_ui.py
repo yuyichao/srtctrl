@@ -96,7 +96,7 @@ class SrtUI:
             return False
         self.__srt_call(**call)
         return True
-    def __srt_call(self, type=None, callback=None, args=None, **kw):
+    def __srt_call(self, type=None, ret_var=None, args=None, **kw):
         if type is None or not isstr(type):
             return
         try:
@@ -104,7 +104,8 @@ class SrtUI:
         except:
             # print_except()
             res = None
-        self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
+        self._view.execute_script("%s = {res: %s};" %
+                                  (ret_var, json.dumps(res)))
     def __handle_calls(self, type, args):
         if type == 'open':
             return self._handle_open(args)

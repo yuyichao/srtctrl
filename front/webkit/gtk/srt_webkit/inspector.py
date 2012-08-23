@@ -36,7 +36,13 @@ class SrtInspector(Gtk.Window):
         inspector.connect("inspect-web-view", self._inspect_web_view_cb)
         inspector.connect("show-window", self._show_window_cb)
         inspector.connect("finished", self._finished_cb)
+        self.connect('destroy', self._destroy_cb)
+        self._inspector = inspector
 
+    def _destroy_cb(self, win):
+        self._inspector.close()
+        self._inspector = None
+        self._view = None
     def _inspect_web_view_cb(self, inspector, web_view):
         return self._view
     def _show_window_cb(self, inspector):

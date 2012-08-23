@@ -151,6 +151,7 @@ var sky_map_azel;
     function remap_all() {
         if (!sky_map)
             return;
+        delete obj_map;
         obj_map = {};
         for (var i in obj_list) {
             remap_point(i);
@@ -161,9 +162,7 @@ var sky_map_azel;
     }
     function remap_point(i) {
         try {
-            obj_list[i].remap.call(sky_map, function (x, y) {
-                write_map(i, x, y);
-            }, {
+            obj_list[i].remap.call(sky_map, obj_list[i].write_map, {
                 font_height: font_height
             });
         } catch (e) {
@@ -199,18 +198,22 @@ var sky_map_azel;
             redraw: null,
             click: null
         }, obj);
+        obj.write_map = function (x, y) {
+            write_map(id, x, y);
+        };
         obj_list.push(obj);
         remap_point(id);
         if (!check_hover())
             redraw_point(id);
     };
+    function do_redraw_sky_map() {
+        redraw_timeout = undefined;
+        remap_all();
+    }
     redraw_sky_map = function () {
         if (redraw_timeout)
             return;
-        redraw_timeout = setTimeout(function () {
-            var redraw_timeout = undefined;
-            remap_all();
-        }, 100);
+        redraw_timeout = setTimeout(do_redraw_sky_map, 100);
     };
     $(function () {
         sky_map = $("#sky-map");

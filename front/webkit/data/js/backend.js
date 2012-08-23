@@ -102,18 +102,16 @@ function SrtObject(opt) {
         var res = null
         cb_count = (cb_count + 1) % 4000000000
         name = '_' + cb_count;
-        SrtCallbacks[name] = function (a) {
-            res = a;
-        }
         alert(JSON.stringify({
             type: type,
             args: args,
-            callback: 'SrtCallbacks.' + name,
+            ret_var: 'SrtCallbacks.' + name,
             raise: Boolean(raise)
         }));
-        // TODO: raise
+        res = $.extend({}, SrtCallbacks[name]);
         delete SrtCallbacks[name];
-        return res;
+        // TODO: raise
+        return res.res;
     }
     SrtOS = function () {
         return SrtCall('os', Array.prototype.slice.call(arguments));
