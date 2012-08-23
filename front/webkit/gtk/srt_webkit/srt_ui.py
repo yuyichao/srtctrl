@@ -89,32 +89,39 @@ class SrtUI:
             inspector.destroy()
     def _script_alert_cb(self, view, frame, msg):
         try:
-            return self.__srt_call(**json.loads(msg))
+            call = json.loads(msg)
+        except:
+            return False
+        if not isinstance(call, dict):
+            return False
+        self.__srt_call(**call)
+        return True
+    def __srt_call(self, type=None, callback=None, args=None, **kw):
+        if type is None or not isstr(type):
+            return
+        try:
+            res = self.__handle_calls(type, args)
         except:
             print_except()
-            return False
-    def __srt_call(self, type=None, callback=None, args=None):
-        res = None
-        if type == None:
-            return False
-        elif type == 'open':
-            res = self._handle_open(args)
-        elif type == 'file':
-            res = self._handle_file(args)
-        elif type == 'quit':
-            Gtk.main_quit()
-        elif type == 'send':
-            res = self._handle_send(args)
-        elif type == 'os':
-            res = self._handle_os(args)
-        elif type == 'name':
-            res = self._handle_name(args)
-        elif type == 'srt':
-            res = self._handle_srt(args)
-        elif type == 'dev':
-            res = self._handle_dev(args)
+            res = None
         self._view.execute_script("%s(%s)" % (callback, json.dumps(res)))
-        return True
+    def __handle_calls(self, type, args):
+        if type == 'open':
+            return self._handle_open(args)
+        elif type == 'file':
+            return self._handle_file(args)
+        elif type == 'quit':
+            return Gtk.main_quit()
+        elif type == 'send':
+            return self._handle_send(args)
+        elif type == 'os':
+            return self._handle_os(args)
+        elif type == 'name':
+            return self._handle_name(args)
+        elif type == 'srt':
+            return self._handle_srt(args)
+        elif type == 'dev':
+            return self._handle_dev(args)
     def _handle_open(self, uri):
         return openuri(uri)
     def _handle_file(self, kw):

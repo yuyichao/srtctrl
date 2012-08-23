@@ -111,10 +111,12 @@ var sky_map_azel;
         }
     }
     function az_to_x(az) {
-        return axis_size.x + (map_width - axis_size.x * 2) * (az / 360);
+        return Math.round(axis_size.x +
+                          (map_width - axis_size.x * 2) * (az / 360));
     }
     function el_to_y(el) {
-        return axis_size.y + (map_height - axis_size.y * 2) * (1 - el / 90);
+        return Math.round(axis_size.y +
+                          (map_height - axis_size.y * 2) * (1 - el / 90));
     }
     function redraw_all() {
         if (!sky_map)

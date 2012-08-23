@@ -1,4 +1,14 @@
+var SetMapTime;
+
 $(function () {
+    var time = 0;
+    var track = true;
+    var TrackObj = SrtObject({
+        signals: {
+        }
+    });
+    SetMapTime = function (_time) {
+    }
     /**
      * Initialize the target list
      **/
