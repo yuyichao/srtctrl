@@ -192,7 +192,7 @@ var sky_map_azel;
         return true;
     }
     add_sky_map = function (obj) {
-        var id = obj_list.length;
+        var id = obj_list.length.toFixed();
         obj = $.extend({
             remap: null,
             redraw: null,
