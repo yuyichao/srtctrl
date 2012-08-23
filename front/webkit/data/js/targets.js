@@ -60,11 +60,7 @@ $(function () {
     /**
      * Functions to draw and map a single target
      **/
-    function draw_target(az, el, target, setting) {
-        var xy = sky_map_azel({
-            az: az,
-            el: el
-        });
+    function draw_target(x, y, target, setting) {
         var r_radius = setting.font_height / 3;
         if (r_radius < 1)
             r_radius = 1;
@@ -76,8 +72,8 @@ $(function () {
         }
         var arc = {
             fillStyle: "black",
-            x: xy.x,
-            y: xy.y,
+            x: x,
+            y: y,
             radius: radius
         };
         if (setting.hover) {
@@ -90,8 +86,8 @@ $(function () {
         $(this).drawArc(arc);
         var text = {
             fillStyle: 'black',
-            x: xy.x + r_radius * 2,
-            y: xy.y,
+            x: x + r_radius * 2,
+            y: y,
             text: target.label
         };
         var text_size = $(this).measureText(text);
@@ -105,36 +101,30 @@ $(function () {
         }
         $(this).drawText(text);
     }
-    function map_target(az, el, target, write_remap, setting) {
-        var xy = sky_map_azel({
-            az: az,
-            el: el
-        });
-        xy.x = Math.round(xy.x);
-        xy.y = Math.round(xy.y);
+    function map_target(x, y, target, write_remap, setting) {
         var radius = setting.font_height * (2 / 3);
         if (radius < 2) {
             radius = 2;
         } else {
             radius = Math.round(radius);
         }
-        for (var x = -radius;x <= radius;x++) {
-            for (var y = -radius;y < radius;y++) {
-                if (x * x + y * y <= radius * radius) {
-                    write_remap(xy.x + x, xy.y + y);
+        for (var dx = -radius;dx <= radius;dx++) {
+            for (var dy = -radius;dy < radius;dy++) {
+                if (dx * dx + dy * dy <= radius * radius) {
+                    write_remap(x + dx, y + dy);
                 }
             }
         }
         var text = {
-            x: xy.x + radius,
-            y: xy.y,
+            x: x + radius,
+            y: y,
             text: target.label
         };
         var text_size = $(this).measureText(text);
         text.y -= text_size.height / 2;
-        for (var x = 0;x <= text_size.width;x++) {
-            for (var y = 0;y <= text_size.height;y++) {
-                write_remap(text.x + x, text.y + y);
+        for (var dx = 0;dx <= text_size.width;dx++) {
+            for (var dy = 0;dy <= text_size.height;dy++) {
+                write_remap(text.x + dx, text.y + dy);
             }
         }
     }
@@ -143,6 +133,7 @@ $(function () {
     function register_target(target) {
         var az = -100;
         var el = -100;
+        var xy = {};
         SrtSend.alarm('track', 'target_track_' + target.label, $.extend({
             station: station
         }, target.args))
@@ -152,14 +143,27 @@ $(function () {
                     return;
                 az = alarm.az;
                 el = alarm.el;
+                var new_xy = sky_map_azel(alarm);
+                if (new_xy.x - xy.x <= 1 && new_xy.y - xy.y <= 1) {
+                    return;
+                }
+                xy = new_xy;
                 redraw_sky_map();
             });
         add_sky_map({
             redraw: function (setting) {
-                draw_target.call(this, az, el, target, setting);
+                xy = sky_map_azel({
+                    az: az,
+                    el: el
+                });
+                draw_target.call(this, xy.x, xy.y, target, setting);
             },
             remap: function (write_remap, setting) {
-                map_target.call(this, az, el, target, write_remap, setting);
+                xy = sky_map_azel({
+                    az: az,
+                    el: el
+                });
+                map_target.call(this, xy.x, xy.y, target, write_remap, setting);
             },
             click: function () {
                 SrtSend.cmd('move', [], target.args);

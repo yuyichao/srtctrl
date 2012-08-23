@@ -32,21 +32,24 @@ class SrtInspector(Gtk.Window):
         self.set_default_size(500, 400)
         self.set_title("Srt Inspector")
 
+        self._inspector = inspector
         inspector.set_property("javascript-profiling-enabled", True)
         inspector.connect("inspect-web-view", self._inspect_web_view_cb)
         inspector.connect("show-window", self._show_window_cb)
+        inspector.connect("close-window", self._close_window_cb)
         inspector.connect("finished", self._finished_cb)
-        self.connect('destroy', self._destroy_cb)
-        self._inspector = inspector
+        self.connect('delete-event', self._delete_cb)
 
-    def _destroy_cb(self, win):
-        self._inspector.close()
-        self._inspector = None
-        self._view = None
+    def _delete_cb(self, win, event):
+        self.hide()
+        return True
     def _inspect_web_view_cb(self, inspector, web_view):
         return self._view
     def _show_window_cb(self, inspector):
         self.present()
         return True
+    def _close_window_cb(self, inspector):
+        self.hide()
+        return True
     def _finished_cb(self, inspector):
-        self.destroy()
+        self.hide()

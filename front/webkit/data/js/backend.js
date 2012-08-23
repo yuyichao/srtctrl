@@ -1,5 +1,5 @@
 var SrtCallbacks = {}
-var SrtGotObj;
+var SrtGotPkgs;
 var SrtCall;
 var SrtSend;
 var SrtOS;
@@ -183,7 +183,15 @@ function SrtObject(opt) {
             });
         }
     };
-    SrtGotObj = function (pkg) {
+    SrtGotPkgs = function (pkgs) {
+        for (var i in pkgs) {
+            try {
+                SrtGotObj(pkgs[i]);
+            } catch (e) {
+            }
+        }
+    };
+    function SrtGotObj(pkg) {
         switch (pkg.type) {
         case 'ping':
             _send({

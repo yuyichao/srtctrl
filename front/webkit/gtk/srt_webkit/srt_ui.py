@@ -41,6 +41,8 @@ class SrtUI:
         self._conn.connect('disconn', self._disconn_cb)
         GLib.timeout_add_seconds(10, self._pong_back_cb)
         self.__init_conn__()
+        self._pkg_timeout = 0
+        self._pkg_queue = []
     def _pong_back_cb(self):
         if not self._conn.send_buff_is_empty():
             self._conn.send({"type": "pong"})
@@ -63,8 +65,16 @@ class SrtUI:
                 pass
             if not self._name:
                 pkg = {'type': 'quit'}
-        self._view.execute_script('try{SrtGotObj(%s)}catch(e){}' %
-                                  json.dumps(pkg))
+        if not self._pkg_timeout:
+            self._pkg_timeout = GLib.timeout_add(50, self._push_pkgs_cb)
+        self._pkg_queue.append(pkg)
+    def _push_pkgs_cb(self):
+        self._pkg_timeout = 0
+        pkgs = self._pkg_queue
+        self._pkg_queue = []
+        self._view.execute_script('try{SrtGotPkgs(%s)}catch(e){}' %
+                                  json.dumps(pkgs))
+        return False
     def _load_finish_cb(self, view, frame):
         pass
     def _win_close_cb(self, win):
