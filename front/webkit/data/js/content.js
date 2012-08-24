@@ -12,44 +12,66 @@ $(function () {
     props_region.resize(props_region_size);
     props_slider.resize(props_region_size);
     props_region_size();
-    props_slider.click(function () {
+    function hide_status() {
+        SrtState('content_status_hidden', true);
+        props_hidden = true;
+        real_props_region.hide();
+        props_region.animate({width: "2%"}, {
+            speed: 500,
+            complete: function () {
+                props_slider.css({
+                    "float": "right"
+                }).removeClass(
+                    "v-slider-right"
+                ).addClass(
+                    "v-slider-left"
+                );
+            }
+        });
+        $("#plot-region").animate({width: "97%"}, {
+            speed: 500
+        });
+    }
+    function show_status() {
+        SrtState('content_status_hidden', false);
+        $("#plot-region").animate({width: "69%"}, {
+            speed: 500
+        });
+        props_slider.css({
+            "float": "left"
+        });
+        props_region.animate({width: "29%"}, {
+            speed: 500,
+            complete: function () {
+                props_hidden = false;
+                real_props_region.show();
+                props_slider.removeClass(
+                    "v-slider-left"
+                ).addClass(
+                    "v-slider-right"
+                );
+            }
+        });
+    }
+    function toggle_status() {
         if (props_hidden) {
-            $("#plot-region").animate({width: "69%"}, {
-                speed: 500
-            });
-            props_slider.css({
-                "float": "left"
-            });
-            props_region.animate({width: "29%"}, {
-                speed: 500,
-                complete: function () {
-                    props_hidden = false;
-                    real_props_region.show();
-                    props_slider.removeClass(
-                        "v-slider-left"
-                    ).addClass(
-                        "v-slider-right"
-                    );
-                }
-            });
+            show_status();
         } else {
-            props_hidden = true;
-            real_props_region.hide();
-            props_region.animate({width: "2%"}, {
-                speed: 500,
-                complete: function () {
-                    props_slider.css({
-                        "float": "right"
-                    }).removeClass(
-                        "v-slider-right"
-                    ).addClass(
-                        "v-slider-left"
-                    );
-                }
-            });
-            $("#plot-region").animate({width: "97%"}, {
-                speed: 500
-            });
+            hide_status();
         }
-    });
+    }
+    props_slider.click(toggle_status);
+    if (SrtState('content_status_hidden')) {
+        props_hidden = true;
+        real_props_region.hide();
+        props_region.css({width: "2%"});
+        props_slider.css({
+            "float": "right"
+        }).removeClass(
+            "v-slider-right"
+        ).addClass(
+            "v-slider-left"
+        );
+        $("#plot-region").css({width: "97%"});
+    }
 });
