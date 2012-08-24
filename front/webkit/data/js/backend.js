@@ -5,6 +5,7 @@ var SrtSend;
 var SrtOS;
 var SrtComm;
 var SrtIFace;
+var SrtState;
 
 function SrtObject(opt) {
     var setting = $.extend({
@@ -118,6 +119,9 @@ function SrtObject(opt) {
     }
     SrtComm = function () {
         return SrtCall('srt', Array.prototype.slice.call(arguments));
+    }
+    SrtState = function () {
+        return SrtCall('state', Array.prototype.slice.call(arguments));
     }
     open = function (uri) {
         return SrtCall('open', uri);

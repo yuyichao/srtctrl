@@ -43,6 +43,7 @@ class SrtUI:
         self.__init_conn__()
         self._pkg_timeout = 0
         self._pkg_queue = []
+        self._srt_state = {}
     def _pong_back_cb(self):
         if not self._conn.send_buff_is_empty():
             self._conn.send({"type": "pong"})
@@ -133,6 +134,8 @@ class SrtUI:
             return self._handle_srt(args)
         elif type == 'dev':
             return self._handle_dev(args)
+        elif type == 'state':
+            return self._handle_state(args)
     def _handle_open(self, uri):
         return openuri(uri)
     def _handle_file(self, kw):
@@ -154,3 +157,15 @@ class SrtUI:
         return getattr(srt_comm, name)(*args)
     def _handle_dev(self, args):
         return self.show_inspector()
+    def _handle_state(self, args):
+        key = args[0]
+        try:
+            value = args[1]
+            self._srt_state[key] = value
+            return
+        except:
+            pass
+        try:
+            return self._srt_state[key]
+        except:
+            pass

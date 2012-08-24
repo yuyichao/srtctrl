@@ -269,7 +269,14 @@
             }
             dialog = ui_content.popup(dialog_button, {
                 background: "lightCyan",
-                title: setting.title
+                title: setting.title,
+                open: function () {
+                    for (var e_i in ui_entries) {
+                        ui_entries[e_i].val(ui_entries[e_i].default);
+                    }
+                    if (has_advanced)
+                        toggle_advance(false);
+                }
             });
             return dialog;
         }
