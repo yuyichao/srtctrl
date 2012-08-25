@@ -95,7 +95,7 @@ class SrtHelper(GObject.Object):
             return
         self._wait_queue[:] = self._wait_queue[:index + 1]
         if "res" in self._wait_queue[-1]:
-            return self._wait_queue[-1]["res"]
+            return self._wait_queue.pop()["res"]
         return
     def wait_with_cb(self, cb, check_only=False):
         if not hasattr(cb, '__call__'):
