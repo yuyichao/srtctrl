@@ -96,7 +96,7 @@ def guess_time(tstr):
             t = guess_interval(res.group("tstr"))
             day = datetime.date.today()
             begin_of_day = _time.mktime(day.timetuple())
-            now = _time.mktime()
+            now = _time.time()
             t += begin_of_day
             if t < now - 3600:
                 t += 86400

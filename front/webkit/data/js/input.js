@@ -155,9 +155,11 @@
             var ui_button_block = $('<div></div>');
             var ui_value_block = $('<div></div>');
             var setting = $.extend({}, {
-                title: "",
-                id: (++id_count).toFixed()
+                title: ""
             }, option);
+            if (!'id' in setting) {
+                setting.id = (++id_count).toFixed();
+            }
             ui_button_block.addClass("srt-input-buttons");
             ui_button_block.addClass("ui-helper-clearfix");
             ui_value_block.addClass("srt-input-values");
@@ -252,11 +254,11 @@
                             res[entry.name] = entry.val();
                         }
                         res = check_form(res);
-                        if (button.callback) {
-                            button.callback.call(this, res);
-                        }
                         if (!("autoclose" in button) || button.autoclose) {
                             dialog.dialog("close");
+                        }
+                        if (button.callback) {
+                            button.callback.call(this, res);
                         }
                     })
                     .css({float: "right"});

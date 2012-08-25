@@ -185,6 +185,15 @@ function SrtObject(opt) {
                 name: name,
                 notify: true
             });
+        },
+        set_config: function (field, name, value) {
+            _send({
+                type: 'config',
+                field: field,
+                name: name,
+                set_value: true,
+                value: value
+            });
         }
     };
     SrtGotPkgs = function (pkgs) {
