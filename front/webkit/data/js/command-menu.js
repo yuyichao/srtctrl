@@ -179,4 +179,12 @@ $(function () {
         SrtSend.cmd('reset', [], {});
         return false;
     });
+    $('#take-data-button').click(function () {
+        SrtCall('take-data', true);
+        return false;
+    });
+    $('#stop-button').click(function () {
+        SrtCall('take-data', false);
+        return false;
+    });
 });

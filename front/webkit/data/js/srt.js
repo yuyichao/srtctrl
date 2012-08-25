@@ -4,65 +4,63 @@ $(function () {
     var header = $("#header");
     var content = $("#content");
     var footer = $("#footer");
-    $("#header").append(
-        $.toolbar([{
-            id: 'file-menu',
-            label: "File",
-            submenu: [{
-                id: 'save-button',
-                label: "Set Data File"
-            }, {
-                id: 'run-script-button',
-                label: "Run Script"
-            }, {
-                id: 'refresh-button',
-                label: "Refresh"
-            }, {
-                id: 'quit-button',
-                label: "Quit"
-            }]
+    var toolbar = $.toolbar([{
+        label: "File",
+        submenu: [{
+            id: 'save-button',
+            label: "Set Data File"
         }, {
-            id: 'commands-menu',
-            label: "Commands",
-            submenu: [{
-                id: 'move-button',
-                label: "Move"
-            }, {
-                id: 'set-freq-button',
-                label: "Set Frequency"
-            }, {
-                id: 'take-data-button',
-                label: "Start Taking Data"
-            }, {
-                id: 'stop-button',
-                label: "Stop Taking Data"
-            }, {
-                id: 'calib-button',
-                label: "Calibrate"
-            }, {
-                id: 'npoint-button',
-                label: "N-Point Scan"
-            }, {
-                id: 'offset-button',
-                label: "Set Offset"
-            }, {
-                id: 'stow-button',
-                label: "Stow"
-            }]
+            id: 'run-script-button',
+            label: "Run Script"
         }, {
-            id: 'help-menu',
-            label: "Help",
-            submenu: [{
-                id: 'doc-button',
-                label: "Document"
-            }, {
-                id: 'feedback-button',
-                label: "Feedback"
-            }, {
+            id: 'refresh-button',
+            label: "Refresh"
+        }, {
+            id: 'quit-button',
+            label: "Quit"
+        }]
+    }, {
+        label: "Commands",
+        submenu: [{
+            id: 'move-button',
+            label: "Move"
+        }, {
+            id: 'set-freq-button',
+            label: "Set Frequency"
+        }, {
+            id: 'take-data-button',
+            label: "Start Taking Data"
+        }, {
+            id: 'stop-button',
+            label: "Stop Taking Data"
+        }, {
+            id: 'calib-button',
+            label: "Calibrate"
+        }, {
+            id: 'npoint-button',
+            label: "N-Point Scan"
+        }, {
+            id: 'offset-button',
+            label: "Set Offset"
+        }, {
+            id: 'stow-button',
+            label: "Stow"
+        }]
+    }, {
+        label: "Help",
+        submenu: [{
+            id: 'doc-button',
+            label: "Document"
+        }, {
+            id: 'feedback-button',
+            label: "Feedback"
+        }, {
                 id: 'about-button',
-                label: "About"
-            }]
-        }]).addClass('ui-widget-header')
+            label: "About"
+        }]
+    }]);
+    $("#header").append(
+        toolbar.addClass('ui-widget-header')
             .addClass('ui-corner-all')
             .width("100%"));
     function srt_cal_size() {

@@ -95,7 +95,7 @@ class SrtHelper(GObject.Object):
             return
         self._wait_queue[:] = self._wait_queue[:index + 1]
         if "res" in self._wait_queue[-1]:
-            return self._wait_queue[-1]["res"]
+            return self._wait_queue.pop()["res"]
         return
     def wait_with_cb(self, cb, check_only=False):
         if not hasattr(cb, '__call__'):
@@ -284,7 +284,7 @@ class SrtHelper(GObject.Object):
         return pkg["obj"]
     def recv_slave(self):
         pkg = self.wait_types("slave")
-        self.send_got_cmd(pkg["sid"])
+        self.send_got_cmd(pkg["sid"], pkg["name"])
         return pkg
     def send_chk_alarm(self, name, nid, args):
         if not isidentifier(name):
@@ -358,8 +358,8 @@ class SrtHelper(GObject.Object):
     def send_invalid(self, sid):
         self.send_slave(sid, {"type": "error", "errno": SRTERR_UNKNOWN_CMD,
                               "msg": "invalid request"})
-    def send_got_cmd(self, sid):
-        self._send({"type": "got-cmd", "sid": sid})
+    def send_got_cmd(self, sid, name):
+        self._send({"type": "got-cmd", "sid": sid, "name": name})
     def send_ready(self):
         self._send({"type": "ready"})
     def send_prop(self, sid, name, value):

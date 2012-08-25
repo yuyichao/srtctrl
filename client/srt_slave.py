@@ -311,7 +311,7 @@ def new_iface(conn, sync=True, as_default=True):
             return
         _wait_queue[:] = _wait_queue[:index + 1]
         if "res" in _wait_queue[-1]:
-            return _wait_queue[-1]["res"]
+            return _wait_queue.pop()["res"]
         return
     def wait_with_cb(cb, check_only=False):
         if not hasattr(cb, '__call__'):

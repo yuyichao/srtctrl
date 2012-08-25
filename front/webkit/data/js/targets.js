@@ -3,11 +3,6 @@ var SetMapTime;
 $(function () {
     var time = 0;
     var track = true;
-    var TrackObj = SrtObject({
-        signals: {
-            'time': 0
-        }
-    });
     SetMapTime = function (_time) {
         var new_interval = SrtComm('guess_interval', _time);
         if (isFinite(new_interval)) {
@@ -15,16 +10,20 @@ $(function () {
                 return;
             time = new_interval;
             track = true;
-            TrackObj.emit('time');
+            for (var i in targets_list) {
+                send_track_alarm(targets_list[i]);
+            }
             return;
         }
-        var new_interval = SrtComm('guess_interval', _time);
-        if (isFinite(new_interval)) {
-            if (new_interval == time && track == true)
+        var new_time = SrtComm('guess_time', _time);
+        if (isFinite(new_time)) {
+            if (new_time == time && track == false)
                 return;
-            time = new_interval;
-            track = true;
-            TrackObj.emit('time');
+            time = new_time;
+            track = false;
+            for (var i in targets_list) {
+                send_track_alarm(targets_list[i]);
+            }
             return;
         }
     };
@@ -132,7 +131,9 @@ $(function () {
     var station;
     function send_track_alarm(target) {
         SrtSend.alarm('track', 'target_track_' + target.label, $.extend({
-            station: station
+            station: station,
+            time: time,
+            track: track
         }, target.args))
     }
     function register_target(target) {
@@ -169,7 +170,10 @@ $(function () {
                 map_target.call(this, xy.x, xy.y, target, write_remap, setting);
             },
             click: function () {
-                SrtSend.cmd('move', [], target.args);
+                SrtSend.cmd('move', [], $.extend({
+                    time: time,
+                    track: track
+                }, target.args));
             }
         });
     }
