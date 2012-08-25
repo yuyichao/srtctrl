@@ -16,8 +16,11 @@ $(function () {
             id: 'refresh-button',
             label: "Refresh"
         }, {
+            id: 'stow-quit-button',
+            label: "Stow and Quit"
+        }, {
             id: 'quit-button',
-            label: "Quit"
+            label: "Force Quit"
         }]
     }, {
         label: "Commands",

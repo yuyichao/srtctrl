@@ -24,6 +24,10 @@ $(function () {
         SrtSend.quit();
         return true;
     });
+    $('#stow-quit-button').click(function (ev) {
+        SrtSend.cmd('quit', [], {});
+        return true;
+    });
     $('#refresh-button').click(function (ev) {
         SrtCall('refresh');
         return true;
