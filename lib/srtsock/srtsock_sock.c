@@ -507,9 +507,13 @@ srtsock_sock_class_init(SrtSockSockClass *klass, gpointer data)
                          G_MININT, G_MAXINT, -1,
                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
     /**
+     * It should be (?) a transfer none here (since we are always holding the
+     * refrence) but seems that signal parameters are handled differently...
+     **/
+    /**
      * SrtSockSock::accept:
      * @sock: (transfer none) (allow-none):
-     * @conn: (transfer none) (allow-none):
+     * @conn: (transfer full) (allow-none):
      *
      * Returns:
      **/
@@ -522,7 +526,7 @@ srtsock_sock_class_init(SrtSockSockClass *klass, gpointer data)
     /**
      * SrtSockSock::receive:
      * @sock: (transfer none) (allow-none):
-     * @data: (transfer none) (allow-none):
+     * @data: (transfer full) (allow-none):
      *
      * Returns:
      **/
