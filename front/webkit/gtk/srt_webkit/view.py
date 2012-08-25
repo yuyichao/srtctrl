@@ -31,14 +31,11 @@ class SrtView(WebKit.WebView):
         settings.set_property('enable-spell-checking', False)
         settings.set_property('enable-caret-browsing', False)
         self.set_maintains_back_forward_list(False)
-        self.connect("new-window-policy-decision-requested",
-                     self._new_window_requested)
-        self.connect("console-message", self._console_log_cb)
-    def _new_window_requested(self, view, frame, request, action, decision):
+    def do_new_window_requested(self, frame, request, action, decision):
         decision.ignore()
         uri = request.get_uri()
         openuri(uri)
         return True
-    def _console_log_cb(self, view, msg, line, src):
+    def do_console_message(self, msg, line, src):
         printg("%s @#%d:\n%s" % (src, line, msg))
         return True

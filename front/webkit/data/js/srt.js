@@ -6,6 +6,7 @@ $(function () {
     var footer = $("#footer");
     $("#header").append(
         $.toolbar([{
+            id: 'file-menu',
             label: "File",
             submenu: [{
                 id: 'save-button',
@@ -21,6 +22,7 @@ $(function () {
                 label: "Quit"
             }]
         }, {
+            id: 'commands-menu',
             label: "Commands",
             submenu: [{
                 id: 'move-button',
@@ -48,6 +50,7 @@ $(function () {
                 label: "Stow"
             }]
         }, {
+            id: 'help-menu',
             label: "Help",
             submenu: [{
                 id: 'doc-button',
@@ -81,7 +84,7 @@ $(function () {
     body.resize(resize_wrapper);
     body.keydown(function (ev) {
         if (ev.keyCode == 116) {
-            window.top.location.reload();
+            SrtCall('refresh');
             return false;
         }
         return true;

@@ -183,7 +183,7 @@ function SrtObject(opt) {
                 type: 'config',
                 field: field,
                 name: name,
-                notify: false
+                notify: true
             });
         }
     };

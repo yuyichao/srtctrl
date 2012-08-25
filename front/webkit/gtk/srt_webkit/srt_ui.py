@@ -27,25 +27,36 @@ import os
 
 class SrtUI:
     def __init__(self, uri, conn):
+        self._ref = 0
+        self._refresh_wait_to = 0
+        self._new_view = None
+        self._new_alert = 0
+        self._ready = False
         self._view = SrtView()
         self._view.set_hexpand(True)
         self._view.set_vexpand(True)
-        self._grid = Gtk.Grid()
+        self._grid = Gtk.Table()
         self._grid.set_hexpand(True)
         self._grid.set_vexpand(True)
-        self._grid.attach(self._view, 0, 0, 1, 1)
+        self._grid.attach(self._view, 0, 1, 0, 1,
+                          Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND |
+                          Gtk.AttachOptions.SHRINK, Gtk.AttachOptions.FILL |
+                          Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.SHRINK,
+                          0, 0)
         self._window = Gtk.Window()
         self._window.set_default_size(500, 400)
         self._window.add(self._grid)
         self._window.connect("destroy", self._win_close_cb)
-        self._view.connect("load-finished", self._load_finish_cb)
-        self._view.connect("script-alert", self._script_alert_cb)
+        self._view_alert = self._view.connect("script-alert",
+                                              self._script_alert_cb)
+        self._uri = uri
         self._view.load_uri(uri)
         self._conn = conn
         self._name = None
         # self._inspector = None
         self._conn.connect('disconn', self._disconn_cb)
         GLib.timeout_add_seconds(10, self._pong_back_cb)
+        GLib.timeout_add_seconds(600, self._do_refresh)
         self.__init_conn__()
         self._pkg_timeout = 0
         self._pkg_queue = []
@@ -76,14 +87,14 @@ class SrtUI:
             self._pkg_timeout = GLib.timeout_add(50, self._push_pkgs_cb)
         self._pkg_queue.append(pkg)
     def _push_pkgs_cb(self):
+        if not self._ready:
+            return True
         self._pkg_timeout = 0
         pkgs = self._pkg_queue
         self._pkg_queue = []
         self._view.execute_script('try{SrtGotPkgs(%s)}catch(e){}' %
                                   json.dumps(pkgs))
         return False
-    def _load_finish_cb(self, view, frame):
-        pass
     def _win_close_cb(self, win):
         Gtk.main_quit()
     def show_all(self):
@@ -111,61 +122,111 @@ class SrtUI:
             return False
         if not isinstance(call, dict):
             return False
-        self.__srt_call(**call)
+        self.__srt_call(view, **call)
         return True
-    def __srt_call(self, type=None, ret_var=None, args=None, **kw):
+    def __srt_call(self, view, type=None, ret_var=None, args=None, **kw):
         if type is None or not isstr(type):
             return
         try:
-            res = self.__handle_calls(type, args)
+            res = self.__handle_calls(view, type, args)
+            view.execute_script("%s = {res: %s};" %
+                                (ret_var, json.dumps(res)))
         except:
             # print_except()
-            res = None
-        self._view.execute_script("%s = {res: %s};" %
-                                  (ret_var, json.dumps(res)))
-    def __handle_calls(self, type, args):
+            pass
+    def __handle_calls(self, view, type, args):
         if type == 'open':
-            return self._handle_open(args)
+            return self._handle_open(view, args)
         elif type == 'file':
-            return self._handle_file(args)
+            return self._handle_file(view, args)
         elif type == 'quit':
             return Gtk.main_quit()
         elif type == 'send':
-            return self._handle_send(args)
+            return self._handle_send(view, args)
         elif type == 'os':
-            return self._handle_os(args)
+            return self._handle_os(view, args)
         elif type == 'name':
-            return self._handle_name(args)
+            return self._handle_name(view, args)
         elif type == 'srt':
-            return self._handle_srt(args)
+            return self._handle_srt(view, args)
         elif type == 'dev':
-            return self._handle_dev(args)
+            return self._handle_dev(view, args)
         elif type == 'state':
-            return self._handle_state(args)
-    def _handle_open(self, uri):
+            return self._handle_state(view, args)
+        elif type == 'refresh':
+            return self._handle_refresh(view, args)
+        elif type == 'ready':
+            return self._handle_ready(view, args)
+        elif type == 'ref':
+            return self._handle_ref(view, args)
+    def _handle_open(self, view, uri):
         return openuri(uri)
-    def _handle_file(self, kw):
+    def _handle_file(self, view, kw):
         return file_dialog(**kw)
-    def _handle_send(self, pkg):
+    def _handle_send(self, view, pkg):
         self._conn.send(pkg)
-    def _handle_os(self, args):
+    def _handle_os(self, view, args):
         name = args[0]
         args = args[1:]
         return getattr(os, name)(*args)
-    def _handle_name(self, args):
+    def _handle_name(self, view, args):
         c = GLib.main_context_default()
         while not self._name:
             c.iteration(True)
         return self._name
-    def _handle_srt(self, args):
+    def _handle_srt(self, view, args):
         name = args[0]
         args = args[1:]
         return getattr(srt_comm, name)(*args)
-    def _handle_refresh(self, args):
-        return
+    def _handle_ref(self, view, args):
+        self._ref += args
+    def _handle_ready(self, view, args):
+        self._ready = True
+        if self._new_view is None:
+            return
+        self._grid.attach(self._new_view, 0, 1, 0, 1,
+                          Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND |
+                          Gtk.AttachOptions.SHRINK, Gtk.AttachOptions.FILL |
+                          Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.SHRINK,
+                          0, 0)
+        self._grid.remove(self._view)
+        self._view.disconnect(self._view_alert)
+        self._view = self._new_view
+        self._view_alert = self._new_alert
+        self._new_view = None
+        self._new_alert = 0
+        self._ref = 0
+    def _handle_refresh(self, view, args):
+        if not self._new_view is None:
+            return
+        self._do_refresh()
+        raise Exception
+    def _refresh_to_cb(self):
+        if self._ref > 0:
+            return True
+        self._refresh_wait_to = 0
+        self._real_refresh()
+        return False
+    def _do_refresh(self):
+        if self._ref > 0:
+            if self._refresh_wait_to:
+                return
+            self._refresh_wait_to = GLib.timeout_add_seconds(
+                1, self._refresh_to_cb)
+            return
+        self._real_refresh()
+    def _real_refresh(self):
+        new_view = SrtView()
+        new_view.show()
+        new_view.set_hexpand(True)
+        new_view.set_vexpand(True)
+        self._new_view = new_view
+        self._new_alert = new_view.connect("script-alert",
+                                           self._script_alert_cb)
+        new_view.load_uri(self._uri)
     # def _handle_dev(self, args):
     #     return self.show_inspector()
-    def _handle_state(self, args):
+    def _handle_state(self, view, args):
         key = args[0]
         try:
             value = args[1]

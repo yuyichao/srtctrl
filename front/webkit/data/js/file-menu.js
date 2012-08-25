@@ -25,7 +25,7 @@ $(function () {
         return true;
     });
     $('#refresh-button').click(function (ev) {
-        window.top.location.reload();
+        SrtCall('refresh');
         return true;
     });
 });
