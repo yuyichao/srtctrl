@@ -22,21 +22,7 @@ from srt_slave.default import *
 import time as _time
 
 printbg("TEST SLAVE")
-wait_main(10)
-try:
-    printb("RES:", cmd.move("galacti", offset=[30, 40]))
-except InvalidRequest:
-    print_except()
-printbg("QUERY:", query.cmds)
-printb("RES:", cmd.move("galactic", offset=[30, 40]))
-printb("config", config.zwicky.station)
-set_config("zwicky", "station", [10, 10, 10])
-wait_main(2)
-printb("RES:", cmd.set_freq(1420.8, 4))
-printb("RES:", cmd.calib(1))
-printb("RES:", cmd.offset(10, -10))
-printb("RES:", cmd.radio(1))
-printb("RES:", cmd.move(args=[40, 30]))
-printb("RES:", cmd.npoint(count=2))
-printb("RES:", cmd.reset())
+for i in range(500):
+    printg(i)
+    cmd.npoint(10, 10, angle=45)
 printbg("TEST QUIT")

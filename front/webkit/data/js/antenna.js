@@ -1,11 +1,12 @@
 $(function () {
-    var az = -100;
-    var el = -100;
+    var azel = SrtState('heading_azel');
+    if (!azel)
+        azel = [-100, -100]
     try {
         SrtIFace.connect(
             "signal::heading", function (name, value, props) {
-                az = value[0];
-                el = value[1];
+                azel = value;
+                SrtState('heading_azel', azel);
                 redraw_sky_map();
             });
     } catch (e) {
@@ -13,8 +14,8 @@ $(function () {
     add_sky_map({
         redraw: function (setting) {
             var xy = sky_map_azel({
-                az: az,
-                el: el
+                az: azel[0],
+                el: azel[1]
             });
             $(this).drawLine({
                 strokeStyle: "#0f0",
@@ -37,13 +38,14 @@ $(function () {
 });
 
 $(function () {
-    var az = 0;
-    var el = 0;
+    var azel = SrtState('move_azel');
+    if (!azel)
+        azel = [-100, -100]
     try {
         SrtIFace.connect(
             "signal::move", function (name, value, props) {
-                az = value[0];
-                el = value[1];
+                azel = value;
+                SrtState('move_azel', azel);
                 redraw_sky_map();
             });
     } catch (e) {
@@ -51,8 +53,8 @@ $(function () {
     add_sky_map({
         redraw: function (setting) {
             var xy = sky_map_azel({
-                az: az,
-                el: el
+                az: azel[0],
+                el: azel[1]
             });
             $(this).drawLine({
                 strokeStyle: "#00f",

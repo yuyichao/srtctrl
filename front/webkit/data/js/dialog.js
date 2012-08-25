@@ -28,9 +28,13 @@
                 show: "blind",
                 hide: "highlight",
                 open: function () {
+                    SrtCall('ref', 1);
                     close_except(id);
                     if (setting.open)
                         setting.open();
+                },
+                close: function () {
+                    SrtCall('ref', -1);
                 }
             }).parent().css({
                 position: "absolute",

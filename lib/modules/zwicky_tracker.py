@@ -32,6 +32,7 @@ class ZwickyTracker:
         self.reset()
     def _config_cb(self, zwicky, field, name, value):
         if field == "zwicky" and name == "station":
+            self._station_changed = True
             self._check_station()
             return
     def _check_station(self):
@@ -39,6 +40,7 @@ class ZwickyTracker:
             return
         if self._waiting:
             return
+        self._station_changed = False
         if self._track_obj is None:
             return
         track_obj = self.get_track()

@@ -3,6 +3,7 @@ var redraw_sky_map;
 var sky_map_azel;
 
 (function () {
+    var redraw_count = 0;
     var hover = undefined;
     var obj_list = [];
     var obj_map = {};
@@ -125,6 +126,8 @@ var sky_map_azel;
             clearTimeout(redraw_timeout);
             redraw_timeout = undefined;
         }
+        if (redraw_count++ >= 200)
+            SrtCall('refresh');
         sky_map.clearCanvas();
         redraw_axis();
         for (var i in obj_list) {

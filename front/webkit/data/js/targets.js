@@ -130,13 +130,16 @@ $(function () {
     }
 
     var station;
+    function send_track_alarm(target) {
+        SrtSend.alarm('track', 'target_track_' + target.label, $.extend({
+            station: station
+        }, target.args))
+    }
     function register_target(target) {
         var az = -100;
         var el = -100;
         var xy = {};
-        SrtSend.alarm('track', 'target_track_' + target.label, $.extend({
-            station: station
-        }, target.args))
+        send_track_alarm(target);
         SrtIFace.connect(
             "alarm::track", function (name, nid, alarm) {
                 if (nid != 'target_track_' + target.label)
@@ -176,14 +179,20 @@ $(function () {
          * (or exit if it cannot get one)
          **/
         var name = SrtIFace.get_name();
-        var station_conn = SrtIFace.connect(
+        SrtIFace.connect(
             "config", function (field, key, value) {
                 if (field != name || key != 'station')
                     return;
-                station = value;
-                SrtIFace.disconnect(station_conn);
-                for (var i in targets_list) {
-                    register_target(targets_list[i]);
+                if (!station) {
+                    station = value;
+                    for (var i in targets_list) {
+                        register_target(targets_list[i]);
+                    }
+                } else {
+                    station = value;
+                    for (var i in targets_list) {
+                        send_track_alarm(targets_list[i]);
+                    }
                 }
             });
         SrtSend.config(name, 'station');

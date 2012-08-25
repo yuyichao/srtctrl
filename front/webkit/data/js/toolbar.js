@@ -46,11 +46,17 @@
         if (event.type == 'mouseleave') {
             ui_entry.close_timeout = setTimeout(function () {
                 ui_entry.open = false;
+                if (ui_entry.id) {
+                    SrtState('toolbar_entry_' + ui_entry.id, false);
+                }
                 ui_entry.submenu.fadeOut(100);
             }, 100);
         } else {
             if (ui_entry.open)
                 return false;
+            if (ui_entry.id) {
+                SrtState('toolbar_entry_' + ui_entry.id, true);
+            }
             ui_entry.open = true;
             offset = ui_entry.button.offset();
             show_menu.call(ui_entry.submenu, {
@@ -70,6 +76,7 @@
                     button: $('<button></button>').text(entry.label).attr({
                         id: entry.id
                     }),
+                    id: entry.id
                 };
                 if ('submenu' in entry) {
                     ui_entry.submenu = $.menu(entry.submenu);
@@ -92,6 +99,9 @@
                         if (ui_entry.close_timeout) {
                             clearTimeout(ui_entry.close_timeout);
                             ui_entry.close_timeout = null;
+                        }
+                        if (ui_entry.id) {
+                            SrtState('toolbar_entry_' + ui_entry.id, false);
                         }
                         ui_entry.open = false;
                         ui_entry.submenu.fadeOut(100);
