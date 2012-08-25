@@ -56,9 +56,6 @@ $(function () {
                 id: 'feedback-button',
                 label: "Feedback"
             }, {
-                id: 'dev-tool-button',
-                label: "Develop Tool"
-            }, {
                 id: 'about-button',
                 label: "About"
             }]

@@ -28,9 +28,9 @@ class SrtView(WebKit.WebView):
         settings.set_property('javascript-can-access-clipboard', True)
         settings.set_property('enable-default-context-menu', True)
         settings.set_property('enable-page-cache', True)
-        settings.set_property('tab-key-cycles-through-elements', True)
         settings.set_property('enable-spell-checking', False)
         settings.set_property('enable-caret-browsing', False)
+        self.set_maintains_back_forward_list(False)
         self.connect("new-window-policy-decision-requested",
                      self._new_window_requested)
         self.connect("console-message", self._console_log_cb)

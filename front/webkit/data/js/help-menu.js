@@ -7,7 +7,7 @@ $(function () {
         open('https://github.com/yuyichao/srtctrl/wiki');
         return true;
     });
-    $('#dev-tool-button').click(function () {
-        SrtCall('dev');
-    });
+    // $('#dev-tool-button').click(function () {
+    //     SrtCall('dev');
+    // });
 });

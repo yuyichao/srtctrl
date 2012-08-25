@@ -19,7 +19,7 @@ from __future__ import print_function, division
 from gi.repository import WebKit, Gtk, GLib, GObject
 from .util import *
 from .view import SrtView
-from .inspector import SrtInspector
+# from .inspector import SrtInspector
 from srt_comm import *
 import srt_comm
 import json
@@ -28,16 +28,22 @@ import os
 class SrtUI:
     def __init__(self, uri, conn):
         self._view = SrtView()
+        self._view.set_hexpand(True)
+        self._view.set_vexpand(True)
+        self._grid = Gtk.Grid()
+        self._grid.set_hexpand(True)
+        self._grid.set_vexpand(True)
+        self._grid.attach(self._view, 0, 0, 1, 1)
         self._window = Gtk.Window()
         self._window.set_default_size(500, 400)
-        self._window.add(self._view)
+        self._window.add(self._grid)
         self._window.connect("destroy", self._win_close_cb)
         self._view.connect("load-finished", self._load_finish_cb)
         self._view.connect("script-alert", self._script_alert_cb)
         self._view.load_uri(uri)
         self._conn = conn
         self._name = None
-        self._inspector = None
+        # self._inspector = None
         self._conn.connect('disconn', self._disconn_cb)
         GLib.timeout_add_seconds(10, self._pong_back_cb)
         self.__init_conn__()
@@ -82,22 +88,22 @@ class SrtUI:
         Gtk.main_quit()
     def show_all(self):
         self._window.show_all()
-    def show_inspector(self):
-        self._view.get_settings().set_property("enable-developer-extras", True)
-        inspector = self._view.get_inspector()
-        if self._inspector is None:
-            self._inspector = SrtInspector(inspector)
-        inspector.show()
-        self._inspector.connect('destroy', self._inspector_destroy_cb)
-    def _inspector_destroy_cb(self, inspector):
-        self.hide_inspector()
-    def hide_inspector(self):
-        self._view.get_settings().set_property("enable-developer-extras",
-                                               False)
-        if not self._inspector is None:
-            inspector = self._inspector
-            self._inspector = None
-            inspector.destroy()
+    # def show_inspector(self):
+    #     self._view.get_settings().set_property("enable-developer-extras", True)
+    #     inspector = self._view.get_inspector()
+    #     if self._inspector is None:
+    #         self._inspector = SrtInspector(inspector)
+    #     inspector.show()
+    #     self._inspector.connect('destroy', self._inspector_destroy_cb)
+    # def _inspector_destroy_cb(self, inspector):
+    #     self.hide_inspector()
+    # def hide_inspector(self):
+    #     self._view.get_settings().set_property("enable-developer-extras",
+    #                                            False)
+    #     if not self._inspector is None:
+    #         inspector = self._inspector
+    #         self._inspector = None
+    #         inspector.destroy()
     def _script_alert_cb(self, view, frame, msg):
         try:
             call = json.loads(msg)
@@ -155,8 +161,10 @@ class SrtUI:
         name = args[0]
         args = args[1:]
         return getattr(srt_comm, name)(*args)
-    def _handle_dev(self, args):
-        return self.show_inspector()
+    def _handle_refresh(self, args):
+        return
+    # def _handle_dev(self, args):
+    #     return self.show_inspector()
     def _handle_state(self, args):
         key = args[0]
         try:
