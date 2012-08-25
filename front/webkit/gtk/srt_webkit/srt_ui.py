@@ -211,8 +211,8 @@ class SrtUI:
         if self._ref > 0:
             if self._refresh_wait_to:
                 return
-            self._refresh_wait_to = GLib.timeout_add_seconds(
-                1, self._refresh_to_cb)
+            self._refresh_wait_to = GLib.timeout_add(
+                500, self._refresh_to_cb)
             return
         self._real_refresh()
     def _real_refresh(self):

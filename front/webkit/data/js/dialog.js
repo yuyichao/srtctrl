@@ -13,6 +13,7 @@
     $.extend({
         add_dialog: function (button, dialog, option) {
             var id = dialog_list.length;
+            var autoclose_timeout = null;
             var setting = $.extend({}, {
                 modal: false,
                 open: null,
@@ -22,18 +23,29 @@
                 button: button,
                 dialog: dialog
             });
+            function clear_timeout() {
+                if (autoclose_timeout) {
+                    clearTimeout(autoclose_timeout);
+                    autoclose_timeout = null;
+                }
+            }
             dialog.dialog({
                 autoOpen: false,
                 modal: setting.modal,
                 show: "blind",
                 hide: "highlight",
                 open: function () {
+                    clear_timeout();
+                    autoclose_timeout = setTimeout(function () {
+                        dialog.dialog('close');
+                    }, 600000);
                     SrtCall('ref', 1);
                     close_except(id);
                     if (setting.open)
                         setting.open();
                 },
                 close: function () {
+                    clear_timeout();
                     SrtCall('ref', -1);
                 }
             }).parent().css({
