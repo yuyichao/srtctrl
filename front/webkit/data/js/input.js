@@ -119,6 +119,31 @@
             max_width = Math.max(max_width, ui_entries[i].label.outerWidth());
         return max_width;
     }
+    function set_to_default(ui_entry) {
+        ui_entry.val(ui_entry.default);
+    }
+    function set_all_default(ui_entries) {
+        for (var e_i in ui_entries) {
+            set_to_default(ui_entries[e_i]);
+        }
+    }
+    function save_to_srtstate(ui_entry) {
+        SrtState(ui_entry.srt_state, ui_entry.val());
+    }
+    function save_all(ui_entries) {
+        for (var e_i in ui_entries) {
+            save_to_srtstate(ui_entries[e_i]);
+        }
+    }
+    function recover_srtstate(ui_entry) {
+        var val = SrtState(ui_entry.srt_state);
+        if (val === undefined) {
+            set_to_default(ui_entry);
+            return;
+        }
+        ui_entry.val(val);
+    }
+    var id_count = 0;
     $.extend({
         input_dialog: function (dialog_button, entries, buttons, option) {
             var dialog;
@@ -131,6 +156,7 @@
             var ui_value_block = $('<div></div>');
             var setting = $.extend({}, {
                 title: "",
+                id: (++id_count).toFixed()
             }, option);
             ui_button_block.addClass("srt-input-buttons");
             ui_button_block.addClass("ui-helper-clearfix");
@@ -145,9 +171,10 @@
                     type: entry.type,
                     option: entry.option,
                     advanced: entry.advanced,
-                    'default': entry.default
+                    'default': entry.default,
+                    srt_state: '_input_dialog_' + setting.id + '_' + entry.name
                 }, new_input(entry.type, entry.option));
-                ui_entry.val(ui_entry.default);
+                recover_srtstate(ui_entry);
                 if (entry.advanced) {
                     has_advanced = true;
                     ui_entry.block.css({display: "none"});
@@ -206,9 +233,7 @@
                 label: "Set To Default",
                 autoclose: false,
                 callback: function () {
-                    for (var e_i in ui_entries) {
-                        ui_entries[e_i].val(ui_entries[e_i].default);
-                    }
+                    set_all_default(ui_entries);
                     if (has_advanced)
                         toggle_advance(false);
                 }
@@ -271,11 +296,11 @@
                 background: "lightCyan",
                 title: setting.title,
                 open: function () {
-                    for (var e_i in ui_entries) {
-                        ui_entries[e_i].val(ui_entries[e_i].default);
-                    }
                     if (has_advanced)
                         toggle_advance(false);
+                },
+                close: function () {
+                    save_all(ui_entries);
                 }
             });
             return dialog;

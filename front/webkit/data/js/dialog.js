@@ -17,6 +17,7 @@
             var setting = $.extend({}, {
                 modal: false,
                 open: null,
+                close: null,
                 background: "white"
             }, option);
             dialog_list.push({
@@ -47,6 +48,8 @@
                 close: function () {
                     clear_timeout();
                     SrtCall('ref', -1);
+                    if (setting.close)
+                        setting.close();
                 }
             }).parent().css({
                 position: "absolute",
@@ -87,6 +90,7 @@
             var setting = $.extend({}, {
                 modal: false,
                 open: null,
+                close: null,
                 title: ele.attr("title"),
                 background: "white"
             }, option);
@@ -110,6 +114,7 @@
             $.add_dialog($(button), dialog, {
                 modal: setting.modal,
                 open: setting.open,
+                close: setting.close,
                 background: setting.background
             });
             return dialog;
