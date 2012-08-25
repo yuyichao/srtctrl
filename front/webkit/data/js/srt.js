@@ -50,6 +50,15 @@ $(function () {
             label: "Stow"
         }]
     }, {
+        label: "Setting",
+        submenu: [{
+            id: 'system-config-button',
+            label: "System Setting"
+        }, {
+            id: 'gui-config-button',
+            label: "GUI Setting"
+        }]
+    }, {
         label: "Help",
         submenu: [{
             id: 'doc-button',

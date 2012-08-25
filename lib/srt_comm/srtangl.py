@@ -153,4 +153,27 @@ def guess_angle(angle):
         return float(angle)
     except:
         pass
+    try:
+        angle = angle.strip()
+        if angle.startswith('-'):
+            neg = True
+            angle = angle[1:]
+        else:
+            neg = False
+        res = 0.
+        rat = 60.
+        for num in angle.split(':'):
+            rat /= 60.
+            num = num.strip()
+            if not num:
+                continue
+            num = float(num)
+            if num < 0:
+                raise ValueError
+            res += num * rat
+        if neg:
+            res = -res
+        return res
+    except:
+        pass
     raise ValueError
