@@ -27,6 +27,9 @@ import os
 
 class SrtUI:
     def __init__(self, uri, conn):
+        self._taking_data = False
+        self._take_data_id = 0
+        self._waiting_data = False
         self._ref = 0
         self._refresh_wait_to = 0
         self._new_view = None
@@ -159,6 +162,8 @@ class SrtUI:
             return self._handle_ready(view, args)
         elif type == 'ref':
             return self._handle_ref(view, args)
+        elif type == 'take-data':
+            return self._handle_take_data(view, args)
     def _handle_open(self, view, uri):
         return openuri(uri)
     def _handle_file(self, view, kw):
@@ -224,6 +229,38 @@ class SrtUI:
         self._new_alert = new_view.connect("script-alert",
                                            self._script_alert_cb)
         new_view.load_uri(self._uri)
+    def _send_take_data(self):
+        self._waiting_data = True
+        self._conn.send({"type": "cmd", "name": "radio",
+                         "args": [], "kwargs": {}})
+    def _take_data_got_obj_cb(self, conn, pkg):
+        try:
+            if not (pkg['type'] == "cmd" and pkg['name'] == "radio"):
+                return
+        except:
+            return
+        self._waiting_data = False
+        if self._taking_data:
+            self._send_take_data()
+            return
+        self._conn.disconnect(self._take_data_id)
+        self._take_data_id = 0
+    def _handle_take_data(self, view, args):
+        if args is None:
+            return self._taking_data
+        args = bool(args)
+        if args == self._taking_data:
+            return
+        self._taking_data = args
+        if self._waiting_data:
+            return
+        if args:
+            self._take_data_id = self._conn.connect("got-obj",
+                                                    self._take_data_got_obj_cb)
+            self._send_take_data()
+        else:
+            self._conn.disconnect(self._take_data_id)
+            self._take_data_id = 0
     # def _handle_dev(self, args):
     #     return self.show_inspector()
     def _handle_state(self, view, args):

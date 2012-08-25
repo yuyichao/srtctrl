@@ -205,8 +205,8 @@ class SrtCenter(GObject.Object):
         if None in [name, name_list]:
             return
         self._host.feed_query(sid, name, name_list)
-    def _helper_handle_got_cmd(self, sid=None, **kw):
-        self._host.feed_got_cmd(sid)
+    def _helper_handle_got_cmd(self, sid=None, name=None, **kw):
+        self._host.feed_got_cmd(sid, name)
     def _helper_handle_slave(self, sid=None, obj=None, **kw):
         if obj is None:
             return

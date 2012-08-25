@@ -395,9 +395,9 @@ class SrtHost(GObject.Object):
     def feed_query(self, sid, name, name_list):
         return self._send_sid(sid, {"type": "query",
                                     "name": name, "name_list": name_list})
-    def feed_got_cmd(self, sid):
+    def feed_got_cmd(self, sid, name):
         self._processing = False
-        res = self._send_sid(sid, {"type": "cmd"})
+        res = self._send_sid(sid, {"type": "cmd", "name": name})
         self._check_queue()
         return res
     def feed_config(self, sid, field, name, value, notify):
