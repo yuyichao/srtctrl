@@ -81,6 +81,14 @@ def zwicky_reset(zwicky, *w, **kw):
 setiface.cmds.zwicky.reset = zwicky_reset
 setiface.cmds.zwicky.stow = zwicky_reset
 
+def zwicky_quit(zwicky, *w, **kw):
+    zwicky.reset()
+    zwicky.send_quit()
+    return True
+
+setiface.cmds.zwicky.quit = zwicky_quit
+setiface.cmds.zwicky.exit = zwicky_quit
+
 def zwicky_radio(zwicky, count=1, interval=None, until=None, *w, **kw):
     count = int(round(float(count)))
     time_limit = None

@@ -271,7 +271,4 @@ class SrtUI:
             return
         except:
             pass
-        try:
-            return self._srt_state[key]
-        except:
-            pass
+        return self._srt_state[key]

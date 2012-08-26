@@ -138,6 +138,8 @@ class ZwickyHelper(GObject.Object):
         return self.radio.corr_radio(data, mode)
     def send_slave(self, sid, obj):
         self._helper.send_slave(sid, obj)
+    def send_quit(self):
+        self._helper.send_quit()
     def send_invalid(self, sid):
         self._helper.send_invalid(sid)
     def send_chk_alarm(self, name, nid, args):

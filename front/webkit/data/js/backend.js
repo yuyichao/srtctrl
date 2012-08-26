@@ -100,7 +100,7 @@ function SrtObject(opt) {
 (function () {
     var cb_count = 0;
     SrtCall = function (type, args, raise) {
-        var res = null
+        var res;
         cb_count = (cb_count + 1) % 4000000000
         name = '_' + cb_count;
         alert(JSON.stringify({
@@ -184,6 +184,15 @@ function SrtObject(opt) {
                 field: field,
                 name: name,
                 notify: true
+            });
+        },
+        set_config: function (field, name, value) {
+            _send({
+                type: 'config',
+                field: field,
+                name: name,
+                set_value: true,
+                value: value
             });
         }
     };

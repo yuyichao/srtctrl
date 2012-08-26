@@ -3,6 +3,12 @@ var SetMapTime;
 $(function () {
     var time = 0;
     var track = true;
+    function apply_new_time() {
+        for (var i in targets_list) {
+            send_track_alarm(targets_list[i]);
+        }
+        SrtState('sky-map-targets_time-track', [time, track]);
+    }
     SetMapTime = function (_time) {
         var new_interval = SrtComm('guess_interval', _time);
         if (isFinite(new_interval)) {
@@ -10,9 +16,7 @@ $(function () {
                 return;
             time = new_interval;
             track = true;
-            for (var i in targets_list) {
-                send_track_alarm(targets_list[i]);
-            }
+            apply_new_time();
             return;
         }
         var new_time = SrtComm('guess_time', _time);
@@ -21,12 +25,17 @@ $(function () {
                 return;
             time = new_time;
             track = false;
-            for (var i in targets_list) {
-                send_track_alarm(targets_list[i]);
-            }
+            apply_new_time();
             return;
         }
     };
+    (function () {
+        var time_track = SrtState('sky-map-targets_time-track');
+        if (!time_track)
+            return;
+        time = time_track[0];
+        track = time_track[1];
+    })();
     /**
      * Initialize the target list
      **/
@@ -188,12 +197,12 @@ $(function () {
                 if (field != name || key != 'station')
                     return;
                 if (!station) {
-                    station = value;
+                    station = value.slice();
                     for (var i in targets_list) {
                         register_target(targets_list[i]);
                     }
                 } else {
-                    station = value;
+                    station = value.slice();
                     for (var i in targets_list) {
                         send_track_alarm(targets_list[i]);
                     }
