@@ -37,8 +37,8 @@ class SrtTracker(GObject.Object):
         self._plugin = getiface.alarm.trackers[name](args)
         self._name = name
         try:
-            self._off_az, self._off_el = offset
-            self._off_az, self._off_el = float(self._off_az), float(self._off_el)
+            self._off_az, self._off_el = [guess_angle(agl)
+                                          for agl in offset[:2]]
         except:
             self._off_az, self._off_el = [0, 0]
         self._track = bool(track)
@@ -53,9 +53,8 @@ class SrtTracker(GObject.Object):
             except:
                 self._time = _time.time()
 
-        self._station_az, self._station_el = station[:2]
-        self._station_az, self._station_el = (float(self._station_az),
-                                              float(self._station_el))
+        self._station_az, self._station_el = [guess_angle(agl)
+                                              for agl in station[:2]]
         try:
             self._station_hi = float(station[2])
         except:

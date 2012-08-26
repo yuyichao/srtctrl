@@ -17,10 +17,12 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division
+from srt_comm import *
+
 class TrackSimple:
     def __init__(self, args):
         try:
-            self._az, self._el = [float(i) for i in args]
+            self._az, self._el = [guess_angle(i) for i in args[:2]]
         except:
             self._az, self._el = [0, 0]
     def __call__(self, station, time):

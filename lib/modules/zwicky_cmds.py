@@ -23,7 +23,6 @@ import time as _time
 def zwicky_move(zwicky, name="", args=None, offset=[0., 0.], time=0,
                 track=True, *w, **kw):
     name = std_arg("", name)
-    offset = std_arg([0., 0.], offset)
     track = std_arg(False, track)
     if not zwicky.track(name=name, offset=offset, time=time,
                         track=track, args=args):

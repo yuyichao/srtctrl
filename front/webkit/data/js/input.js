@@ -298,8 +298,6 @@
                 background: "lightCyan",
                 title: setting.title,
                 open: function () {
-                    if (has_advanced)
-                        toggle_advance(false);
                 },
                 close: function () {
                     save_all(ui_entries);

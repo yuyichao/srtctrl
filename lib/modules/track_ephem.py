@@ -58,7 +58,7 @@ setiface.alarm.trackers.Sun = TrackSun
 class TrackGalactic:
     def __init__(self, args):
         try:
-            self._az, self._el = [float(i) for i in args]
+            self._az, self._el = [guess_angle(i) for i in args[:2]]
         except:
             self._az, self._el = [0, 0]
         gal = ephem.Galactic(*deg2rad([self._az, self._el]),
@@ -101,7 +101,7 @@ class TrackRaDec:
     def __init__(self, args):
         self._p = ephem.FixedBody()
         try:
-            self._p._ra, self._p._dec = [float(i) for i in args]
+            self._p._ra, self._p._dec = [guess_angle(i) for i in args[:2]]
         except:
             self._p._ra, self._p._dec = [0, 0]
     def __call__(self, station, time):
