@@ -31,22 +31,27 @@ def _try_formats(tstr, formats):
     return
 
 _interval_guesser = [
-    [_re.compile("^(?P<sec>[-.0-9]+)s?$"), lambda grp: float(grp("sec"))],
-    [_re.compile("^(?P<min>[-.0-9]+)m$"), lambda grp: float(grp("min")) * 60],
-    [_re.compile("^(?P<hour>[-.0-9]+)h$"),
+    [_re.compile("^(?P<sec>[-.0-9]+)(s(ec)?)?$"),
+     lambda grp: float(grp("sec"))],
+    [_re.compile("^(?P<min>[-.0-9]+)m(in)?$"),
+     lambda grp: float(grp("min")) * 60],
+    [_re.compile("^(?P<hour>[-.0-9]+)h(our)?$"),
      lambda grp: float(grp("hour")) * 3600],
-    [_re.compile("^(?P<min>[-.0-9]+)m(?P<sec>[-.0-9]+)s?$"),
+    [_re.compile("^(?P<min>[-.0-9]+)m(in)?(?P<sec>[-.0-9]+)(s(ec)?)?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
-    [_re.compile("^(?P<hour>[-.0-9]+)h(?P<min>[-.0-9]+)m$"),
+    [_re.compile("^(?P<hour>[-.0-9]+)h(our)?(?P<min>[-.0-9]+)m(in)?$"),
      lambda grp: float(grp("min")) * 60 + float(grp("hour")) * 3600],
-    [_re.compile("^(?P<hour>[-.0-9]+)h(?P<min>[-.0-9]+)m(?P<sec>[-.0-9]+)s?$"),
+    [_re.compile("^(?P<hour>[-.0-9]+)h(our)?(?P<min>[-.0-9]+)m(in)?"
+                 "(?P<sec>[-.0-9]+)(s(ec)?)?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^(?P<hour>[-.0-9]+)h?:(?P<min>[-.0-9]+)m?"
-                 ":(?P<sec>[-.0-9]+)s?$"),
+    [_re.compile("^(?P<hour>[-.0-9]+)(h(our)?)?:(?P<min>[-.0-9]+)(m(in)?)?"
+                 ":(?P<sec>[-.0-9]+)(s(ec)?)?$"),
      lambda grp: (float(grp("sec")) + float(grp("min")) * 60
                   + float(grp("hour")) * 3600)],
-    [_re.compile("^(?P<min>[-.0-9]+)m?:(?P<sec>[-.0-9]+)s?$"),
+    [_re.compile("^(?P<hour>[-.0-9]+)(h(our)?)?:(?P<min>[-.0-9]+)(m(in)?)?$"),
+     lambda grp: float(grp("hour")) * 3600 + float(grp("min")) * 60],
+    [_re.compile("^(?P<min>[-.0-9]+)(m(in)?)?:(?P<sec>[-.0-9]+)(s(ec)?)?$"),
      lambda grp: float(grp("sec")) + float(grp("min")) * 60],
     ]
 

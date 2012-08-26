@@ -19,6 +19,15 @@ from gi.repository import WebKit, Gtk
 from .util import *
 from srt_comm import *
 
+def new_window_cb(self, frame, request, action, decision):
+    decision.ignore()
+    uri = request.get_uri()
+    openuri(uri)
+    return True
+def console_message_cb(self, msg, line, src):
+    printg("%s @#%d:\n%s" % (src, line, msg))
+    return True
+
 class SrtView(WebKit.WebView):
     def __init__(self):
         super(SrtView, self).__init__()
@@ -31,11 +40,5 @@ class SrtView(WebKit.WebView):
         settings.set_property('enable-spell-checking', False)
         settings.set_property('enable-caret-browsing', False)
         self.set_maintains_back_forward_list(False)
-    def do_new_window_requested(self, frame, request, action, decision):
-        decision.ignore()
-        uri = request.get_uri()
-        openuri(uri)
-        return True
-    def do_console_message(self, msg, line, src):
-        printg("%s @#%d:\n%s" % (src, line, msg))
-        return True
+        self.connect('new-window-policy-decision-requested', new_window_cb)
+        self.connect('console-message', console_message_cb)
