@@ -47,7 +47,8 @@ class ZwickyMoter:
             return
         self.pos_chk()
     def reset(self):
-        self._chk_count = 0
+        self._az_chk_count = 0
+        self._el_chk_count = 0
         self._az_c = 0
         self._el_c = 0
         self._az_set_c_old = None
@@ -169,17 +170,23 @@ class ZwickyMoter:
                 self._el_set_c_old == self.el_c_set):
             self._az_set_c_old = self.az_c_set
             self._el_set_c_old = self.el_c_set
-            self._chk_count = 0
-        if self._chk_count >= 2:
+            self._az_chk_count = 0
+            self._el_chk_count = 0
+        if self._az_chk_count >= 3 or self._el_chk_count >= 3:
             return
-        self._chk_count += 1
+        self._az_chk_count += 1
+        self._el_chk_count += 1
         if self._el_set_c_old > self._el_c and not self._el_edge == 1:
+            self._el_chk_count += 1
             self._zwicky.send_move(DIRECT_UP, self._el_set_c_old - self._el_c)
         if self._az_set_c_old > self._az_c and not self._az_edge == 1:
+            self._az_chk_count += 1
             self._zwicky.send_move(DIRECT_HINC, self._az_set_c_old - self._az_c)
         if self._az_set_c_old < self._az_c and not self._az_edge == -1:
+            self._az_chk_count += 1
             self._zwicky.send_move(DIRECT_HDEC, self._az_c - self._az_set_c_old)
         if self._el_set_c_old < self._el_c and not self._el_edge == -1:
+            self._el_chk_count += 1
             self._zwicky.send_move(DIRECT_DOWN, self._el_c - self._el_set_c_old)
     def set_pos(self, az, el):
         self._az_set = float(az)
