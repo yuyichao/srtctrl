@@ -161,7 +161,6 @@ def zwicky_npoint(zwicky, x_count=3, y_count=3, x_step=2, y_step=2,
     base_x, base_y = zwicky.tracker.get_offset()
     for x_off, y_off in offsets:
         zwicky.tracker.set_offset(x_off + base_x, y_off + base_y)
-        zwicky.motor.pos_chk()
         res = zwicky_radio(zwicky, count=count, interval=interval)
         results.append([(x_off, y_off), res])
     zwicky.tracker.set_offset(base_x, base_y)

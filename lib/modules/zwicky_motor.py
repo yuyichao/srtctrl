@@ -47,8 +47,11 @@ class ZwickyMoter:
             return
         self.pos_chk()
     def reset(self):
+        self._chk_count = 0
         self._az_c = 0
         self._el_c = 0
+        self._az_set_c_old = None
+        self._el_set_c_old = None
         self._az_set = -10
         self._el_set = -10
         self._az_edge = -1
@@ -162,14 +165,22 @@ class ZwickyMoter:
     def pos_chk(self):
         if self._zwicky.remote_busy:
             return
-        if self.el_c_set > self._el_c and not self._el_edge == 1:
-            self._zwicky.send_move(DIRECT_UP, self.el_c_set - self._el_c)
-        if self.az_c_set > self._az_c and not self._az_edge == 1:
-            self._zwicky.send_move(DIRECT_HINC, self.az_c_set - self._az_c)
-        if self.az_c_set < self._az_c and not self._az_edge == -1:
-            self._zwicky.send_move(DIRECT_HDEC, self._az_c - self.az_c_set)
-        if self.el_c_set < self._el_c and not self._el_edge == -1:
-            self._zwicky.send_move(DIRECT_DOWN, self._el_c - self.el_c_set)
+        if not (self._az_set_c_old == self.az_c_set and
+                self._el_set_c_old == self.el_c_set):
+            self._az_set_c_old = self.az_c_set
+            self._el_set_c_old = self.el_c_set
+            self._chk_count = 0
+        if self._chk_count >= 2:
+            return
+        self._chk_count += 1
+        if self._el_set_c_old > self._el_c and not self._el_edge == 1:
+            self._zwicky.send_move(DIRECT_UP, self._el_set_c_old - self._el_c)
+        if self._az_set_c_old > self._az_c and not self._az_edge == 1:
+            self._zwicky.send_move(DIRECT_HINC, self._az_set_c_old - self._az_c)
+        if self._az_set_c_old < self._az_c and not self._az_edge == -1:
+            self._zwicky.send_move(DIRECT_HDEC, self._az_c - self._az_set_c_old)
+        if self._el_set_c_old < self._el_c and not self._el_edge == -1:
+            self._zwicky.send_move(DIRECT_DOWN, self._el_c - self._el_set_c_old)
     def set_pos(self, az, el):
         self._az_set = float(az)
         self._el_set = float(el)
