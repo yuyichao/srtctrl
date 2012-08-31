@@ -87,16 +87,18 @@
             function resize() {
                 plot_width = ele.width();
                 plot_height = ele.height();
-                font_height = plot_height / 10;
-                axis_size.x = plot_width / 10;
+                font_height = plot_height / 8;
+                axis_size.x = plot_width / 6;
                 var x = ele.css('font-size', font_height).measureText({
-                    text: '8888'
+                    text: '888888'
                 });
+                x.width = Math.max(x.height * 4, x.width);
                 if (x.width > axis_size.x) {
                     font_height = font_height * axis_size.x / x.width;
                     x = ele.css('font-size', font_height).measureText({
-                        text: '8888'
+                        text: '888888'
                     });
+                    x.width = Math.max(x.height * 4, x.width);
                 }
                 axis_size.x = x.width;
                 axis_size.y = x.height * 5 / 4;
@@ -160,7 +162,7 @@
             strokeStyle: "#000",
             strokeWidth: 1,
             x1: axis_size.x,
-            y1: axis_size.y,
+            y1: 0,
             x2: axis_size.x,
             y2: plot_height - axis_size.y
         }).drawLine({
@@ -168,21 +170,21 @@
             strokeWidth: 1,
             x1: axis_size.x,
             y1: plot_height - axis_size.y,
-            x2: plot_width - axis_size.x,
+            x2: plot_width,
             y2: plot_height - axis_size.y
         });
         if (x_labels) {
             if (x_labels[0])
                 ele.drawText({
                     fillStyle: "black",
-                    x: axis_size.x,
+                    x: axis_size.x * 1.5,
                     y: plot_height - axis_size.y / 2,
                     text: x_labels[0]
                 });
             if (x_labels[1])
                 ele.drawText({
                     fillStyle: "black",
-                    x: plot_width - axis_size.x,
+                    x: plot_width - axis_size.x / 2,
                     y: plot_height - axis_size.y / 2,
                     text: x_labels[1]
                 });
@@ -192,24 +194,23 @@
                 ele.drawText({
                     fillStyle: "black",
                     x: axis_size.x / 2,
-                    y: plot_height - axis_size.y,
+                    y: plot_height - axis_size.y * 1.5,
                     text: y_labels[0]
                 });
             if (y_labels[1])
                 ele.drawText({
                     fillStyle: "black",
                     x: axis_size.x / 2,
-                    y: axis_size.y,
+                    y: axis_size.y / 2,
                     text: y_labels[1]
                 });
         }
     }
     function convert_x(x, axis_size, plot_height, plot_width) {
         return Math.round(axis_size.x +
-                          (plot_width - axis_size.x * 2) * x);
+                          (plot_width - axis_size.x) * x);
     }
     function convert_y(y, axis_size, plot_height, plot_width) {
-        return Math.round(axis_size.y +
-                          (plot_height - axis_size.y * 2) * (1 - y));
+        return Math.round((plot_height - axis_size.y) * (1 - y));
     }
 })();
