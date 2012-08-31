@@ -13,7 +13,9 @@
         }
         return [min, max];
     }
-    function num_to_label(min, max) {
+    function num_to_label(limits) {
+        var min = parseFloat(limits[0]);
+        var max = parseFloat(limits[1]);
         var diff = (max - min) / 5;
         var n = Math.floor(Math.max(Math.log(Math.abs(min)),
                                     Math.log(Math.abs(min))) / Math.log(10));
@@ -27,7 +29,7 @@
             if (dn >= -1) {
                 return [min.toFixed(1), max.toFixed(1)];
             }
-            n = Math.max(n - dn, 5);
+            n = Math.min(5 - n, -dn);
             return [min.toFixed(n), max.toFixed(n)];
         }
         if (n <= 6) {
@@ -57,7 +59,7 @@
                         delete lines[name];
                         return;
                     }
-                    if (!isArray(data))
+                    if (!$.isArray(data))
                         return;
                     lines[name] = data;
                     if (!redraw_timeout) {
@@ -70,7 +72,7 @@
                 set_xlimit: function (min, max) {
                     min = parseFloat(min);
                     max = parseFloat(max);
-                    if (!isFinite(min) || !isFinite(max))
+                    if (!(isFinite(min) && isFinite(max)))
                         return;
                     limits.x = [min, max];
                 },
@@ -85,15 +87,15 @@
             function resize() {
                 plot_width = ele.width();
                 plot_height = ele.height();
-                font_height = plot_height / 15;
-                axis_size.x = plot_width / 15;
+                font_height = plot_height / 10;
+                axis_size.x = plot_width / 10;
                 var x = ele.css('font-size', font_height).measureText({
-                    text: '888888'
+                    text: '8888'
                 });
                 if (x.width > axis_size.x) {
                     font_height = font_height * axis_size.x / x.width;
                     x = ele.css('font-size', font_height).measureText({
-                        text: '888888'
+                        text: '8888'
                     });
                 }
                 axis_size.x = x.width;
@@ -120,6 +122,7 @@
                 }
                 if (!(isFinite(y_limit[0]) && isFinite(y_limit[1])))
                     return;
+                ele.clearCanvas();
                 y_labels = num_to_label(y_limit);
                 redraw_axis(ele, axis_size, plot_height, plot_width,
                             x_labels, y_labels);
@@ -130,26 +133,25 @@
                     if (!len > 1)
                         continue;
                     for (var i in line) {
+                        i = parseInt(i);
                         draw['x' + (i + 1)] = convert_x(
                             i / (len - 1), axis_size, plot_height, plot_width);
                         draw['y' + (i + 1)] = convert_y(
                             (line[i] - y_limit[0]) / (y_limit[1] - y_limit[0]),
                             axis_size, plot_height, plot_width);
                     }
-                    ele.drawLine({
+                    draw = $.extend({
                         strokeStyle: "#000",
-                        strokeWidth: 1,
-                        x1: axis_size.x,
-                        y1: axis_size.y,
-                        x2: axis_size.x,
-                        y2: plot_height - axis_size.y
-                    });
+                        strokeWidth: 1
+                    }, draw);
+                    ele.drawLine(draw);
                 }
             }
             ele.autorefresh(function () {
                 resize();
                 redraw();
             });
+            return res;
         }
     });
     function redraw_axis(ele, axis_size, plot_height, plot_width,

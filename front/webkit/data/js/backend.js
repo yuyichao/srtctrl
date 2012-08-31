@@ -276,6 +276,6 @@ function SrtObject(opt) {
         if (!name)
             return;
         SrtIFace.emit('signal::' + name.replace(/_/g, '-'),
-                     name, pkg.value, pkg.props);
+                      name, pkg.value, pkg.props);
     }
 })();
