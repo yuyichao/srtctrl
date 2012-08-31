@@ -1,4 +1,18 @@
 (function () {
+    function lines_limit(lines) {
+        var min = Infinity;
+        var max = -Infinity;
+        var tmp;
+        for (var i in lines) {
+            tmp = Math.max.apply(this, lines[i]);
+            if (tmp > max)
+                max = tmp;
+            tmp = Math.min.apply(this, lines[i]);
+            if (tmp < min)
+                min = tmp;
+        }
+        return [min, max];
+    }
     function num_to_label(min, max) {
         var diff = (max - min) / 5;
         var n = Math.floor(Math.max(Math.log(Math.abs(min)),
@@ -23,13 +37,12 @@
         n = Math.min(n, 3);
         return [min.toExponential(n), max.toExponential(n)];
     }
-    $.extend({
+    $.fn.extend({
         plot_region: function () {
             var ele = $(this.filter('canvas')[0]);
             var plot_width;
             var plot_height;
             var font_height;
-            var sky_map;
             var redraw_timeout = undefined;
             var axis_size = {
                 x: undefined,
@@ -47,6 +60,12 @@
                     if (!isArray(data))
                         return;
                     lines[name] = data;
+                    if (!redraw_timeout) {
+                        setTimeout(function () {
+                            redraw_timeout = undefined;
+                            redraw();
+                        }, 100);
+                    }
                 },
                 set_xlimit: function (min, max) {
                     min = parseFloat(min);
@@ -84,10 +103,53 @@
             function redraw() {
                 var x_labels;
                 var y_labels;
+                var y_limit;
+                if (redraw_timeout) {
+                    clearTimeout(redraw_timeout);
+                    redraw_timeout = undefined;
+                }
+                if ($.isEmptyObject(lines))
+                    return;
                 if ('x' in limits) {
                     x_labels = num_to_label(limits.x);
                 }
+                if ('y' in limits) {
+                    y_limit = limits.y;
+                } else {
+                    y_limit = lines_limit(lines);
+                }
+                if (!(isFinite(y_limit[0]) && isFinite(y_limit[1])))
+                    return;
+                y_labels = num_to_label(y_limit);
+                redraw_axis(ele, axis_size, plot_height, plot_width,
+                            x_labels, y_labels);
+                for(var l in lines) {
+                    var line = lines[l];
+                    var len = line.length;
+                    var draw = {};
+                    if (!len > 1)
+                        continue;
+                    for (var i in line) {
+                        draw['x' + (i + 1)] = convert_x(
+                            i / (len - 1), axis_size, plot_height, plot_width);
+                        draw['y' + (i + 1)] = convert_y(
+                            (line[i] - y_limit[0]) / (y_limit[1] - y_limit[0]),
+                            axis_size, plot_height, plot_width);
+                    }
+                    ele.drawLine({
+                        strokeStyle: "#000",
+                        strokeWidth: 1,
+                        x1: axis_size.x,
+                        y1: axis_size.y,
+                        x2: axis_size.x,
+                        y2: plot_height - axis_size.y
+                    });
+                }
             }
+            ele.autorefresh(function () {
+                resize();
+                redraw();
+            });
         }
     });
     function redraw_axis(ele, axis_size, plot_height, plot_width,
@@ -142,30 +204,10 @@
     }
     function convert_x(x, axis_size, plot_height, plot_width) {
         return Math.round(axis_size.x +
-                          (plot_width - axis_size.x * 2) * (x / 360));
+                          (plot_width - axis_size.x * 2) * x);
     }
     function convert_y(y, axis_size, plot_height, plot_width) {
         return Math.round(axis_size.y +
-                          (plot_height - axis_size.y * 2) * (1 - y / 90));
+                          (plot_height - axis_size.y * 2) * (1 - y));
     }
-    $(function () {
-        sky_map = $("#sky-map");
-        sky_map.autorefresh(function () {
-            resize();
-            remap_all();
-        }).mousemove(function (event) {
-            mouse_pos.x = event.offsetX;
-            mouse_pos.y = event.offsetY;
-            check_hover();
-        }).mouseleave(function (event) {
-            mouse_pos.x = undefined;
-            mouse_pos.y = undefined;
-            check_hover();
-        }).click(function () {
-            try {
-                obj_list[hover].click();
-            } catch (e) {
-            }
-        });
-    });
 })();
